@@ -1,0 +1,24 @@
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+.kotlin/
+captures/
+.cxx/
+.externalNativeBuild/
+
+# Firebase credentials — do NOT commit
+google-services.json
+**/google-services.json
+*.firebase-service-account.json
+.firebaserc
+
+# Cloud Functions
+functions/node_modules/
+functions/lib/
+functions/.env
+
+# OS
+.DS_Store
+Thumbs.db

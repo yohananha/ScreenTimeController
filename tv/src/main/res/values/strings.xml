@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Screen Time TV</string>
+    <string name="grant_usage_access">Grant usage access</string>
+    <string name="usage_access_prompt">Screen Time needs access to app usage statistics so it can track and limit screen time. Tap below to open system settings.</string>
+    <string name="usage_access_granted">Usage access granted. Tracking is now running.</string>
+    <string name="accessibility_service_description">Detects which app is in the foreground so Screen Time can block apps when daily limits are reached.</string>
+    <string name="grant_overlay">Grant overlay permission</string>
+    <string name="overlay_prompt">Screen Time needs permission to show the block screen over other apps when time\'s up. Tap below to open system settings.</string>
+    <string name="grant_accessibility">Enable accessibility service</string>
+    <string name="accessibility_prompt">Screen Time needs the accessibility service to detect which app is open and enforce limits. Tap below to open system settings.</string>
+    <string name="permissions_complete">All permissions granted. Enforcement is now active.</string>
+    <string name="permissions_complete_title">All set!</string>
+</resources>

@@ -1,0 +1,173 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- Helpers -----------------------------------------------------------
+    // These operate on a family document's *data* (the stored/server state),
+    // never on client-supplied request.resource.data, so membership and role
+    // can't be forged by the write itself.
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // The family doc, fetched from server state, for rules that live outside
+    // the /families/{familyId} match (subcollections, /devices).
+    function familyDoc(familyId) {
+      return get(/databases/$(database)/documents/families/$(familyId)).data;
+    }
+
+    function isMemberOf(fam) {
+      return signedIn() && (request.auth.uid in fam.roles);
+    }
+
+    function isAdminOf(fam) {
+      return isMemberOf(fam) && fam.roles[request.auth.uid] == 'admin';
+    }
+
+    // The single "main admin" — the only account allowed to control the TV.
+    function isOwnerOf(fam) {
+      return signedIn() && request.auth.uid == fam.ownerUid;
+    }
+
+    // Paired TV devices authenticate anonymously; their uid is the deviceId.
+    function isDeviceOf(fam) {
+      return signedIn() && (request.auth.uid in fam.get('devices', []));
+    }
+
+    // Parents (admin or user) and paired TVs may read family data.
+    function canReadOf(fam) {
+      return isMemberOf(fam) || isDeviceOf(fam);
+    }
+
+    function touchesOnly(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    // ---- /users/{uid} ------------------------------------------------------
+    // Each signed-in user owns their own doc, which points at their familyId.
+    match /users/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // ---- /families/{familyId} ---------------------------------------------
+    match /families/{familyId} {
+
+      allow get: if canReadOf(resource.data);
+      allow list: if false;
+
+      // Create your own family only: you are the owner and the sole admin,
+      // and you start with no paired devices.
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.roles[request.auth.uid] == 'admin'
+        && request.resource.data.roles.keys().hasOnly([request.auth.uid])
+        && request.resource.data.get('devices', []).size() == 0;
+
+      // Admins manage member roles. Guardrails:
+      //  - ownerUid is immutable (the main admin can't be swapped out),
+      //  - the owner always stays an admin (can't be demoted/removed),
+      //  - the paired-device list may only be changed by the owner.
+      // New members are added server-side (Cloud Functions), never by a
+      // client writing themselves into roles — that was the takeover hole.
+      allow update: if isAdminOf(resource.data)
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.roles[resource.data.ownerUid] == 'admin'
+        && (
+          request.resource.data.get('devices', []) == resource.data.get('devices', [])
+          || isOwnerOf(resource.data)
+        );
+
+      // Only the main admin (owner) may delete the family.
+      allow delete: if isOwnerOf(resource.data);
+
+      // ---- Subcollections -------------------------------------------------
+
+      // Usage is written by the TV (and admins, e.g. daily reset); read by all.
+      match /usage/{date} {
+        allow read: if canReadOf(familyDoc(familyId));
+        allow write: if isDeviceOf(familyDoc(familyId)) || isAdminOf(familyDoc(familyId));
+      }
+
+      // Limits/settings are set by parents only. The TV (the device being
+      // restricted) can READ them but must never write them.
+      match /limits/{doc=**} {
+        allow read: if canReadOf(familyDoc(familyId));
+        allow write: if isMemberOf(familyDoc(familyId));
+      }
+
+      // The TV publishes its launchable apps; parents read them.
+      match /tvApps/{pkg} {
+        allow read: if canReadOf(familyDoc(familyId));
+        allow write: if isDeviceOf(familyDoc(familyId)) || isMemberOf(familyDoc(familyId));
+      }
+
+      // One-time unlock codes. Parents create; the TV redeems (get + delete).
+      // The TV may not LIST codes (only single-doc get during redemption),
+      // so it can't dump every active code.
+      match /codes/{code} {
+        allow get: if canReadOf(familyDoc(familyId));
+        allow list: if isMemberOf(familyDoc(familyId));
+        allow create: if isMemberOf(familyDoc(familyId));
+        allow delete: if isDeviceOf(familyDoc(familyId)) || isMemberOf(familyDoc(familyId));
+        allow update: if false;
+      }
+
+      // Time requests. The TV may CREATE a pending request but may NOT
+      // approve it — only parents can change its status.
+      match /requests/{id} {
+        allow read: if canReadOf(familyDoc(familyId));
+        allow create: if (isDeviceOf(familyDoc(familyId)) || isMemberOf(familyDoc(familyId)))
+          && request.resource.data.status == 'pending';
+        allow update: if isMemberOf(familyDoc(familyId));
+        allow delete: if isAdminOf(familyDoc(familyId));
+      }
+
+      // Lockout configuration is parent-only. The TV may only flip the live
+      // lock state (locked / lockedUntil) so timers can auto-clear; it can't
+      // rewrite the duration/mode.
+      match /settings/{doc} {
+        allow read: if canReadOf(familyDoc(familyId));
+        allow create: if isMemberOf(familyDoc(familyId));
+        allow update: if isMemberOf(familyDoc(familyId))
+          || (isDeviceOf(familyDoc(familyId)) && touchesOnly(['locked', 'lockedUntil']));
+        allow delete: if isMemberOf(familyDoc(familyId));
+      }
+
+      // Any other subcollection: parents/devices read, parents write.
+      match /{document=**} {
+        allow read: if canReadOf(familyDoc(familyId));
+        allow write: if isMemberOf(familyDoc(familyId));
+      }
+    }
+
+    // ---- /invites/{code} ---------------------------------------------------
+    // Fully managed by Cloud Functions (admin SDK). Direct client access is
+    // denied so codes can't be enumerated, forged, or read to harvest every
+    // family's id.
+    match /invites/{code} {
+      allow read, write: if false;
+    }
+
+    // ---- /pairings/{code} --------------------------------------------------
+    // Fully managed by Cloud Functions (createTvPairing / claimTvPairing).
+    match /pairings/{code} {
+      allow read, write: if false;
+    }
+
+    // ---- /devices/{deviceId} ----------------------------------------------
+    // deviceId is the TV's anonymous-auth uid. Binding (create) happens only
+    // inside claimTvPairing; the family pointer can never be changed by a
+    // client write (one TV ↔ one family); only the owner may unpair (delete).
+    match /devices/{deviceId} {
+      allow get: if signedIn()
+        && (request.auth.uid == deviceId || isMemberOf(familyDoc(resource.data.familyId)));
+      allow list: if false;
+      allow create: if false;
+      allow update: if signedIn()
+        && request.resource.data.familyId == resource.data.familyId
+        && (request.auth.uid == deviceId || isMemberOf(familyDoc(resource.data.familyId)));
+      allow delete: if isOwnerOf(familyDoc(resource.data.familyId));
+    }
+  }
+}
