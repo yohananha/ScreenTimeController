@@ -279,24 +279,21 @@ class FirestoreRepository @Inject constructor(
     }
 
     /**
-     * Atomically reads + deletes the code. Returns the extraMinutes granted,
-     * or null if the code doesn't exist or is expired.
+     * Redeems a 4-digit code via the [redeemCode] Cloud Function, which
+     * enforces the lockout server-side. Returns the granted extra minutes.
+     * Throws [FirebaseFunctionsException] with:
+     *  - NOT_FOUND → wrong or expired code (server already incremented the
+     *    failure counter and may have triggered lockout),
+     *  - FAILED_PRECONDITION → the device is currently locked out.
      */
-    suspend fun redeemCode(familyId: String, code: String): Int? {
-        val docRef = db.collection("families").document(familyId)
-            .collection("codes").document(code)
-        return db.runTransaction { tx ->
-            val snap = tx.get(docRef)
-            if (!snap.exists()) return@runTransaction null
-            val expires = snap.getTimestamp("expiresAt")?.toDate()?.toInstant()
-            if (expires != null && Instant.now().isAfter(expires)) {
-                tx.delete(docRef)
-                return@runTransaction null
-            }
-            val minutes = snap.getLong("extraMinutes")?.toInt() ?: return@runTransaction null
-            tx.delete(docRef)
-            minutes
-        }.await()
+    suspend fun redeemCode(familyId: String, code: String): Int {
+        val result = functions.getHttpsCallable("redeemCode")
+            .call(mapOf("familyId" to familyId, "code" to code))
+            .await()
+        @Suppress("UNCHECKED_CAST")
+        val data = result.getData() as? Map<String, Any?>
+        return (data?.get("extraMinutes") as? Number)?.toInt()
+            ?: error("redeemCode: extraMinutes missing in response.")
     }
 
     suspend fun createRequest(

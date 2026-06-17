@@ -102,14 +102,15 @@ service cloud.firestore {
         allow write: if isDeviceOf(familyDoc(familyId)) || isMemberOf(familyDoc(familyId));
       }
 
-      // One-time unlock codes. Parents create; the TV redeems (get + delete).
-      // The TV may not LIST codes (only single-doc get during redemption),
-      // so it can't dump every active code.
+      // One-time unlock codes. Parents create and list; redemption is
+      // exclusively via the redeemCode Cloud Function (admin SDK), so devices
+      // have no direct read or delete access — a compromised TV token can't
+      // enumerate or consume codes without going through the lockout check.
       match /codes/{code} {
-        allow get: if canReadOf(familyDoc(familyId));
+        allow get: if isMemberOf(familyDoc(familyId));
         allow list: if isMemberOf(familyDoc(familyId));
         allow create: if isMemberOf(familyDoc(familyId));
-        allow delete: if isDeviceOf(familyDoc(familyId)) || isMemberOf(familyDoc(familyId));
+        allow delete: if isMemberOf(familyDoc(familyId));
         allow update: if false;
       }
 
@@ -123,14 +124,17 @@ service cloud.firestore {
         allow delete: if isAdminOf(familyDoc(familyId));
       }
 
-      // Lockout configuration is parent-only. The TV may only flip the live
-      // lock state (locked / lockedUntil) so timers can auto-clear; it can't
-      // rewrite the duration/mode.
+      // Lockout configuration is parent-only. The TV may only CLEAR the live
+      // lock state (locked = false / lockedUntil removed) so timer-based
+      // lockouts can auto-expire; it can never SET locked = true — that is
+      // done exclusively by the redeemCode Cloud Function.
       match /settings/{doc} {
         allow read: if canReadOf(familyDoc(familyId));
         allow create: if isMemberOf(familyDoc(familyId));
         allow update: if isMemberOf(familyDoc(familyId))
-          || (isDeviceOf(familyDoc(familyId)) && touchesOnly(['locked', 'lockedUntil']));
+          || (isDeviceOf(familyDoc(familyId))
+              && touchesOnly(['locked', 'lockedUntil'])
+              && request.resource.data.locked == false);
         allow delete: if isMemberOf(familyDoc(familyId));
       }
 

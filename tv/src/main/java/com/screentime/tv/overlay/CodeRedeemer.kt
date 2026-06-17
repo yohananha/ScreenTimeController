@@ -1,5 +1,6 @@
 package com.screentime.tv.overlay
 
+import com.google.firebase.functions.FirebaseFunctionsException
 import com.screentime.shared.auth.FamilyIdProvider
 import com.screentime.shared.firestore.FirestoreRepository
 import com.screentime.shared.limits.BonusStore
@@ -26,27 +27,33 @@ class CodeRedeemer @Inject constructor(
     private val bonusStore: BonusStore,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val recentFailures = mutableListOf<Instant>()
 
-    /** Live lockout config + state, shared with the block overlay. */
+    /** Live lockout config + state, shared with the block overlay UI. */
     val lockout: StateFlow<LockoutSettings> = familyIdProvider.familyId
-        .flatMapLatest { id -> if (id == null) flowOf(LockoutSettings()) else firestore.lockoutFlow(id) }
+        .flatMapLatest { id ->
+            if (id == null) flowOf(LockoutSettings()) else firestore.lockoutFlow(id)
+        }
         .stateIn(scope, SharingStarted.Eagerly, LockoutSettings())
 
     /**
-     * Returns true if [code] granted bonus minutes for [currentlyBlocked].
-     * Tracks repeated wrong codes and triggers a lockout per
-     * [LockoutSettings] once [LockoutSettings.MAX_ATTEMPTS] failures land
-     * within [LockoutSettings.ATTEMPT_WINDOW_SECONDS].
+     * Submits [code] to the server for validation. Returns true if the code
+     * was accepted and bonus minutes were added for [currentlyBlocked].
+     *
+     * Failure tracking and lockout triggering are fully server-side: the
+     * [redeemCode] Cloud Function increments the failure counter and sets
+     * [LockoutSettings.locked] when the threshold is reached. The UI reacts
+     * via [lockout] which observes Firestore in real time.
      */
     suspend fun redeem(code: String, currentlyBlocked: String?): Boolean {
         val familyId = familyIdProvider.familyId.value ?: return false
-        val minutes = firestore.redeemCode(familyId, code)
-        if (minutes == null) {
-            recordFailure(familyId)
+        val minutes = try {
+            firestore.redeemCode(familyId, code)
+        } catch (e: FirebaseFunctionsException) {
+            // NOT_FOUND = wrong/expired code; FAILED_PRECONDITION = locked.
+            // In both cases the server has already updated Firestore, so the
+            // lockout StateFlow will reflect the new state automatically.
             return false
         }
-        recentFailures.clear()
         if (currentlyBlocked != null) {
             bonusStore.addBonus(currentlyBlocked, minutes * 60_000L)
         }
@@ -61,16 +68,5 @@ class CodeRedeemer @Inject constructor(
         if (until != null && Instant.now().isBefore(until)) return
         val familyId = familyIdProvider.familyId.value ?: return
         firestore.clearLockout(familyId)
-    }
-
-    private suspend fun recordFailure(familyId: String) {
-        val now = Instant.now()
-        recentFailures.add(now)
-        recentFailures.removeAll { it.isBefore(now.minusSeconds(LockoutSettings.ATTEMPT_WINDOW_SECONDS)) }
-        if (recentFailures.size >= LockoutSettings.MAX_ATTEMPTS) {
-            recentFailures.clear()
-            val config = lockout.value
-            firestore.triggerLockout(familyId, config.durationMinutes, config.mode)
-        }
     }
 }

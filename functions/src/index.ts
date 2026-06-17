@@ -12,6 +12,11 @@ const PAIRING_TTL_MS = 10 * 60 * 1000;
 const MAX_CODE_ATTEMPTS = 10;
 const DEFAULT_DEVICE_NAME = "Android TV";
 
+// Must stay in sync with LockoutSettings.kt companion constants.
+const MAX_WRONG_CODE_ATTEMPTS = 5;
+const ATTEMPT_WINDOW_MS = 60 * 1000;
+const DEFAULT_LOCKOUT_MINUTES = 15;
+
 // ---------------------------------------------------------------------------
 // Notification trigger
 // ---------------------------------------------------------------------------
@@ -270,4 +275,106 @@ export const claimTvPairing = onCall(async (req) => {
   });
 
   return { success: true };
+});
+
+// ---------------------------------------------------------------------------
+// Code redemption (TV-only, server-side lockout enforcement)
+// ---------------------------------------------------------------------------
+
+/**
+ * The TV submits a 4-digit unlock code. The server:
+ *  1. Confirms the device is paired to the family.
+ *  2. Rejects immediately if the family is in lockout.
+ *  3. Atomically validates + deletes the code.
+ *  4. On failure: increments a server-side counter; triggers lockout when
+ *     MAX_WRONG_CODE_ATTEMPTS failures occur within ATTEMPT_WINDOW_MS.
+ *  5. On success: resets the failure counter and returns extraMinutes.
+ *
+ * Errors: FAILED_PRECONDITION = locked, NOT_FOUND = wrong/expired code.
+ */
+export const redeemCode = onCall(async (req) => {
+  const deviceId = requireAuth(req);
+  const familyId = req.data?.familyId as string | undefined;
+  const code = req.data?.code as string | undefined;
+  if (!familyId || !code) {
+    throw new HttpsError("invalid-argument", "familyId and code are required.");
+  }
+
+  const db = getFirestore();
+
+  // Verify the device is paired to this family.
+  const famSnap = await db.collection("families").doc(familyId).get();
+  if (!famSnap.exists) throw new HttpsError("not-found", "Family not found.");
+  const devices = (famSnap.get("devices") as string[] | undefined) ?? [];
+  if (!devices.includes(deviceId)) {
+    throw new HttpsError("permission-denied", "Device not paired to this family.");
+  }
+
+  // Enforce server-side lockout before attempting redemption.
+  const lockoutRef = db
+    .collection("families").doc(familyId)
+    .collection("settings").doc("lockout");
+  const lockoutSnap = await lockoutRef.get();
+  if (lockoutSnap.exists && lockoutSnap.get("locked") === true) {
+    throw new HttpsError("failed-precondition", "Code entry is locked.");
+  }
+
+  // Atomically validate + consume the code.
+  const codeRef = db
+    .collection("families").doc(familyId)
+    .collection("codes").doc(code);
+
+  const extraMinutes: number | null = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(codeRef);
+    if (!snap.exists) return null;
+    const expiresAt = snap.get("expiresAt") as Timestamp | undefined;
+    if (expiresAt && expiresAt.toMillis() < Date.now()) {
+      tx.delete(codeRef);
+      return null;
+    }
+    const minutes = snap.get("extraMinutes") as number | undefined;
+    if (minutes == null) return null;
+    tx.delete(codeRef);
+    return minutes;
+  });
+
+  if (extraMinutes === null) {
+    // Wrong / expired code — increment server-side failure counter.
+    const now = Date.now();
+    const rawCount = (lockoutSnap.get("failureCount") as number | undefined) ?? 0;
+    const rawWindowStart = lockoutSnap.get("failureWindowStart") as Timestamp | undefined;
+    const windowExpired = !rawWindowStart || now - rawWindowStart.toMillis() > ATTEMPT_WINDOW_MS;
+    const newCount = windowExpired ? 1 : rawCount + 1;
+
+    if (newCount >= MAX_WRONG_CODE_ATTEMPTS) {
+      const durationMinutes =
+        (lockoutSnap.get("durationMinutes") as number | undefined) ?? DEFAULT_LOCKOUT_MINUTES;
+      const isParentMode = lockoutSnap.get("mode") === "parent";
+      const update: Record<string, unknown> = {
+        locked: true,
+        failureCount: 0,
+        failureWindowStart: FieldValue.delete(),
+      };
+      if (!isParentMode) {
+        update.lockedUntil = Timestamp.fromMillis(now + durationMinutes * 60_000);
+      }
+      await lockoutRef.set(update, { merge: true });
+    } else {
+      const windowStart: Timestamp = windowExpired
+        ? Timestamp.now()
+        : (rawWindowStart ?? Timestamp.now());
+      await lockoutRef.set(
+        { failureCount: newCount, failureWindowStart: windowStart },
+        { merge: true },
+      );
+    }
+    throw new HttpsError("not-found", "Invalid or expired code.");
+  }
+
+  // Success — reset failure counter.
+  await lockoutRef.set(
+    { failureCount: 0, failureWindowStart: FieldValue.delete() },
+    { merge: true },
+  );
+  return { extraMinutes };
 });
