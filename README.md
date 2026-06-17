@@ -1,141 +1,141 @@
 # Screen Time Controller
 
-A two-app Android system for managing screen time on an Android TV from a
-parent's phone. Plan and design notes live in
-`~/.claude/plans/screen-time-controller-fluffy-dragon.md`.
+An Android TV parental control system built with two apps that talk to each other through Firebase:
 
-## Status
+- **TV app** — runs on the family's Android TV, tracks per-app usage, and blocks apps the moment their daily limit is hit.
+- **Mobile app** — runs on the parent's phone; sets limits, approves time requests, generates one-time unlock codes, and manages the family.
 
-Phases 1–8 complete plus the daily-reset slice of Phase 9. The system is
-end-to-end functional once Firebase credentials are dropped in.
+---
 
-- **Phase 1 — TV usage tracking**: `UsageStatsManager` event sampling +
-  Room cache.
-- **Phase 2 — Enforcement**: Accessibility Service + `WindowManager` block
-  overlay.
-- **Phase 3 — Mobile limits UI**: Compose nav shell, LimitsScreen with
-  add/edit/remove.
-- **Phase 4 — Firebase sync**: `FirestoreRepository` is the source of
-  truth for `/families/{id}/limits` and `/families/{id}/usage/{date}`.
-- **Phase 5 — One-time codes**: Mobile generates, TV redeems via the block
-  overlay's number pad; `BonusStore` extends today's allowance.
-- **Phase 6 — Time requests + FCM**: Child taps "Request more time" → TV
-  writes a request → Cloud Function fans out an FCM push → parent
-  approves/denies → TV unblocks via `BonusStore`.
-- **Phase 7 — Auth + family**: Firebase Auth (email/password), family
-  creation, 6-digit invite codes for the second parent.
-- **Phase 8 — TV pairing**: TV signs in anonymously, displays a pairing
-  code, parent claims it from the mobile Family tab.
-- **Phase 9 (partial) — Daily reset**: `DailyResetWorker` clears the bonus
-  store at midnight. Remaining polish items (history charts, audit log,
-  Compose snapshot tests, Crashlytics, offline indicator) are open.
+## How it works
 
-**The build requires `google-services.json` in each app module.** See the
-Firebase setup section below.
+### First-time setup
 
-## Repo layout
+1. **Parent A** signs up in the mobile app → taps **Create a new family**. They become the family owner (the only account that can pair or unpair the TV).
+2. **Pair the TV**: launch the TV app and grant the three permissions it needs (Usage access, Draw over other apps, Accessibility service). The TV shows a **6-digit pairing code**. On mobile, open the **Family** tab → *Pair a TV* → enter the code.
+3. **Invite a co-parent**: in the **Family** tab → *Generate code*. The second parent signs up on their phone, picks *Join with an invite code*, and enters the 6-digit code. They join as a Member by default; the owner can promote them to Admin from the same tab.
+
+### Daily flow
+
+| What happens | Where |
+|---|---|
+| Set a YouTube limit of 60 min/day | Mobile → Limits tab → + |
+| TV blocks YouTube once 60 min is reached | TV — automatically |
+| Child taps "Request more time" on the block screen | TV |
+| Parent gets a push notification | Mobile |
+| Parent taps Approve (or Deny) | Mobile → Requests tab |
+| TV unblocks and adds the approved bonus time | TV — automatically |
+| Parent generates a 4-digit one-time code | Mobile → Codes tab |
+| Child types the code on the TV block screen | TV |
+| TV unblocks for the extra minutes in the code | TV — automatically |
+
+Limits and approval decisions sync in real time (< 2 seconds) via Firestore.
+
+### Role system
+
+| Role | Who | Can do |
+|---|---|---|
+| Owner | Family creator (first parent) | Everything — including pairing/unpairing the TV and deleting the family |
+| Admin | Promoted by the owner | Set limits, approve requests, invite members, promote/remove other members |
+| Member | Anyone who joins with an invite | View limits and approve requests |
+
+The TV is bound one-to-one to the family; it cannot be paired with a second family, and a family cannot claim two TVs at the same time.
+
+---
+
+## Repository layout
 
 ```
 ScreenTimeController/
-├── settings.gradle.kts            # :shared, :mobile, :tv
-├── build.gradle.kts
-├── gradle/libs.versions.toml      # version catalog
-├── shared/                        # Android library — models, Room, Firestore wrapper
-├── mobile/                        # phone app (Phase 3+)
-├── tv/                            # Android TV app (Phase 1+)
-└── functions/                     # Cloud Function (Phase 6) — not yet created
+├── shared/          # Android library: Firestore, Room, models — no UI
+├── mobile/          # Parent phone app (Jetpack Compose + Material 3)
+├── tv/              # Android TV app (Jetpack Compose for TV)
+├── functions/       # Firebase Cloud Functions (TypeScript/Node 20)
+├── firestore.rules  # Firestore security rules
+└── firebase.json    # Firebase project config
 ```
 
-## Firebase setup checklist
+Both `:mobile` and `:tv` depend on `:shared`. All Firestore reads/writes go through `FirestoreRepository` in `:shared`. Privilege-escalating operations (invite redemption, TV pairing, code redemption) are callable Cloud Functions so the Firestore rules can stay fully locked.
 
-Do this before Phase 4 (the Firebase sync layer) is wired up.
+---
 
-1. Create Firebase project named `screen-time-controller` in the Firebase
-   console.
-2. Register two Android apps under the same project:
-   - Mobile: `com.screentime.mobile`
-   - TV:     `com.screentime.tv`
-   Download each `google-services.json` and drop them at:
-   - `mobile/google-services.json`
-   - `tv/google-services.json`
+## Setting up from source
 
-   **The Gradle build will fail without these files** — the
-   `google-services` plugin requires them. Both files are in `.gitignore`
-   so they will not be committed.
-3. Enable Authentication → Sign-in methods → Email/Password + Google.
-4. Enable Cloud Firestore in production mode. Pick the nearest region.
-5. Apply the starter security rules from the plan doc.
-6. Enable Cloud Messaging (no console config needed).
-7. Upgrade to the Blaze plan and enable Cloud Functions (needed for the
-   FCM-on-request trigger in Phase 6).
-8. Install Firebase CLI: `npm i -g firebase-tools`, then `firebase login`.
+### Prerequisites
 
-## Running Phase 1 on an Android TV emulator
+- Android Studio Giraffe or newer
+- Node 22+ and `npm` (for Cloud Functions)
+- A Firebase project on the **Blaze** (pay-as-you-go) plan
 
-1. Open the project in Android Studio (Giraffe or newer).
-2. Create an AVD: **Tools → Device Manager → Create Device → TV → 1080p
-   Android TV**. Use an API 34 image.
-3. Select the `:tv` run configuration and Run.
-4. On the device, open **Settings → Device Preferences → Apps → Special app
-   access → Usage access**, and grant **Screen Time TV**. (On the
-   emulator's first launch, the in-app button will deep-link here.)
-5. Open YouTube (preinstalled on the TV image) and leave it foregrounded.
-6. Watch Logcat for `UsageWorker` log lines:
-   `D/UsageWorker: Usage sample 2026-06-14: {com.google.android.youtube.tv=60000}`.
-7. The first sample may take up to 15 minutes — that is WorkManager's minimum
-   periodic interval. For quicker dev feedback, enqueue a one-shot job from
-   Logcat or temporarily call `UsageWorker.schedule` with a shorter interval
-   in a dev build.
+### Firebase project
 
-## End-to-end smoke test
+1. In the [Firebase Console](https://console.firebase.google.com), create a project.
+2. Register two Android apps:
+   - Package `com.screentime.mobile` → download `google-services.json` → place at `mobile/google-services.json`
+   - Package `com.screentime.tv` → download `google-services.json` → place at `tv/google-services.json`
 
-Run a Pixel + Android TV emulator side-by-side:
+   > Both files are in `.gitignore`. The build will fail without them.
 
-1. **Sign up on mobile**: create an account → Welcome screen → "Create a
-   new family". You land in the Limits tab.
-2. **Pair the TV**: launch TV app, grant the three permissions
-   (usage / overlay / accessibility). The TV shows a 6-digit pairing code.
-   On mobile, Family tab → Pair a TV → enter the code. TV transitions to
-   "operational" state.
-3. **Set a tight limit**: Limits tab on mobile → +, pick YouTube, slide
-   to 2 minutes, Save.
-4. **Use YouTube on TV**: open YouTube and let it run. Within ~15 min
-   (one `UsageWorker` cycle) the overlay will appear once accumulated
-   foreground time crosses 2 minutes.
-5. **Try a code**: mobile Codes tab → Generate (30 min). Read the 6-digit
-   code, type it on the TV's block overlay → unblocked.
-6. **Try a request**: when blocked again, tap "Request more time" → pick
-   15 min. Mobile gets an FCM push → tap to open → approve. TV unblocks.
-7. **Invite the other parent**: Family tab → Generate code. On a second
-   device, sign up and choose "Join with an invite code".
+3. Enable **Authentication** → Email/Password + Google sign-in.
+4. Enable **Cloud Firestore** in production mode.
+5. Enable **Cloud Messaging** (no extra console config needed).
+6. Deploy rules and functions (see below).
 
-For faster iteration during development, lower `UsageWorker.schedule`
-interval in a debug build.
-
-## Cloud Function deploy
-
-After Firebase is set up:
+### Deploy rules and Cloud Functions
 
 ```bash
-cd functions
-npm install
-firebase use <your-firebase-project-id>
-npm run deploy
+npm install -g firebase-tools
+firebase login
+firebase use <your-project-id>
+
+# from repo root
+cd functions && npm install && npm run build && cd ..
+firebase deploy --only firestore:rules,functions
 ```
 
-The function listens for new `/families/{id}/requests/{requestId}` docs
-and pushes to admin FCM tokens.
+### Run the apps
 
-## Open Phase 9 polish items
+Open the project in Android Studio. Select the `:mobile` or `:tv` run configuration and press Run. The `:tv` target requires an Android TV emulator or a physical Android TV device.
 
-- Usage history bar chart (mobile).
-- Audit log (`/families/{id}/auditLog`) of every code redemption and
-  request approval.
-- Offline indicator on TV when the Firestore listener errors.
-- Compose snapshot tests for the LimitsScreen and BlockOverlay.
-- Firebase emulator integration tests for `FirestoreRepository`.
-- Crashlytics on both apps.
-- Accessibility-service watchdog (re-prompt user when the OS disables it).
+**TV emulator tip:** create an AVD with *TV → 1080p Android TV*, API 34 image, and set the GPU to **Software** rendering if you encounter display driver crashes.
 
-See `~/.claude/plans/screen-time-controller-fluffy-dragon.md` for full
-context.
+---
+
+## Permissions the TV app needs
+
+The TV app asks for three permissions on first launch; all three are required for enforcement to work:
+
+| Permission | Why |
+|---|---|
+| Usage access (`PACKAGE_USAGE_STATS`) | Reads foreground time per app every 30 seconds |
+| Draw over other apps (`SYSTEM_ALERT_WINDOW`) | Displays the block overlay on top of everything |
+| Accessibility service | Detects when a blocked app comes to the foreground |
+
+---
+
+## Cloud Functions
+
+| Function | Caller | What it does |
+|---|---|---|
+| `onNewTimeRequest` | Firestore trigger | Sends FCM push to all family members when the TV creates a time request |
+| `createFamilyInvite` | Mobile (admin) | Generates a 6-digit, 48-hour invite code |
+| `joinFamilyWithInvite` | Mobile (new user) | Validates invite and adds the caller as a Member |
+| `createTvPairing` | TV | Generates a 6-digit, 10-minute pairing code |
+| `claimTvPairing` | Mobile (owner only) | Validates pairing code, binds TV to family (one-to-one) |
+| `redeemCode` | TV | Validates a 4-digit unlock code server-side; enforces lockout after 5 wrong attempts in 60 seconds |
+
+---
+
+## Tech stack
+
+| Concern | Choice |
+|---|---|
+| Language | Kotlin 2.x |
+| UI (mobile) | Jetpack Compose + Material 3 |
+| UI (TV) | Jetpack Compose for TV (`androidx.tv`) |
+| DI | Hilt |
+| Local cache | Room |
+| Async | Kotlin Coroutines + Flow |
+| Backend | Firebase (Firestore, Auth, FCM, Cloud Functions) |
+| Crash reporting | Firebase Crashlytics |
+| Cloud Functions runtime | Node 20 / TypeScript |

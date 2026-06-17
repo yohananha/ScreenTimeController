@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.crashlytics)
 }
 
 android {
@@ -72,6 +73,7 @@ dependencies {
     implementation(libs.googleid)
 
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.crashlytics)
 
     testImplementation(libs.junit)
 }

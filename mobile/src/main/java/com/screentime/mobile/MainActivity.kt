@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.LockClock
 import androidx.compose.material.icons.filled.Notifications
@@ -39,6 +40,7 @@ import com.screentime.mobile.ui.auth.SignInScreen
 import com.screentime.mobile.ui.codes.CodesScreen
 import com.screentime.mobile.ui.family.FamilyOnboardingScreen
 import com.screentime.mobile.ui.family.InviteScreen
+import com.screentime.mobile.ui.history.HistoryScreen
 import com.screentime.mobile.ui.limits.LimitsScreen
 import com.screentime.mobile.ui.requests.RequestsBadgeViewModel
 import com.screentime.mobile.ui.requests.RequestsScreen
@@ -75,6 +77,7 @@ private enum class Tab(val route: String, val labelRes: Int, val icon: ImageVect
     Limits("limits", R.string.tab_limits, Icons.Filled.LockClock),
     Requests("requests", R.string.tab_requests, Icons.Filled.Notifications),
     Codes("codes", R.string.tab_codes, Icons.Filled.VpnKey),
+    History("history", R.string.tab_history, Icons.Filled.BarChart),
     Family("family", R.string.tab_family, Icons.Filled.Group),
 }
 
@@ -121,6 +124,7 @@ private fun AppShell(familyId: String, badgeViewModel: RequestsBadgeViewModel = 
             composable(Tab.Limits.route) { LimitsScreen() }
             composable(Tab.Requests.route) { RequestsScreen() }
             composable(Tab.Codes.route) { CodesScreen() }
+            composable(Tab.History.route) { HistoryScreen() }
             composable(Tab.Family.route) { InviteScreen(familyId = familyId) }
         }
     }

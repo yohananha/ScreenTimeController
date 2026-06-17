@@ -4,6 +4,7 @@
     <string name="tab_limits">Limits</string>
     <string name="tab_requests">Requests</string>
     <string name="tab_codes">Codes</string>
+    <string name="tab_history">History</string>
     <string name="tab_family">Family</string>
     <string name="add_app_limit">Add app limit</string>
     <string name="edit_app_limit">Edit limit</string>

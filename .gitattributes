@@ -1,0 +1,4 @@
+# Normalize line endings to LF in the repo; checkout as-is on each platform
+* text=auto eol=lf
+*.bat text eol=crlf
+gradle/wrapper/gradle-wrapper.jar binary
