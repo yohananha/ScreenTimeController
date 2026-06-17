@@ -1,32 +1,51 @@
 package com.screentime.shared.limits
 
+import com.screentime.shared.room.AppDatabase
+import com.screentime.shared.room.BonusEntity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * In-memory store of per-package "bonus time" exemption windows granted by
- * code redemption or parent approval. A grant means "this app is unblocked
- * for N more minutes starting now" — while [isActive] is true, enforcement
- * ignores the package's usage entirely, regardless of how much usage already
- * accumulated today. Phase 9 persists this so it survives the TV rebooting
- * and resets at the configured daily reset time.
+ * Per-package "bonus time" exemption windows granted by code redemption or
+ * parent approval. Room-backed so active bonuses survive a TV reboot.
+ *
+ * The in-memory [StateFlow] is the fast path for enforcement checks;
+ * Room is loaded on startup and written asynchronously on every mutation.
  */
 @Singleton
-class BonusStore @Inject constructor() {
+class BonusStore @Inject constructor(db: AppDatabase) {
+    private val dao = db.bonusDao()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val state = MutableStateFlow<Map<String, Instant>>(emptyMap())
     val bonuses: StateFlow<Map<String, Instant>> = state.asStateFlow()
 
-    /** Extends [packageName]'s exemption window by [millis], from now or its current expiry, whichever is later. */
+    init {
+        scope.launch {
+            val now = Instant.now()
+            state.value = dao.getAll()
+                .filter { Instant.ofEpochMilli(it.expiresAt).isAfter(now) }
+                .associate { it.packageName to Instant.ofEpochMilli(it.expiresAt) }
+        }
+    }
+
+    /** Extends [packageName]'s exemption by [millis] from now or its current expiry, whichever is later. */
     fun addBonus(packageName: String, millis: Long) {
         val now = Instant.now()
+        var expiry = now
         state.value = state.value.toMutableMap().apply {
             val base = this[packageName]?.takeIf { it.isAfter(now) } ?: now
-            this[packageName] = base.plusMillis(millis)
+            expiry = base.plusMillis(millis)
+            this[packageName] = expiry
         }
+        scope.launch { dao.upsert(BonusEntity(packageName, expiry.toEpochMilli())) }
     }
 
     fun isActive(packageName: String, now: Instant = Instant.now()): Boolean =
@@ -36,5 +55,6 @@ class BonusStore @Inject constructor() {
 
     fun clear() {
         state.value = emptyMap()
+        scope.launch { dao.deleteAll() }
     }
 }

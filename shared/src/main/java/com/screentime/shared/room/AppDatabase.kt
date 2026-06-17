@@ -6,13 +6,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [UsageEntity::class, AppLimitEntity::class],
-    version = 2,
+    entities = [UsageEntity::class, AppLimitEntity::class, BonusEntity::class],
+    version = 3,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun usageDao(): UsageDao
     abstract fun limitsDao(): LimitsDao
+    abstract fun bonusDao(): BonusDao
 
     companion object {
         const val DB_NAME = "screen_time.db"
