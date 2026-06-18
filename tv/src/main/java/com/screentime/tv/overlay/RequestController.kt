@@ -50,18 +50,26 @@ class RequestController @Inject constructor(
         watcherJob = scope.launch {
             firestore.requestFlow(familyId, requestId).collectLatest { request ->
                 request ?: return@collectLatest
-                _requestStatus.value = request.status
                 when (request.status) {
                     TimeRequest.Status.Approved -> {
+                        // Apply the bonus BEFORE flipping requestStatus so the
+                        // overlay (which dismisses on status=Approved) can't
+                        // momentarily race with the accessibility-service tick
+                        // and re-block the app between the dismiss and the
+                        // bonus showing up in BonusStore.
                         val granted = request.approvedMinutes ?: request.requestedMinutes
-                        _approvedMinutes.value = granted
-                        Log.i(TAG, "Request $requestId approved for $granted min on $appPackage")
                         bonusStore.addBonus(appPackage, granted * 60_000L)
+                        _approvedMinutes.value = granted
+                        _requestStatus.value = request.status
+                        Log.i(TAG, "Request $requestId approved for $granted min on $appPackage")
                     }
                     TimeRequest.Status.Denied -> {
+                        _requestStatus.value = request.status
                         Log.i(TAG, "Request $requestId denied")
                     }
-                    TimeRequest.Status.Pending -> Unit
+                    TimeRequest.Status.Pending -> {
+                        _requestStatus.value = request.status
+                    }
                 }
             }
         }

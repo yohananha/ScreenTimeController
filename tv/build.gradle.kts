@@ -22,11 +22,16 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            // Use the debug signing config until a release key is provisioned —
+            // unsigned releases can't be installed by `adb install`, which
+            // makes the minified APK impossible to runtime-verify on a device.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 

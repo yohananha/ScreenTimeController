@@ -115,11 +115,16 @@ service cloud.firestore {
       }
 
       // Time requests. The TV may CREATE a pending request but may NOT
-      // approve it — only parents can change its status.
+      // approve it — only parents can change its status. requestedMinutes
+      // is bounded server-side so a compromised TV can't ask for arbitrary
+      // amounts; this matches MAX_REQUESTED_MINUTES in functions/index.ts.
       match /requests/{id} {
         allow read: if canReadOf(familyDoc(familyId));
         allow create: if (isDeviceOf(familyDoc(familyId)) || isMemberOf(familyDoc(familyId)))
-          && request.resource.data.status == 'pending';
+          && request.resource.data.status == 'pending'
+          && request.resource.data.requestedMinutes is int
+          && request.resource.data.requestedMinutes >= 1
+          && request.resource.data.requestedMinutes <= 240;
         allow update: if isMemberOf(familyDoc(familyId));
         allow delete: if isAdminOf(familyDoc(familyId));
       }

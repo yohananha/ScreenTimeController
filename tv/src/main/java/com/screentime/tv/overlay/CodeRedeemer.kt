@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -60,12 +59,15 @@ class CodeRedeemer @Inject constructor(
         return true
     }
 
-    /** Clears a TIMER lockout once its [LockoutSettings.lockedUntil] has passed. */
+    /**
+     * Clears a TIMER lockout. Called by [LockedView] once its monotonic-clock
+     * countdown reaches zero; the local wall-clock is intentionally NOT
+     * consulted here, so a child editing the device clock cannot bypass the
+     * timer (`SystemClock.elapsedRealtime()` is monotonic from boot).
+     */
     suspend fun clearExpiredLockout() {
         val current = lockout.value
         if (!current.locked || current.mode != LockoutMode.TIMER) return
-        val until = current.lockedUntil
-        if (until != null && Instant.now().isBefore(until)) return
         val familyId = familyIdProvider.familyId.value ?: return
         firestore.clearLockout(familyId)
     }

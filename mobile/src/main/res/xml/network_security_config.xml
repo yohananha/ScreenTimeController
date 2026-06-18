@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Hardens network traffic for the mobile client:
+    - Cleartext HTTP is forbidden for every Firebase / Google API domain we
+      use, so a hostile Wi-Fi can't downgrade a request.
+    - Certificate pinning is intentionally NOT enabled: Google rotates the
+      certs behind these endpoints frequently and a stale pin would brick
+      sync on production devices. Revisit once we have an OTA-pin pipeline.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">firebaseio.com</domain>
+        <domain includeSubdomains="true">firestore.googleapis.com</domain>
+        <domain includeSubdomains="true">cloudfunctions.net</domain>
+        <domain includeSubdomains="true">googleapis.com</domain>
+        <domain includeSubdomains="true">firebaseinstallations.googleapis.com</domain>
+        <domain includeSubdomains="true">fcm.googleapis.com</domain>
+    </domain-config>
+</network-security-config>

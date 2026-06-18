@@ -52,11 +52,11 @@ class CodesScreenTest {
     fun codeTilesRowRendersDigits() {
         composeRule.setContent {
             ScreenTimeTheme {
-                CodeTilesRow(code = "1234")
+                CodeTilesRow(code = "123456")
             }
         }
         composeRule.onNodeWithText("1").assertIsDisplayed()
-        composeRule.onNodeWithText("4").assertIsDisplayed()
+        composeRule.onNodeWithText("6").assertIsDisplayed()
     }
 
     @Test
@@ -103,13 +103,13 @@ class CodesScreenTest {
             }
         }
         composeRule.onNodeWithText("Generate a code below.").assertIsDisplayed()
-        composeRule.onAllNodesWithText("–").assertCountEquals(4)
+        composeRule.onAllNodesWithText("-").assertCountEquals(6)
     }
 
     @Test
     fun activeCodeDigitTilesVisible() {
         fakeState.value = CodesUiState(
-            active = OneTimeCode("5678", 30, Instant.now().plusSeconds(60))
+            active = OneTimeCode("567890", 30, Instant.now().plusSeconds(60))
         )
         composeRule.setContent {
             ScreenTimeTheme {
@@ -117,9 +117,8 @@ class CodesScreenTest {
             }
         }
         composeRule.onNodeWithText("5").assertIsDisplayed()
-        composeRule.onNodeWithText("6").assertIsDisplayed()
-        composeRule.onNodeWithText("7").assertIsDisplayed()
-        composeRule.onNodeWithText("8").assertIsDisplayed()
+        composeRule.onNodeWithText("9").assertIsDisplayed()
+        composeRule.onNodeWithText("0").assertIsDisplayed()
     }
 
     @Test

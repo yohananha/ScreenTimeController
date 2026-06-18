@@ -187,13 +187,19 @@ class FirestoreRepository @Inject constructor(
     fun instantLockFlow(familyId: String): Flow<Boolean> = callbackFlow {
         val ref = db.collection("families").document(familyId)
             .collection("limits").document("instantLock")
+        var lastKnown: Boolean? = null
         val registration = ref.addSnapshotListener { snap, error ->
             if (error != null) {
                 Log.e(TAG, "instantLockFlow($familyId) listener failed", error)
-                trySend(false)
+                // Fail-secure: re-emit the last known value, or default to locked
+                // if we never received one. Defaulting to false here would allow
+                // a child to bypass an active instant-lock by forcing listener errors.
+                trySend(lastKnown ?: true)
                 return@addSnapshotListener
             }
-            trySend(snap?.getBoolean(FIELD_INSTANT_LOCKED) ?: false)
+            val value = snap?.getBoolean(FIELD_INSTANT_LOCKED) ?: false
+            lastKnown = value
+            trySend(value)
         }
         awaitClose { registration.remove() }
     }
@@ -354,15 +360,17 @@ class FirestoreRepository @Inject constructor(
     }
 
     /**
-     * Generates a random 4-digit code, writes /families/{id}/codes/{code},
-     * returns the created [OneTimeCode]. Retries on the (very rare)
-     * collision until a free code is found.
+     * Generates a random 6-digit code, writes /families/{id}/codes/{code},
+     * returns the created [OneTimeCode]. 1 000 000-code space combined with
+     * the server-side lockout (5 wrong / 60 s) makes online brute force
+     * infeasible. Retries on the (very rare) collision until a free code is
+     * found.
      */
     suspend fun createCode(familyId: String, extraMinutes: Int): OneTimeCode {
         val expiresAt = Instant.now().plusSeconds(CODE_TTL_SECONDS)
         val codesCollection = db.collection("families").document(familyId).collection("codes")
         repeat(MAX_CODE_ATTEMPTS) {
-            val candidate = "%04d".format(Random.nextInt(0, 10_000))
+            val candidate = "%06d".format(Random.nextInt(0, 1_000_000))
             val docRef = codesCollection.document(candidate)
             val snap = docRef.get().await()
             if (snap.exists()) return@repeat
@@ -375,7 +383,7 @@ class FirestoreRepository @Inject constructor(
             ).await()
             return OneTimeCode(candidate, extraMinutes, expiresAt)
         }
-        error("Could not allocate a unique 4-digit code after $MAX_CODE_ATTEMPTS attempts.")
+        error("Could not allocate a unique 6-digit code after $MAX_CODE_ATTEMPTS attempts.")
     }
 
     /**

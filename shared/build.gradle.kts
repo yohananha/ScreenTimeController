@@ -31,6 +31,8 @@ dependencies {
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
+    api(libs.sqlcipher.android)
+
     // Hilt's annotations (@Inject, @Singleton, @ApplicationContext) are part
     // of the API of :shared. The Hilt plugin is also applied so that
     // @Module classes living here are aggregated by the app modules.
