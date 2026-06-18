@@ -1,6 +1,8 @@
 package com.screentime.tv.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,9 +10,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -19,38 +22,50 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Dialpad
-import androidx.compose.material.icons.filled.HourglassBottom
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.tv.material3.Button
 import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.screentime.shared.model.LockoutMode
 import com.screentime.shared.model.LockoutSettings
 import com.screentime.shared.model.TimeRequest
-import com.screentime.tv.ui.components.IconBadge
+import com.screentime.shared.model.Limits
+import com.screentime.tv.service.BlockReason
+import com.screentime.tv.ui.components.KeypadKey
+import com.screentime.tv.ui.components.StatusKind
+import com.screentime.tv.ui.components.TvCanvas
+import com.screentime.tv.ui.components.TvCodeSlotsRow
+import com.screentime.tv.ui.components.TvGhostButton
+import com.screentime.tv.ui.components.TvKeypad
+import com.screentime.tv.ui.components.TvPrimaryButton
+import com.screentime.tv.ui.components.TvStatusCircle
+import com.screentime.tv.ui.theme.Sprout
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalTime
+import java.time.temporal.ChronoUnit
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.outlined.Smartphone
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.ui.unit.sp
 
-private enum class OverlayView { Main, NumPad, RequestTime, RequestCustom, RequestSent }
+private enum class OverlayView { Main, NumPad, RequestTime, RequestCustom, Waiting, Approved, Denied, Unlocked }
 
-/** Lets the hosting [android.view.ViewGroup] route hardware Back presses into this composable. */
 class BackPressHandler {
     var onBackPressed: (() -> Unit)? = null
 }
@@ -59,8 +74,13 @@ class BackPressHandler {
 @Composable
 fun BlockOverlayContent(
     blockedPackage: String,
+    blockReason: BlockReason = BlockReason.DailyLimitReached,
+    nextWindowAt: String? = null,
     lockout: LockoutSettings,
     requestStatus: TimeRequest.Status?,
+    approvedMinutes: Int?,
+    limits: Limits,
+    usedMillis: Long,
     backPressHandler: BackPressHandler,
     onSubmitCode: suspend (String) -> Boolean,
     onSubmitRequest: suspend (Int) -> Boolean,
@@ -68,14 +88,30 @@ fun BlockOverlayContent(
 ) {
     var view by remember { mutableStateOf(OverlayView.Main) }
 
-    // Back always steps to the previous screen rather than dismissing the
-    // overlay — the block can only be lifted via a code or parent approval.
+    val context = LocalContext.current
+    val appLabel = remember(blockedPackage) {
+        try {
+            val pm = context.packageManager
+            val info = pm.getApplicationInfo(blockedPackage, 0)
+            pm.getApplicationLabel(info).toString()
+        } catch (e: Exception) {
+            blockedPackage.substringAfterLast('.').replaceFirstChar { it.uppercase() }
+        }
+    }
+
+    LaunchedEffect(requestStatus) {
+        when (requestStatus) {
+            TimeRequest.Status.Approved -> view = OverlayView.Approved
+            TimeRequest.Status.Denied -> view = OverlayView.Denied
+            else -> Unit
+        }
+    }
+
     DisposableEffect(view, lockout.locked) {
         backPressHandler.onBackPressed = {
             if (!lockout.locked) {
                 view = when (view) {
                     OverlayView.RequestCustom -> OverlayView.RequestTime
-                    OverlayView.Main -> OverlayView.Main
                     else -> OverlayView.Main
                 }
             }
@@ -83,39 +119,39 @@ fun BlockOverlayContent(
         onDispose { backPressHandler.onBackPressed = null }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xCC0B1226)),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            modifier = Modifier
-                .widthIn(max = 720.dp)
-                .padding(32.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+    TvCanvas {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (lockout.locked) {
                 LockedView(lockout = lockout, onTick = onLockoutTick)
             } else {
                 when (view) {
-                    OverlayView.Main -> MainView(
-                        blockedPackage = blockedPackage,
-                        onRequestMore = { view = OverlayView.RequestTime },
-                        onEnterCode = { view = OverlayView.NumPad },
-                    )
+                    OverlayView.Main -> when (blockReason) {
+                        BlockReason.InstantLocked -> InstantLockedView()
+                        BlockReason.OutsideHours -> OutsideHoursView(
+                            nextWindowAt = nextWindowAt,
+                            onRequestMore = { view = OverlayView.RequestTime },
+                            onEnterCode = { view = OverlayView.NumPad },
+                        )
+                        else -> MainView(
+                            blockedPackage = blockedPackage,
+                            appLabel = appLabel,
+                            usedMillis = usedMillis,
+                            limits = limits,
+                            onRequestMore = { view = OverlayView.RequestTime },
+                            onEnterCode = { view = OverlayView.NumPad },
+                        )
+                    }
                     OverlayView.NumPad -> NumPadView(
                         onCancel = { view = OverlayView.Main },
                         onSubmit = onSubmitCode,
+                        onSuccess = { view = OverlayView.Unlocked },
                     )
                     OverlayView.RequestTime -> RequestTimeView(
                         onCancel = { view = OverlayView.Main },
                         onOther = { view = OverlayView.RequestCustom },
                         onSubmit = { minutes ->
                             val ok = onSubmitRequest(minutes)
-                            if (ok) view = OverlayView.RequestSent
+                            if (ok) view = OverlayView.Waiting
                             ok
                         },
                     )
@@ -123,16 +159,543 @@ fun BlockOverlayContent(
                         onCancel = { view = OverlayView.RequestTime },
                         onSubmit = { minutes ->
                             val ok = onSubmitRequest(minutes)
-                            if (ok) view = OverlayView.RequestSent
+                            if (ok) view = OverlayView.Waiting
                             ok
                         },
                     )
-                    OverlayView.RequestSent -> RequestSentView(
-                        requestStatus = requestStatus,
-                        onBack = { view = OverlayView.Main },
+                    OverlayView.Waiting -> WaitingView(onEnterCode = { view = OverlayView.NumPad })
+                    OverlayView.Approved -> ApprovedView(approvedMinutes = approvedMinutes, onBack = { view = OverlayView.Main })
+                    OverlayView.Denied -> DeniedView(
+                        onOkay = { view = OverlayView.Main },
+                        onEnterCode = { view = OverlayView.NumPad },
                     )
+                    OverlayView.Unlocked -> UnlockedView(onBack = { view = OverlayView.Main })
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun InstantLockedView() {
+    Column(
+        modifier = Modifier.padding(horizontal = 90.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        TvStatusCircle(kind = StatusKind.Amber, size = 100)
+        Text(
+            "TV is locked",
+            style = Sprout.typography.displayHero,
+            color = Sprout.colors.tvCream,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            "A parent locked the TV from the Sprout app. Ask them to unlock it when you're ready.",
+            style = Sprout.typography.bodyLarge,
+            color = Sprout.colors.tvMutedText,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(max = 590.dp),
+        )
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun OutsideHoursView(
+    nextWindowAt: String?,
+    onRequestMore: () -> Unit,
+    onEnterCode: () -> Unit,
+) {
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
+    Column(
+        modifier = Modifier.padding(horizontal = 90.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        TvStatusCircle(kind = StatusKind.Amber, size = 100)
+        Text(
+            "TV time is paused right now",
+            style = Sprout.typography.displayHero,
+            color = Sprout.colors.tvCream,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            if (nextWindowAt != null) {
+                "Screen time opens again at $nextWindowAt — hang tight!"
+            } else {
+                "No more screen time scheduled for today — see you tomorrow!"
+            },
+            style = Sprout.typography.bodyLarge,
+            color = Sprout.colors.tvMutedText,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(max = 590.dp),
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            TvPrimaryButton(text = "Ask a parent for more time", onClick = onRequestMore, focusRequester = focus)
+            TvGhostButton(text = "Enter an unlock code", onClick = onEnterCode)
+        }
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun MainView(
+    blockedPackage: String,
+    appLabel: String,
+    usedMillis: Long,
+    limits: Limits,
+    onRequestMore: () -> Unit,
+    onEnterCode: () -> Unit,
+) {
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
+
+    var timeRemainingStr by remember { mutableStateOf("") }
+    LaunchedEffect(Unit) {
+        while (true) {
+            val nowTime = LocalTime.now()
+            val secondsToMidnight = ChronoUnit.SECONDS.between(nowTime, LocalTime.MAX) + 1
+            val hours = secondsToMidnight / 3600
+            val minutes = (secondsToMidnight % 3600) / 60
+            timeRemainingStr = if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
+            delay(1000)
+        }
+    }
+
+    Column(
+        modifier = Modifier.padding(horizontal = 90.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        if (blockedPackage.isNotBlank()) {
+            Row(
+                modifier = Modifier
+                    .background(Color(0x14FFFFFF), Sprout.radius.pill)
+                    .border(1.dp, Color(0x29FFFFFF), Sprout.radius.pill)
+                    .padding(horizontal = 22.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val appColor = appAccentFor(blockedPackage)
+                Box(
+                    modifier = Modifier
+                        .size(26.dp)
+                        .background(appColor, RoundedCornerShape(8.dp)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = appLabel.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                        style = Sprout.typography.label.copy(fontSize = 13.sp),
+                        color = Color.White,
+                    )
+                }
+                val usedMinutes = (usedMillis / 60000).toInt()
+                Text(
+                    text = "$appLabel · ${formatDuration(usedMinutes)} watched today",
+                    style = Sprout.typography.label,
+                    color = Color(0xFFEFE7F3),
+                )
+            }
+        }
+        
+        TvStatusCircle(kind = StatusKind.Mint, size = 105)
+        
+        Text(
+            "That's a wrap for today!",
+            style = Sprout.typography.displayHero,
+            color = Sprout.colors.tvCream,
+            textAlign = TextAlign.Center,
+        )
+        
+        Text(
+            "Nice watching. You've used all your $appLabel time — see you tomorrow, or ask for a little more.",
+            style = Sprout.typography.bodyLarge,
+            color = Sprout.colors.tvMutedText,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(max = 590.dp),
+        )
+
+        Row(
+            modifier = Modifier
+                .background(Color(0x12FFFFFF), Sprout.radius.pill)
+                .padding(horizontal = 22.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            androidx.tv.material3.Icon(
+                imageVector = Icons.Default.Schedule,
+                contentDescription = null,
+                tint = Color(0xFF9785AC),
+                modifier = Modifier.size(22.dp),
+            )
+            Text(
+                text = "Resets at midnight · $timeRemainingStr",
+                style = Sprout.typography.bodyMedium,
+                color = Color(0xFF9785AC),
+            )
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            TvPrimaryButton(text = "Ask a parent for more time", onClick = onRequestMore, focusRequester = focus)
+            TvGhostButton(text = "Enter an unlock code", onClick = onEnterCode)
+        }
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun RequestTimeView(
+    onCancel: () -> Unit,
+    onOther: () -> Unit,
+    onSubmit: suspend (Int) -> Boolean,
+) {
+    val scope = rememberCoroutineScope()
+    var busy by remember { mutableStateOf(false) }
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
+    Column(
+        modifier = Modifier.padding(horizontal = 100.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Text(
+            "How much more?",
+            style = Sprout.typography.displayLarge,
+            color = Sprout.colors.tvCream,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            "We'll send a quick request to a parent's phone.",
+            style = Sprout.typography.bodyLarge,
+            color = Sprout.colors.tvMutedText,
+            textAlign = TextAlign.Center,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            TvPrimaryButton(
+                text = "15 more minutes",
+                onClick = {
+                    if (busy) return@TvPrimaryButton
+                    busy = true
+                    scope.launch { onSubmit(15); busy = false }
+                },
+                focusRequester = focus,
+            )
+            TvPrimaryButton(
+                text = "30 more minutes",
+                onClick = {
+                    if (busy) return@TvPrimaryButton
+                    busy = true
+                    scope.launch { onSubmit(30); busy = false }
+                },
+            )
+            TvGhostButton(text = "Other amount", onClick = onOther)
+        }
+        TvGhostButton(text = "Maybe later", onClick = onCancel)
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun RequestCustomView(
+    onCancel: () -> Unit,
+    onSubmit: suspend (Int) -> Boolean,
+) {
+    var entered by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val minutes = entered.toIntOrNull() ?: 0
+    val valid = minutes in 1..240
+ 
+    Row(
+        modifier = Modifier.padding(horizontal = 100.dp),
+        horizontalArrangement = Arrangement.spacedBy(60.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            modifier = Modifier.width(310.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                "How many minutes?",
+                style = Sprout.typography.displayLarge.copy(fontSize = androidx.compose.ui.unit.TextUnit.Unspecified),
+                color = Sprout.colors.tvCream,
+            )
+            Text(
+                "Anywhere from 1 to 240 minutes. We'll send the request to a parent's phone.",
+                style = Sprout.typography.bodyLarge,
+                color = Sprout.colors.tvMutedText,
+            )
+            Box(
+                modifier = Modifier
+                    .background(if (entered.isEmpty()) Color(0x1AFCF6F0) else Sprout.colors.tvCream, RoundedCornerShape(14.dp))
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = if (entered.isEmpty()) "—" else entered,
+                    style = Sprout.typography.displayHero,
+                    color = if (entered.isEmpty()) Sprout.colors.tvMutedText else Sprout.colors.ink,
+                )
+            }
+            if (entered.isNotEmpty() && !valid) {
+                Text(
+                    "Pick a number between 1 and 240",
+                    color = Sprout.colors.overDisplay,
+                    style = Sprout.typography.label,
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                TvPrimaryButton(
+                    text = "Send to parent",
+                    onClick = {
+                        if (!valid || busy) return@TvPrimaryButton
+                        busy = true
+                        scope.launch { onSubmit(minutes); busy = false }
+                    },
+                )
+                TvGhostButton(text = "Cancel", onClick = onCancel)
+            }
+        }
+        TvKeypad(
+            onKey = { key ->
+                when (key) {
+                    is KeypadKey.Digit -> if (entered.length < 3) entered += key.value.toString()
+                    KeypadKey.Backspace -> if (entered.isNotEmpty()) entered = entered.dropLast(1)
+                    KeypadKey.Clear -> entered = ""
+                }
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun NumPadView(
+    onCancel: () -> Unit,
+    onSubmit: suspend (String) -> Boolean,
+    onSuccess: () -> Unit,
+) {
+    var entered by remember { mutableStateOf("") }
+    var errored by remember { mutableStateOf(false) }
+    var triesLeft by remember { mutableStateOf(3) }
+    var busy by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(entered) {
+        if (entered.length == 4 && !busy) {
+            busy = true
+            val ok = onSubmit(entered)
+            if (ok) {
+                onSuccess()
+            } else {
+                errored = true
+                triesLeft = (triesLeft - 1).coerceAtLeast(0)
+                delay(900)
+                entered = ""
+                errored = false
+            }
+            busy = false
+        }
+    }
+
+    Row(
+        modifier = Modifier.padding(horizontal = 100.dp),
+        horizontalArrangement = Arrangement.spacedBy(60.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            modifier = Modifier.width(310.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Text(
+                "Enter the unlock code",
+                style = Sprout.typography.displayLarge.copy(fontSize = androidx.compose.ui.unit.TextUnit.Unspecified),
+                color = Sprout.colors.tvCream,
+            )
+            Text(
+                "Ask a parent to read it to you, or check their phone.",
+                style = Sprout.typography.bodyLarge,
+                color = Sprout.colors.tvMutedText,
+            )
+            TvCodeSlotsRow(code = entered, errored = errored)
+            if (errored) {
+                Text(
+                    "That code didn't work — $triesLeft tries left",
+                    color = Sprout.colors.overDisplay,
+                    style = Sprout.typography.label,
+                )
+            }
+            TvGhostButton(text = "Cancel", onClick = onCancel)
+        }
+        TvKeypad(
+            onKey = { key ->
+                if (busy) return@TvKeypad
+                when (key) {
+                    is KeypadKey.Digit -> if (entered.length < 4) entered += key.value.toString()
+                    KeypadKey.Backspace -> if (entered.isNotEmpty()) entered = entered.dropLast(1)
+                    KeypadKey.Clear -> entered = ""
+                }
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun WaitingView(onEnterCode: () -> Unit) {
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.18f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.55f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
+
+    Column(
+        modifier = Modifier.padding(horizontal = 100.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        TvStatusCircle(
+            kind = StatusKind.Lilac,
+            icon = Icons.Outlined.Smartphone,
+            backgroundColor = Color(0xFFB9A8F0),
+            foregroundColor = Color(0xFF3A2A4D),
+            size = 100,
+            modifier = Modifier.graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                this.alpha = alpha
+            }
+        )
+        Text(
+            "Asked your parent!",
+            style = Sprout.typography.displayLarge,
+            color = Sprout.colors.tvCream,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            "They just got a notification. Hang tight — or punch in an unlock code if they gave you one.",
+            style = Sprout.typography.bodyLarge,
+            color = Sprout.colors.tvMutedText,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(max = 550.dp),
+        )
+        TvGhostButton(text = "Enter a code instead", onClick = onEnterCode, focusRequester = focus)
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun ApprovedView(
+    approvedMinutes: Int?,
+    onBack: () -> Unit,
+) {
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
+
+    val headlineText = if (approvedMinutes != null) {
+        "You got $approvedMinutes more!"
+    } else {
+        "You got more time!"
+    }
+
+    Column(
+        modifier = Modifier.padding(horizontal = 100.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        TvStatusCircle(kind = StatusKind.Mint)
+        Text(
+            headlineText,
+            style = Sprout.typography.displayLarge,
+            color = Sprout.colors.tvCream,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            "Make it count — your timer's running again.",
+            style = Sprout.typography.bodyLarge,
+            color = Sprout.colors.tvMutedText,
+            textAlign = TextAlign.Center,
+        )
+        TvPrimaryButton(text = "Keep watching", onClick = onBack, focusRequester = focus)
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun UnlockedView(onBack: () -> Unit) {
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
+
+    Column(
+        modifier = Modifier.padding(horizontal = 100.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        TvStatusCircle(kind = StatusKind.Mint, icon = Icons.Filled.LockOpen)
+        Text(
+            "Code worked!",
+            style = Sprout.typography.displayLarge,
+            color = Sprout.colors.tvCream,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            "Limit's paused for a bit. Enjoy!",
+            style = Sprout.typography.bodyLarge,
+            color = Sprout.colors.tvMutedText,
+            textAlign = TextAlign.Center,
+        )
+        TvPrimaryButton(text = "Keep watching", onClick = onBack, focusRequester = focus)
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun DeniedView(onOkay: () -> Unit, onEnterCode: () -> Unit) {
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
+
+    Column(
+        modifier = Modifier.padding(horizontal = 100.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        TvStatusCircle(kind = StatusKind.Lilac, size = 100)
+        Text(
+            "Not right now",
+            style = Sprout.typography.displayLarge,
+            color = Sprout.colors.tvCream,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            "Your parent said maybe later — and that's okay. There's always tomorrow.",
+            style = Sprout.typography.bodyLarge,
+            color = Sprout.colors.tvMutedText,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(max = 550.dp),
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            TvGhostButton(text = "Enter an unlock code", onClick = onEnterCode)
+            TvPrimaryButton(text = "Okay", onClick = onOkay, focusRequester = focus)
         }
     }
 }
@@ -148,32 +711,42 @@ private fun LockedView(lockout: LockoutSettings, onTick: suspend () -> Unit) {
             delay(1000)
         }
     }
-    IconBadge(
-        icon = Icons.Filled.Lock,
-        containerColor = MaterialTheme.colorScheme.errorContainer,
-        contentColor = MaterialTheme.colorScheme.onErrorContainer,
-        size = 64.dp,
-    )
-    Text(
-        text = "Code entry locked",
-        style = MaterialTheme.typography.headlineLarge,
-        color = Color.White,
-    )
-    when (lockout.mode) {
-        LockoutMode.PARENT_UNLOCK -> Text(
-            text = "Ask a parent to unlock from the mobile app.",
-            color = Color.White.copy(alpha = 0.7f),
-            style = MaterialTheme.typography.bodyMedium,
+    Column(
+        modifier = Modifier.padding(horizontal = 100.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        TvStatusCircle(kind = StatusKind.Amber, size = 100)
+        Text(
+            "Let's take a short break",
+            style = Sprout.typography.displayLarge,
+            color = Sprout.colors.tvCream,
+            textAlign = TextAlign.Center,
         )
-        LockoutMode.TIMER -> {
-            val remaining = lockout.lockedUntil?.let { until ->
-                Duration.between(now, until).let { if (it.isNegative) Duration.ZERO else it }
-            } ?: Duration.ZERO
-            Text(
-                text = "Too many wrong codes. Try again in ${formatRemaining(remaining)}.",
-                color = Color.White.copy(alpha = 0.7f),
-                style = MaterialTheme.typography.bodyMedium,
+        Text(
+            "That's a few wrong codes. The TV unlocks again on its own — grab a snack or stretch!",
+            style = Sprout.typography.bodyLarge,
+            color = Sprout.colors.tvMutedText,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(max = 550.dp),
+        )
+        when (lockout.mode) {
+            LockoutMode.PARENT_UNLOCK -> Text(
+                "Ask a parent to unlock from the mobile app.",
+                style = Sprout.typography.bodyMedium,
+                color = Sprout.colors.tvMutedText,
+                textAlign = TextAlign.Center,
             )
+            LockoutMode.TIMER -> {
+                val remaining = lockout.lockedUntil?.let { until ->
+                    Duration.between(now, until).let { if (it.isNegative) Duration.ZERO else it }
+                } ?: Duration.ZERO
+                Text(
+                    text = formatRemaining(remaining),
+                    style = Sprout.typography.displayHero,
+                    color = Color(0xFFF2C879),
+                )
+            }
         }
     }
 }
@@ -185,262 +758,20 @@ private fun formatRemaining(duration: Duration): String {
     return "%d:%02d".format(minutes, seconds)
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-private fun MainView(
-    blockedPackage: String,
-    onRequestMore: () -> Unit,
-    onEnterCode: () -> Unit,
-) {
-    val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+private val appAccents = listOf(
+    Color(0xFFE5483A), Color(0xFF5B6B7B), Color(0xFF2A2730), Color(0xFF4FA98C),
+    Color(0xFF8E86D9), Color(0xFFF2A93B), Color(0xFFB9A8F0),
+)
 
-    IconBadge(
-        icon = Icons.Filled.HourglassBottom,
-        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-        size = 64.dp,
-    )
-    Text(
-        text = "Time's up for now",
-        style = MaterialTheme.typography.headlineLarge,
-        color = Color.White,
-    )
-    if (blockedPackage.isNotBlank()) {
-        Text(
-            text = blockedPackage,
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.White.copy(alpha = 0.7f),
-        )
-    }
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        Button(onClick = onRequestMore, modifier = Modifier.focusRequester(focusRequester)) {
-            Text("Request more time")
-        }
-        Button(onClick = onEnterCode) { Text("Enter code") }
-    }
-}
+private fun appAccentFor(packageName: String): Color =
+    appAccents[(packageName.hashCode().let { if (it < 0) -it else it }) % appAccents.size]
 
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-private fun RequestTimeView(
-    onCancel: () -> Unit,
-    onOther: () -> Unit,
-    onSubmit: suspend (Int) -> Boolean,
-) {
-    val scope = rememberCoroutineScope()
-    var busy by remember { mutableStateOf(false) }
-    val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
-
-    IconBadge(
-        icon = Icons.Filled.Schedule,
-        containerColor = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        size = 64.dp,
-    )
-    Text("How much time do you need?", color = Color.White, style = MaterialTheme.typography.headlineMedium)
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        listOf(15, 30, 60).forEachIndexed { index, mins ->
-            Button(
-                enabled = !busy,
-                onClick = {
-                    busy = true
-                    scope.launch { onSubmit(mins); busy = false }
-                },
-                modifier = if (index == 0) Modifier.focusRequester(focusRequester) else Modifier,
-            ) { Text("$mins min") }
-        }
-        Button(enabled = !busy, onClick = onOther) { Text("Other amount") }
-    }
-    Button(onClick = onCancel, enabled = !busy) { Text("Cancel") }
-}
-
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-private fun RequestCustomView(
-    onCancel: () -> Unit,
-    onSubmit: suspend (Int) -> Boolean,
-) {
-    var entered by remember { mutableStateOf("") }
-    var busy by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val minutes = entered.toIntOrNull() ?: 0
-    val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
-
-    IconBadge(
-        icon = Icons.Filled.Schedule,
-        containerColor = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        size = 64.dp,
-    )
-    Text("How many minutes do you need?", color = Color.White, style = MaterialTheme.typography.headlineMedium)
-    Text(
-        text = if (entered.isEmpty()) "— min" else "$entered min",
-        color = Color.White,
-        fontFamily = FontFamily.Monospace,
-        fontSize = 40.sp,
-    )
-
-    NumericKeypad(
-        value = entered,
-        maxLength = 3,
-        enabled = !busy,
-        submitLabel = "OK",
-        submitEnabled = minutes in 1..240,
-        onValueChange = { entered = it },
-        onSubmit = {
-            busy = true
-            scope.launch { onSubmit(minutes); busy = false }
-        },
-        initialFocusRequester = focusRequester,
-    )
-    Button(onClick = onCancel, enabled = !busy) { Text("Cancel") }
-}
-
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-private fun RequestSentView(requestStatus: TimeRequest.Status?, onBack: () -> Unit) {
-    // A denial doesn't dismiss the overlay (unlike approval, which grants a
-    // bonus and lets the accessibility service re-evaluate) — show a brief
-    // acknowledgement, then return to the main "time's up" screen ourselves.
-    val denied = requestStatus == TimeRequest.Status.Denied
-    LaunchedEffect(denied) {
-        if (denied) {
-            delay(2000)
-            onBack()
-        }
-    }
-
-    if (denied) {
-        IconBadge(
-            icon = Icons.Filled.Cancel,
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-            size = 64.dp,
-        )
-        Text(
-            "Request denied",
-            color = Color.White,
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
-        )
-    } else {
-        val focusRequester = remember { FocusRequester() }
-        LaunchedEffect(Unit) { focusRequester.requestFocus() }
-
-        IconBadge(
-            icon = Icons.Filled.CheckCircle,
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            size = 64.dp,
-        )
-        Text(
-            "Request sent! Waiting for a parent to respond…",
-            color = Color.White,
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
-        )
-        Button(onClick = onBack, modifier = Modifier.focusRequester(focusRequester)) { Text("Back") }
-    }
-}
-
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-private fun NumPadView(
-    onCancel: () -> Unit,
-    onSubmit: suspend (String) -> Boolean,
-) {
-    var entered by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
-    var busy by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
-
-    IconBadge(
-        icon = Icons.Filled.Dialpad,
-        containerColor = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        size = 64.dp,
-    )
-    Text("Enter 4-digit code", color = Color.White, style = MaterialTheme.typography.headlineMedium)
-    Text(
-        text = entered.padEnd(4, '·'),
-        color = Color.White,
-        fontFamily = FontFamily.Monospace,
-        fontSize = 40.sp,
-    )
-    error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-
-    NumericKeypad(
-        value = entered,
-        maxLength = 4,
-        enabled = !busy,
-        submitLabel = "OK",
-        submitEnabled = entered.length == 4,
-        onValueChange = { entered = it },
-        onSubmit = {
-            busy = true
-            error = null
-            scope.launch {
-                val ok = onSubmit(entered)
-                if (!ok) {
-                    error = "Code is invalid or expired."
-                    entered = ""
-                }
-                busy = false
-            }
-        },
-        initialFocusRequester = focusRequester,
-    )
-    Button(onClick = onCancel, enabled = !busy) { Text("Cancel") }
-}
-
-/** Compact digit grid shared by code entry and custom-minutes entry. */
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-private fun NumericKeypad(
-    value: String,
-    maxLength: Int,
-    enabled: Boolean,
-    submitLabel: String,
-    submitEnabled: Boolean,
-    onValueChange: (String) -> Unit,
-    onSubmit: () -> Unit,
-    initialFocusRequester: FocusRequester? = null,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        listOf(
-            listOf("1", "2", "3"),
-            listOf("4", "5", "6"),
-            listOf("7", "8", "9"),
-            listOf("⌫", "0", submitLabel),
-        ).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                row.forEach { label ->
-                    val isSubmit = label == submitLabel
-                    val isFirstKey = label == "1"
-                    Button(
-                        onClick = {
-                            when {
-                                label == "⌫" -> if (value.isNotEmpty()) onValueChange(value.dropLast(1))
-                                isSubmit -> onSubmit()
-                                value.length < maxLength -> onValueChange(value + label)
-                            }
-                        },
-                        modifier = Modifier.size(width = 84.dp, height = 56.dp).let {
-                            if (isFirstKey && initialFocusRequester != null) {
-                                it.focusRequester(initialFocusRequester)
-                            } else {
-                                it
-                            }
-                        },
-                        enabled = enabled && (!isSubmit || submitEnabled),
-                    ) { Text(label) }
-                }
-            }
-        }
+private fun formatDuration(minutes: Int): String {
+    val hours = minutes / 60
+    val mins = minutes % 60
+    return when {
+        hours == 0 -> "${mins}m"
+        mins == 0 -> "${hours}h"
+        else -> "${hours}h ${mins}m"
     }
 }

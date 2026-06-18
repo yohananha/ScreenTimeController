@@ -1,16 +1,20 @@
 package com.screentime.mobile.ui.auth
 
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.HourglassBottom
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -18,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,7 +35,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.screentime.mobile.R
-import com.screentime.mobile.ui.components.IconBadge
+import com.screentime.mobile.ui.components.SproutGhostButton
+import com.screentime.mobile.ui.components.SproutPrimaryButton
+import com.screentime.mobile.ui.theme.Sprout
 import kotlinx.coroutines.launch
 
 @Composable
@@ -39,29 +46,88 @@ fun SignInScreen(viewModel: AuthViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Sprout.colors.background),
+        contentAlignment = Alignment.Center,
     ) {
-        IconBadge(Icons.Filled.HourglassBottom, size = 72.dp)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            "Screen Time Controller",
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            "Manage screen time together, from anywhere.",
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
-        )
-        error?.let {
-            Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(bottom = 16.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 400.dp)
+                .padding(horizontal = 32.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+        // App icon: coral square with plum circle (matches Sprout app icon)
+        Box(
+            modifier = Modifier
+                .size(96.dp)
+                .background(Sprout.colors.primary, RoundedCornerShape(24.dp)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(modifier = Modifier.size(40.dp).background(Sprout.colors.ink, CircleShape))
         }
-        Button(onClick = { scope.launch { signInWithGoogle(context, viewModel) } }) {
-            Text("Continue with Google")
+        Spacer(Modifier.height(26.dp))
+        Text(
+            "Welcome to ScreenTime",
+            style = Sprout.typography.display,
+            color = Sprout.colors.ink,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(10.dp))
+        Text(
+            "Sign in to manage your family's screen time",
+            style = Sprout.typography.bodyL,
+            color = Sprout.colors.inkMuted,
+            textAlign = TextAlign.Center,
+        )
+
+        error?.let {
+            Spacer(Modifier.height(16.dp))
+            Text(
+                it,
+                color = Sprout.colors.overText,
+                style = Sprout.typography.bodyStrong,
+            )
+        }
+
+        Spacer(Modifier.height(32.dp))
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            SproutPrimaryButton(
+                text = "Continue with Google",
+                onClick = { scope.launch { signInWithGoogle(context, viewModel) } },
+                leading = {
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .background(Color.White, RoundedCornerShape(8.dp)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("G", style = Sprout.typography.label, color = Color(0xFF4285F4))
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        Spacer(Modifier.height(12.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            SproutGhostButton(
+                text = "Sign in with email",
+                onClick = { /* email path TODO */ },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
+        Spacer(Modifier.height(20.dp))
+        Text(
+            "By continuing you agree to our Privacy Policy and Terms of Service",
+            style = Sprout.typography.caption,
+            color = Sprout.colors.inkFaint,
+            textAlign = TextAlign.Center,
+        )
         }
     }
 }

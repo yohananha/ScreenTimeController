@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Varela+Round&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .num{font-variant-numeric:tabular-nums;}
+  .scrollarea::-webkit-scrollbar{width:0;background:transparent;}
+</style>
+</helmet>
+
+<div style="background:#E7E6E4;min-height:100vh;padding:48px 24px 64px;font-family:'Nunito Sans',sans-serif;display:flex;flex-direction:column;align-items:center;gap:18px;min-width:fit-content;">
+
+  <div style="text-align:center;">
+    <div style="font-family:'Rubik',sans-serif;font-size:20px;font-weight:600;color:#3A2A4D;">Family &amp; devices — members, roles &amp; the TV</div>
+    <div style="font-size:13px;color:#8A7C96;">Parent's phone · Android · Material 3 · Sprout · invite, manage, pair/unpair</div>
+  </div>
+
+  <x-import component="AndroidDevice" from="./android-frame.jsx" dark="{{ false }}" hint-size="412px,892px">
+
+    <div style="height:100%;display:flex;flex-direction:column;background:#FCF6F0;position:relative;font-family:'Nunito Sans',sans-serif;color:#3A2A4D;">
+
+      <div class="scrollarea" style="flex:1;overflow-y:auto;padding:8px 16px 110px;">
+
+        <!-- header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0 14px;">
+          <div style="display:flex;align-items:center;gap:9px;background:#fff;border:1px solid #EADFD4;border-radius:99px;padding:5px 12px 5px 5px;">
+            <div style="width:30px;height:30px;border-radius:99px;background:#B9A8F0;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:14px;color:#3A2A4D;">G</div>
+            <span style="font-size:14px;font-weight:800;white-space:nowrap;">Garcia family</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A7C96" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div style="width:38px;height:38px;border-radius:99px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:15px;color:#3A2A4D;">D</div>
+        </div>
+
+        <!-- title -->
+        <div style="margin-bottom:18px;">
+          <h1 style="font-family:'Rubik',sans-serif;font-size:30px;font-weight:600;margin:0;line-height:1;">Family &amp; devices</h1>
+          <div style="font-size:13px;font-weight:600;color:#8A7C96;margin-top:5px;">{{ parentCountLabel }} · 1 TV</div>
+        </div>
+
+        <!-- PARENTS -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:0 2px 12px;">
+          <span style="font-family:'Rubik',sans-serif;font-size:19px;font-weight:600;">Parents</span>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <!-- owner (you) -->
+          <div style="background:#fff;border:1px solid #F2E7DB;border-radius:20px;padding:14px 15px;display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;height:46px;border-radius:99px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:19px;color:#3A2A4D;flex-shrink:0;">D</div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-family:'Rubik',sans-serif;font-size:17px;font-weight:500;">Dana</span>
+                <span style="font-size:11px;font-weight:800;color:#3A2A4D;background:#B9A8F0;padding:3px 9px;border-radius:99px;">Owner · you</span>
+              </div>
+              <div style="font-size:13px;font-weight:600;color:#8A7C96;">dana.garcia@gmail.com</div>
+            </div>
+          </div>
+
+          <!-- co-parent (Sam) -->
+          <sc-if value="{{ hasCoParent }}">
+            <div style="background:#fff;border:1px solid #F2E7DB;border-radius:20px;padding:14px 15px;">
+              <div style="display:flex;align-items:center;gap:13px;">
+                <div style="width:46px;height:46px;border-radius:99px;background:#4FCFA1;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:19px;color:#0F1F18;flex-shrink:0;">S</div>
+                <div style="flex:1;min-width:0;">
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-family:'Rubik',sans-serif;font-size:17px;font-weight:500;">Sam</span>
+                    <span style="font-size:11px;font-weight:800;color:#5B4D69;background:#ECE5FB;padding:3px 9px;border-radius:99px;">Co-parent</span>
+                  </div>
+                  <div style="font-size:13px;font-weight:600;color:#8A7C96;">sam.garcia@gmail.com</div>
+                </div>
+                <div onClick="{{ onToggleSamMenu }}" style="width:36px;height:36px;border-radius:99px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#FAF5EF;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#8A7C96"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                </div>
+              </div>
+              <sc-if value="{{ samMenu }}">
+                <div style="margin-top:12px;padding-top:12px;border-top:1px solid #F2E7DB;display:flex;gap:9px;">
+                  <div onClick="{{ onRemoveSam }}" style="flex:1;text-align:center;font-size:13px;font-weight:800;color:#B5281C;background:#FBE2DF;padding:11px 0;border-radius:14px;cursor:pointer;">Remove from family</div>
+                  <div onClick="{{ onToggleSamMenu }}" style="text-align:center;font-size:13px;font-weight:800;color:#3A2A4D;background:#FAF5EF;border:1.5px solid #EADFD4;padding:10px 18px;border-radius:14px;cursor:pointer;">Cancel</div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- invite -->
+          <div onClick="{{ onToggleInvite }}" style="display:flex;align-items:center;gap:13px;background:transparent;border:1.5px dashed #DDCFC2;border-radius:20px;padding:14px 15px;cursor:pointer;">
+            <div style="width:46px;height:46px;border-radius:99px;background:#ECE5FB;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3A2A4D" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </div>
+            <div style="flex:1;">
+              <div style="font-family:'Rubik',sans-serif;font-size:17px;font-weight:500;">Invite a parent</div>
+              <div style="font-size:13px;font-weight:600;color:#8A7C96;">They join as a co-parent</div>
+            </div>
+          </div>
+
+          <!-- invite panel -->
+          <sc-if value="{{ inviteOpen }}">
+            <div style="background:#ECE5FB;border-radius:20px;padding:16px;">
+              <div style="font-size:13px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#7A6A8C;margin-bottom:10px;">Share this invite link</div>
+              <div style="display:flex;gap:9px;">
+                <div class="num" style="flex:1;background:#fff;border-radius:14px;padding:13px 15px;font-size:16px;font-weight:800;color:#3A2A4D;letter-spacing:.02em;display:flex;align-items:center;">screentime.app/j/garcia-4F9K</div>
+                <div onClick="{{ onCopyInvite }}" style="background:#FF6B5E;color:#3A2A4D;font-size:14px;font-weight:800;padding:0 18px;border-radius:14px;display:flex;align-items:center;cursor:pointer;white-space:nowrap;">{{ copyLabel }}</div>
+              </div>
+              <div style="font-size:12px;font-weight:600;color:#6E5C7E;margin-top:10px;line-height:1.45;">Only you, the owner, can invite parents. The link expires in 24 hours.</div>
+            </div>
+          </sc-if>
+        </div>
+
+        <!-- DEVICES -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:26px 2px 12px;">
+          <span style="font-family:'Rubik',sans-serif;font-size:19px;font-weight:600;">TV</span>
+          <span style="font-size:13px;font-weight:700;color:#8A7C96;">1 of 1 paired</span>
+        </div>
+
+        <!-- TV paired -->
+        <sc-if value="{{ tvPaired }}">
+          <div style="background:#3A2A4D;border-radius:24px;padding:20px;color:#FCF6F0;position:relative;overflow:hidden;">
+            <div style="position:absolute;right:-26px;top:-26px;width:110px;height:110px;border-radius:99px;background:#52436A;opacity:.45;"></div>
+            <div style="position:relative;">
+              <div style="display:flex;align-items:center;gap:13px;">
+                <div style="width:48px;height:48px;border-radius:14px;background:#52436A;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FCF6F0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                </div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:'Rubik',sans-serif;font-size:19px;font-weight:500;">Living Room TV</div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+                    <span style="width:7px;height:7px;border-radius:99px;background:#4FCFA1;"></span>
+                    <span style="font-size:13px;font-weight:700;color:#9FE9CE;">On now · YouTube</span>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;margin-top:16px;">
+                <div style="flex:1;background:#52436A;border-radius:14px;padding:11px 13px;">
+                  <div style="font-size:12px;font-weight:700;color:#C9BBD6;">Today</div>
+                  <div class="num" style="font-family:'Rubik',sans-serif;font-size:18px;font-weight:600;">2h 35m</div>
+                </div>
+                <div style="flex:1;background:#52436A;border-radius:14px;padding:11px 13px;">
+                  <div style="font-size:12px;font-weight:700;color:#C9BBD6;">Paired</div>
+                  <div style="font-family:'Rubik',sans-serif;font-size:18px;font-weight:600;">Mar 2</div>
+                </div>
+              </div>
+
+              <sc-if value="{{ confirmUnpair }}">
+                <div style="background:#4A2230;border:1px solid #7A3A48;border-radius:16px;padding:14px;margin-top:16px;">
+                  <div style="font-size:14px;font-weight:800;color:#FFD9D4;line-height:1.4;">Unpair this TV? Limits stop applying until you pair it again.</div>
+                  <div style="display:flex;gap:9px;margin-top:12px;">
+                    <div onClick="{{ onDoUnpair }}" style="flex:1;text-align:center;font-size:14px;font-weight:800;color:#fff;background:#E5483A;padding:12px 0;border-radius:99px;cursor:pointer;">Unpair</div>
+                    <div onClick="{{ onCancelUnpair }}" style="text-align:center;font-size:14px;font-weight:800;color:#FCF6F0;background:transparent;border:1.5px solid #6A5A7E;padding:11px 20px;border-radius:99px;cursor:pointer;">Cancel</div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ showUnpairBtn }}">
+                <div style="display:flex;gap:10px;margin-top:16px;">
+                  <div style="flex:1;text-align:center;background:transparent;border:1.5px solid #6A5A7E;color:#FCF6F0;font-size:14px;font-weight:800;padding:12px 0;border-radius:99px;cursor:pointer;">Rename</div>
+                  <div onClick="{{ onAskUnpair }}" style="flex:1;text-align:center;background:transparent;border:1.5px solid #6A5A7E;color:#FFB7AF;font-size:14px;font-weight:800;padding:12px 0;border-radius:99px;cursor:pointer;">Unpair TV</div>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- TV unpaired -->
+        <sc-if value="{{ tvUnpaired }}">
+          <div style="background:#fff;border:1.5px dashed #DDCFC2;border-radius:24px;padding:26px 22px;text-align:center;">
+            <div style="width:74px;height:74px;border-radius:99px;background:#F2EAE2;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#B6ABBF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            </div>
+            <div style="font-family:'Rubik',sans-serif;font-size:21px;font-weight:600;">No TV paired</div>
+            <div style="font-size:14px;color:#5B4D69;max-width:300px;margin:8px auto 18px;line-height:1.5;">Open ScreenTime on your Android TV and enter the 6-digit code it shows.</div>
+            <div onClick="{{ onPair }}" style="display:inline-block;background:#FF6B5E;color:#3A2A4D;font-size:15px;font-weight:800;padding:14px 28px;border-radius:99px;cursor:pointer;">Pair a TV</div>
+          </div>
+        </sc-if>
+
+        <div style="display:flex;gap:8px;align-items:flex-start;margin:14px 4px 0;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A99BB5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+          <span style="font-size:12px;font-weight:600;color:#A99BB5;line-height:1.45;">Only the family owner can pair or unpair the TV. Each family has one TV.</span>
+        </div>
+
+      </div>
+
+      <!-- bottom nav -->
+      <div style="background:#fff;border-top:1px solid #F2E7DB;padding:8px 6px 10px;display:flex;justify-content:space-around;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;display:flex;align-items:center;justify-content:center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A7C96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#8A7C96;">Limits</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;display:flex;align-items:center;justify-content:center;position:relative;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A7C96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0112 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 004 0"/></svg>
+            <span style="position:absolute;top:0;right:14px;min-width:16px;height:16px;border-radius:99px;background:#E5483A;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px;">2</span>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#8A7C96;">Requests</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;display:flex;align-items:center;justify-content:center;">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3.5px;"><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span></div>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#8A7C96;">Codes</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;border-radius:99px;background:#ECE5FB;display:flex;align-items:center;justify-content:center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3A2A4D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M16 14c2.4 0 4.5 1.6 4.5 4"/></svg>
+          </div>
+          <span style="font-size:11px;font-weight:800;color:#3A2A4D;">Family</span>
+        </div>
+      </div>
+
+    </div>
+
+  </x-import>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:620}}">
+class Component extends DCLogic {
+  state = {
+    tvPaired: true,
+    inviteOpen: false,
+    copied: false,
+    confirmUnpair: false,
+    samMenu: false,
+    samRemoved: false,
+  };
+
+  componentWillUnmount(){ clearTimeout(this._c); }
+
+  toggleInvite(){ this.setState(s => ({ inviteOpen: !s.inviteOpen })); }
+  copyInvite(){
+    try { if(navigator.clipboard) navigator.clipboard.writeText('screentime.app/j/garcia-4F9K'); } catch(e){}
+    this.setState({ copied:true });
+    clearTimeout(this._c);
+    this._c = setTimeout(() => this.setState({ copied:false }), 1500);
+  }
+  toggleSamMenu(){ this.setState(s => ({ samMenu: !s.samMenu })); }
+  removeSam(){ this.setState({ samRemoved:true, samMenu:false }); }
+  askUnpair(){ this.setState({ confirmUnpair:true }); }
+  cancelUnpair(){ this.setState({ confirmUnpair:false }); }
+  doUnpair(){ this.setState({ tvPaired:false, confirmUnpair:false }); }
+  pair(){ this.setState({ tvPaired:true }); }
+
+  renderVals(){
+    const coParent = !this.state.samRemoved;
+    return {
+      hasCoParent: coParent,
+      parentCountLabel: coParent ? '2 parents' : '1 parent',
+      samMenu: this.state.samMenu,
+      inviteOpen: this.state.inviteOpen,
+      copyLabel: this.state.copied ? 'Copied!' : 'Copy',
+      tvPaired: this.state.tvPaired,
+      tvUnpaired: !this.state.tvPaired,
+      confirmUnpair: this.state.confirmUnpair,
+      showUnpairBtn: !this.state.confirmUnpair,
+      onToggleInvite: () => this.toggleInvite(),
+      onCopyInvite: () => this.copyInvite(),
+      onToggleSamMenu: () => this.toggleSamMenu(),
+      onRemoveSam: () => this.removeSam(),
+      onAskUnpair: () => this.askUnpair(),
+      onCancelUnpair: () => this.cancelUnpair(),
+      onDoUnpair: () => this.doUnpair(),
+      onPair: () => this.pair(),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -18,8 +18,11 @@ import com.screentime.shared.model.LockoutMode
 import com.screentime.shared.model.LockoutSettings
 import com.screentime.shared.model.OneTimeCode
 import com.screentime.shared.model.PairedDevice
+import com.screentime.shared.model.TimeFrameSchedule
+import com.screentime.shared.model.TimeFrameWindow
 import com.screentime.shared.model.TimeRequest
 import com.screentime.shared.model.UsageSnapshot
+import java.time.DayOfWeek
 import java.util.UUID
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -47,10 +50,21 @@ class FirestoreRepository @Inject constructor(
     private val functions: FirebaseFunctions,
 ) {
 
-    fun limitsFlow(familyId: String): Flow<Limits> =
-        combine(overallLimitFlow(familyId), perAppLimitsFlow(familyId)) { overallMinutes, perApp ->
-            Limits(overallDailyMinutes = overallMinutes, perApp = perApp)
-        }
+    fun limitsFlow(familyId: String): Flow<Limits> = combine(
+        overallLimitFlow(familyId),
+        perAppLimitsFlow(familyId),
+        timeFrameFlow(familyId),
+        allowAllDayFlow(familyId),
+        instantLockFlow(familyId),
+    ) { overallMinutes, perApp, timeFrame, allowAllDayDate, instantLocked ->
+        Limits(
+            overallDailyMinutes = overallMinutes,
+            perApp              = perApp,
+            timeFrame           = timeFrame,
+            allowAllDayDate     = allowAllDayDate,
+            instantLocked       = instantLocked,
+        )
+    }
 
     private fun overallLimitFlow(familyId: String): Flow<Int> = callbackFlow {
         val ref = db.collection("families").document(familyId)
@@ -102,6 +116,92 @@ class FirestoreRepository @Inject constructor(
         db.collection("families").document(familyId)
             .collection("limits").document("overall")
             .set(mapOf(FIELD_OVERALL_MINUTES to minutes))
+            .await()
+    }
+
+    fun timeFrameFlow(familyId: String): Flow<TimeFrameSchedule> = callbackFlow {
+        val ref = db.collection("families").document(familyId)
+            .collection("limits").document("timeFrame")
+        val registration = ref.addSnapshotListener { snap, error ->
+            if (error != null) {
+                Log.e(TAG, "timeFrameFlow($familyId) listener failed", error)
+                trySend(TimeFrameSchedule.DEFAULT)
+                return@addSnapshotListener
+            }
+            if (snap == null || !snap.exists()) {
+                trySend(TimeFrameSchedule.DEFAULT)
+                return@addSnapshotListener
+            }
+            val enabled = snap.getBoolean(FIELD_TF_ENABLED) ?: false
+            @Suppress("UNCHECKED_CAST")
+            val rawDays = snap.get(FIELD_TF_WINDOWS_BY_DAY) as? Map<String, List<Map<String, Long>>>
+                ?: emptyMap()
+            val windowsByDay = rawDays.mapNotNull { (dayName, windows) ->
+                val day = runCatching { DayOfWeek.valueOf(dayName) }.getOrNull() ?: return@mapNotNull null
+                val parsed = windows.mapNotNull { w ->
+                    val start = w[FIELD_TF_START]?.toInt() ?: return@mapNotNull null
+                    val end = w[FIELD_TF_END]?.toInt() ?: return@mapNotNull null
+                    TimeFrameWindow(start, end)
+                }
+                day to parsed
+            }.toMap()
+            trySend(TimeFrameSchedule(enabled, windowsByDay))
+        }
+        awaitClose { registration.remove() }
+    }
+
+    suspend fun setTimeFrame(familyId: String, schedule: TimeFrameSchedule) {
+        val windowsByDay = schedule.windowsByDay.entries.associate { (day, windows) ->
+            day.name to windows.map { mapOf(FIELD_TF_START to it.startMinute, FIELD_TF_END to it.endMinute) }
+        }
+        db.collection("families").document(familyId)
+            .collection("limits").document("timeFrame")
+            .set(mapOf(FIELD_TF_ENABLED to schedule.enabled, FIELD_TF_WINDOWS_BY_DAY to windowsByDay))
+            .await()
+    }
+
+    fun allowAllDayFlow(familyId: String): Flow<String?> = callbackFlow {
+        val ref = db.collection("families").document(familyId)
+            .collection("limits").document("allDay")
+        val registration = ref.addSnapshotListener { snap, error ->
+            if (error != null) {
+                Log.e(TAG, "allowAllDayFlow($familyId) listener failed", error)
+                trySend(null)
+                return@addSnapshotListener
+            }
+            trySend(snap?.getString(FIELD_ALLDAY_DATE))
+        }
+        awaitClose { registration.remove() }
+    }
+
+    suspend fun setAllowAllDay(familyId: String, date: String?) {
+        val ref = db.collection("families").document(familyId)
+            .collection("limits").document("allDay")
+        if (date == null) {
+            ref.set(mapOf(FIELD_ALLDAY_DATE to FieldValue.delete()), SetOptions.merge()).await()
+        } else {
+            ref.set(mapOf(FIELD_ALLDAY_DATE to date)).await()
+        }
+    }
+
+    fun instantLockFlow(familyId: String): Flow<Boolean> = callbackFlow {
+        val ref = db.collection("families").document(familyId)
+            .collection("limits").document("instantLock")
+        val registration = ref.addSnapshotListener { snap, error ->
+            if (error != null) {
+                Log.e(TAG, "instantLockFlow($familyId) listener failed", error)
+                trySend(false)
+                return@addSnapshotListener
+            }
+            trySend(snap?.getBoolean(FIELD_INSTANT_LOCKED) ?: false)
+        }
+        awaitClose { registration.remove() }
+    }
+
+    suspend fun setInstantLock(familyId: String, locked: Boolean) {
+        db.collection("families").document(familyId)
+            .collection("limits").document("instantLock")
+            .set(mapOf(FIELD_INSTANT_LOCKED to locked))
             .await()
     }
 
@@ -574,5 +674,11 @@ class FirestoreRepository @Inject constructor(
         const val ROLE_USER = "user"
         const val CODE_TTL_SECONDS = 5 * 60L
         const val MAX_CODE_ATTEMPTS = 10
+        const val FIELD_TF_ENABLED = "enabled"
+        const val FIELD_TF_WINDOWS_BY_DAY = "windowsByDay"
+        const val FIELD_TF_START = "start"
+        const val FIELD_TF_END = "end"
+        const val FIELD_ALLDAY_DATE = "date"
+        const val FIELD_INSTANT_LOCKED = "locked"
     }
 }

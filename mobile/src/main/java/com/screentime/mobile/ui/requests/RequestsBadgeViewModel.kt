@@ -39,4 +39,15 @@ class RequestsBadgeViewModel @Inject constructor(
             all.any { it.status == TimeRequest.Status.Pending || it.isActiveGrant(now) }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val pendingCount: StateFlow<Int> = familyIdProvider.familyId
+        .flatMapLatest { id ->
+            if (id == null) flowOf(emptyList()) else firestore.recentRequestsFlow(id)
+        }
+        .combine(tickerFlow()) { all, _ -> all }
+        .map { all ->
+            all.count { it.status == TimeRequest.Status.Pending }
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 }

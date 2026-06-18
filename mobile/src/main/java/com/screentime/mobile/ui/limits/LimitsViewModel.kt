@@ -7,13 +7,17 @@ import com.screentime.shared.model.InstalledApp
 import com.screentime.shared.model.Limits
 import com.screentime.shared.model.LockoutMode
 import com.screentime.shared.model.LockoutSettings
+import com.screentime.shared.model.TimeFrameSchedule
 import com.screentime.shared.room.LimitsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 data class LimitsUiState(
@@ -21,43 +25,56 @@ data class LimitsUiState(
     val overallDailyMinutes: Int = Limits.DEFAULT_OVERALL_MINUTES,
     val availableApps: List<InstalledApp> = emptyList(),
     val lockout: LockoutSettings = LockoutSettings(),
+    val timeFrame: TimeFrameSchedule = TimeFrameSchedule.DEFAULT,
+    val allowAllDayActive: Boolean = false,
+    val instantLocked: Boolean = false,
 )
 
 @HiltViewModel
-class LimitsViewModel @Inject constructor(
+open class LimitsViewModel @Inject constructor(
     private val repo: LimitsRepository,
 ) : ViewModel() {
 
-    val state: StateFlow<LimitsUiState> = combine(
-        repo.observe(),
-        repo.observeInstalledApps(),
-        repo.observeLockout(),
-    ) { limits, apps, lockout ->
+    private val _writeError = MutableStateFlow<String?>(null)
+    open val writeError: StateFlow<String?> = _writeError.asStateFlow()
+
+    open val state: StateFlow<LimitsUiState> = combine(
+        combine(repo.observe(), repo.observeInstalledApps(), repo.observeLockout()) { limits, apps, lockout ->
+            Triple(limits, apps, lockout)
+        },
+        combine(repo.observeTimeFrame(), repo.observeAllowAllDay(), repo.observeInstantLock()) { tf, allDay, lock ->
+            Triple(tf, allDay, lock)
+        },
+    ) { (limits, apps, lockout), (timeFrame, allDayDate, instantLocked) ->
         LimitsUiState(
             limits = limits.perApp.values.sortedBy { it.packageName },
             overallDailyMinutes = limits.overallDailyMinutes,
             availableApps = apps,
             lockout = lockout,
+            timeFrame = timeFrame,
+            allowAllDayActive = allDayDate == LocalDate.now().toString(),
+            instantLocked = instantLocked,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LimitsUiState())
 
-    fun setLimit(packageName: String, minutes: Int) {
-        viewModelScope.launch { repo.setLimit(packageName, minutes) }
+    fun clearWriteError() {
+        _writeError.value = null
     }
 
-    fun removeLimit(packageName: String) {
-        viewModelScope.launch { repo.removeLimit(packageName) }
-    }
+    fun setLimit(packageName: String, minutes: Int) = write { repo.setLimit(packageName, minutes) }
+    fun removeLimit(packageName: String) = write { repo.removeLimit(packageName) }
+    fun setOverallLimit(minutes: Int) = write { repo.setOverallLimit(minutes) }
+    fun setLockoutConfig(durationMinutes: Int, mode: LockoutMode) = write { repo.setLockoutConfig(durationMinutes, mode) }
+    fun unlockNow() = write { repo.unlockNow() }
+    fun allowAllDay() = write { repo.setAllowAllDay(LocalDate.now().toString()) }
+    fun disallowAllDay() = write { repo.setAllowAllDay(null) }
+    fun lockInstantly() = write { repo.setInstantLock(true) }
+    fun unlockInstantly() = write { repo.setInstantLock(false) }
 
-    fun setOverallLimit(minutes: Int) {
-        viewModelScope.launch { repo.setOverallLimit(minutes) }
-    }
-
-    fun setLockoutConfig(durationMinutes: Int, mode: LockoutMode) {
-        viewModelScope.launch { repo.setLockoutConfig(durationMinutes, mode) }
-    }
-
-    fun unlockNow() {
-        viewModelScope.launch { repo.unlockNow() }
+    private fun write(block: suspend () -> Unit) {
+        viewModelScope.launch {
+            runCatching { block() }
+                .onFailure { _writeError.value = it.message ?: "Something went wrong." }
+        }
     }
 }

@@ -19,13 +19,13 @@ data class CodesUiState(
 )
 
 @HiltViewModel
-class CodesViewModel @Inject constructor(
+open class CodesViewModel @Inject constructor(
     private val firestore: FirestoreRepository,
     private val familyIdProvider: FamilyIdProvider,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CodesUiState())
-    val state: StateFlow<CodesUiState> = _state.asStateFlow()
+    open val state: StateFlow<CodesUiState> = _state.asStateFlow()
 
     fun generate(extraMinutes: Int) {
         val familyId = familyIdProvider.familyId.value ?: run {

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .num{font-variant-numeric:tabular-nums;}
+  .scrollarea::-webkit-scrollbar{width:0;background:transparent;}
+</style>
+</helmet>
+
+<div style="background:#E7E6E4;min-height:100vh;padding:48px 24px 64px;font-family:'Nunito Sans',sans-serif;display:flex;flex-direction:column;align-items:center;gap:18px;">
+
+  <div style="text-align:center;">
+    <div style="font-family:'Fredoka',sans-serif;font-size:20px;font-weight:600;color:#3A2A4D;">Unlock codes — generate a 4-digit code</div>
+    <div style="font-size:13px;color:#8A7C96;">Parent's phone · Android · Material 3 · Sprout · live countdown, tap Generate</div>
+  </div>
+
+  <x-import component="AndroidDevice" from="./android-frame.jsx" dark="{{ false }}" hint-size="412px,892px">
+
+    <div style="height:100%;display:flex;flex-direction:column;background:#FCF6F0;position:relative;font-family:'Nunito Sans',sans-serif;color:#3A2A4D;">
+
+      <div class="scrollarea" style="flex:1;overflow-y:auto;padding:8px 16px 110px;">
+
+        <!-- header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0 14px;">
+          <div style="display:flex;align-items:center;gap:9px;background:#fff;border:1px solid #EADFD4;border-radius:99px;padding:5px 12px 5px 5px;">
+            <div style="width:30px;height:30px;border-radius:99px;background:#B9A8F0;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-weight:600;font-size:14px;color:#3A2A4D;">G</div>
+            <span style="font-size:14px;font-weight:800;white-space:nowrap;">Garcia family</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A7C96" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div style="width:38px;height:38px;border-radius:99px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-weight:600;font-size:15px;color:#3A2A4D;">D</div>
+        </div>
+
+        <!-- title -->
+        <div style="margin-bottom:18px;">
+          <h1 style="font-family:'Fredoka',sans-serif;font-size:30px;font-weight:600;margin:0;line-height:1;">Unlock codes</h1>
+          <div style="font-size:14px;font-weight:600;color:#5B4D69;margin-top:6px;line-height:1.45;">Generate a code to read aloud or text. Your kid types it into the TV to unlock — works even with no internet.</div>
+        </div>
+
+        <!-- ACTIVE CODE -->
+        <sc-if value="{{ hasCode }}">
+          <div style="background:#3A2A4D;border-radius:26px;padding:22px;color:#FCF6F0;position:relative;overflow:hidden;">
+            <div style="position:absolute;right:-24px;bottom:-30px;width:120px;height:120px;border-radius:99px;background:#52436A;opacity:.45;"></div>
+            <div style="position:relative;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#C9BBD6;">Unlock code</span>
+                <span style="font-size:11px;font-weight:800;color:#3A2A4D;background:#B9A8F0;padding:5px 10px;border-radius:99px;">Single-use</span>
+              </div>
+              <div style="display:flex;gap:11px;margin:16px 0 4px;">
+                <sc-for list="{{ codeDigits }}" as="d" hint-placeholder-count="4">
+                  <div class="num" style="flex:1;height:78px;border-radius:18px;background:#FCF6F0;color:#3A2A4D;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-size:44px;font-weight:600;">{{ d }}</div>
+                </sc-for>
+              </div>
+              <div style="font-size:15px;font-weight:700;color:#EFE7F3;margin-top:12px;">{{ activeHeadline }}</div>
+              <div style="display:inline-flex;align-items:center;gap:7px;background:#52436A;border-radius:99px;padding:7px 13px;margin-top:12px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFB7AF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+                <span class="num" style="font-size:13px;font-weight:800;color:#FFD9D4;">Expires in {{ countdown }}</span>
+              </div>
+              <div style="display:flex;gap:10px;margin-top:18px;">
+                <div onClick="{{ onCopy }}" style="flex:1;text-align:center;background:#FF6B5E;color:#3A2A4D;font-size:15px;font-weight:800;padding:14px 0;border-radius:99px;cursor:pointer;">{{ copyLabel }}</div>
+                <div onClick="{{ onNew }}" style="text-align:center;background:transparent;border:1.5px solid #6A5A7E;color:#FCF6F0;font-size:15px;font-weight:800;padding:13px 20px;border-radius:99px;cursor:pointer;white-space:nowrap;">New code</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- NO ACTIVE CODE -->
+        <sc-if value="{{ noCode }}">
+          <div style="background:#fff;border:1.5px dashed #DDCFC2;border-radius:26px;padding:24px 22px;text-align:center;">
+            <div style="display:flex;gap:11px;margin-bottom:14px;">
+              <div class="num" style="flex:1;height:70px;border-radius:18px;background:#FAF5EF;border:1px solid #EFE3D6;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-size:40px;font-weight:600;color:#C9BCD0;">–</div>
+              <div class="num" style="flex:1;height:70px;border-radius:18px;background:#FAF5EF;border:1px solid #EFE3D6;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-size:40px;font-weight:600;color:#C9BCD0;">–</div>
+              <div class="num" style="flex:1;height:70px;border-radius:18px;background:#FAF5EF;border:1px solid #EFE3D6;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-size:40px;font-weight:600;color:#C9BCD0;">–</div>
+              <div class="num" style="flex:1;height:70px;border-radius:18px;background:#FAF5EF;border:1px solid #EFE3D6;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-size:40px;font-weight:600;color:#C9BCD0;">–</div>
+            </div>
+            <div style="font-size:14px;font-weight:700;color:#8A7C96;">No active code. Pick what it unlocks below, then generate one.</div>
+          </div>
+        </sc-if>
+
+        <!-- SETTINGS -->
+        <div style="background:#fff;border:1px solid #F2E7DB;border-radius:24px;padding:20px;margin-top:14px;">
+          <div style="font-family:'Fredoka',sans-serif;font-size:17px;font-weight:600;margin-bottom:14px;">What it unlocks</div>
+
+          <div style="font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#A99BB5;margin-bottom:9px;">How much time</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+            <sc-for list="{{ amountChips }}" as="c" hint-placeholder-count="4">
+              <div style="{{ c.style }}" onClick="{{ c.onClick }}">{{ c.label }}</div>
+            </sc-for>
+          </div>
+
+          <div style="font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#A99BB5;margin:16px 0 9px;">Applies to</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+            <sc-for list="{{ scopeChips }}" as="c" hint-placeholder-count="2">
+              <div style="{{ c.style }}" onClick="{{ c.onClick }}">{{ c.label }}</div>
+            </sc-for>
+          </div>
+
+          <div onClick="{{ onGenerate }}" style="margin-top:18px;text-align:center;background:#FF6B5E;color:#3A2A4D;font-size:16px;font-weight:800;padding:15px 0;border-radius:99px;cursor:pointer;box-shadow:0 8px 18px rgba(255,107,94,.3);">{{ generateLabel }}</div>
+        </div>
+
+        <!-- RECENT -->
+        <div style="margin:24px 2px 12px;font-family:'Fredoka',sans-serif;font-size:19px;font-weight:600;">Recent codes</div>
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <sc-for list="{{ recent }}" as="r" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;gap:13px;background:#FAF5EF;border:1px solid #F2E7DB;border-radius:18px;padding:11px 14px;">
+              <span class="num" style="font-family:'Fredoka',sans-serif;font-size:18px;font-weight:600;letter-spacing:.08em;color:#B6ABBF;width:62px;">{{ r.code }}</span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:14px;font-weight:800;line-height:1.25;">{{ r.grant }}</div>
+                <div style="font-size:12px;font-weight:600;color:#8A7C96;">{{ r.time }}</div>
+              </div>
+              <span style="{{ r.statusStyle }}">{{ r.statusLabel }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+      </div>
+
+      <!-- bottom nav -->
+      <div style="background:#fff;border-top:1px solid #F2E7DB;padding:8px 6px 10px;display:flex;justify-content:space-around;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;display:flex;align-items:center;justify-content:center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A7C96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#8A7C96;">Limits</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;display:flex;align-items:center;justify-content:center;position:relative;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A7C96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0112 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 004 0"/></svg>
+            <span style="position:absolute;top:0;right:14px;min-width:16px;height:16px;border-radius:99px;background:#E5483A;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px;">2</span>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#8A7C96;">Requests</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;border-radius:99px;background:#ECE5FB;display:flex;align-items:center;justify-content:center;">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3.5px;"><span style="width:4.5px;height:4.5px;border-radius:99px;background:#3A2A4D;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#3A2A4D;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#3A2A4D;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#3A2A4D;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#3A2A4D;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#3A2A4D;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#3A2A4D;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#3A2A4D;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#3A2A4D;"></span></div>
+          </div>
+          <span style="font-size:11px;font-weight:800;color:#3A2A4D;">Codes</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;display:flex;align-items:center;justify-content:center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A7C96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M16 14c2.4 0 4.5 1.6 4.5 4"/></svg>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#8A7C96;">Family</span>
+        </div>
+      </div>
+
+    </div>
+
+  </x-import>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:620}}">
+class Component extends DCLogic {
+  state = {
+    amount: 30,
+    scope: 'Everything',
+    code: null,
+    activeHeadline: '',
+    activeChipGrant: '',
+    secondsLeft: 0,
+    copied: false,
+    recent: [
+      { id:'c1', code:'4821', grant:'+30 min · Everything', status:'used', time:'Used 2h ago' },
+      { id:'c2', code:'0907', grant:'+15 min · YouTube', status:'expired', time:'Expired yesterday' },
+    ],
+  };
+
+  componentDidMount(){
+    this._t = setInterval(() => {
+      if(this.state.code && this.state.secondsLeft > 0){
+        this.setState(s => {
+          const n = s.secondsLeft - 1;
+          if(n <= 0){
+            return {
+              secondsLeft:0, code:null,
+              recent:[{ id:'r'+Date.now(), code:s.code, grant:s.activeChipGrant, status:'expired', time:'Expired just now' }, ...s.recent],
+            };
+          }
+          return { secondsLeft:n };
+        });
+      }
+    }, 1000);
+  }
+  componentWillUnmount(){ clearInterval(this._t); clearTimeout(this._c); }
+
+  amountLabel(m){ return m === -1 ? 'Rest of day' : (m === 60 ? '1 hour' : m + ' min'); }
+
+  setAmount(m){ this.setState({ amount:m }); }
+  setScope(s){ this.setState({ scope:s }); }
+
+  generate(){
+    const code = String(Math.floor(1000 + Math.random() * 9000));
+    const m = this.state.amount, scope = this.state.scope, al = this.amountLabel(m);
+    const headline = m === -1 ? ('Unlocks ' + scope + ' for the rest of today') : ('Unlocks ' + scope + ' for ' + al);
+    const chipGrant = (m === -1 ? 'Rest of day' : '+' + al) + ' · ' + scope;
+    this.setState({ code, activeHeadline:headline, activeChipGrant:chipGrant, secondsLeft:600, copied:false });
+  }
+  copy(){
+    try { if(navigator.clipboard) navigator.clipboard.writeText(this.state.code); } catch(e){}
+    this.setState({ copied:true });
+    clearTimeout(this._c);
+    this._c = setTimeout(() => this.setState({ copied:false }), 1500);
+  }
+
+  chip(active, onClick, label){
+    return {
+      label, onClick,
+      style: active
+        ? 'text-align:center;font-size:14px;font-weight:800;padding:13px 0;border-radius:14px;cursor:pointer;background:#3A2A4D;color:#FCF6F0;border:1.5px solid #3A2A4D;'
+        : 'text-align:center;font-size:14px;font-weight:800;padding:13px 0;border-radius:14px;cursor:pointer;background:#FAF5EF;color:#3A2A4D;border:1.5px solid #EADFD4;',
+    };
+  }
+
+  renderVals(){
+    const { code, secondsLeft, amount, scope, copied } = this.state;
+    const mm = Math.floor(secondsLeft / 60), ss = secondsLeft % 60;
+    const amts = [15, 30, 60, -1];
+    return {
+      hasCode: !!code,
+      noCode: !code,
+      codeDigits: code ? code.split('') : ['','','',''],
+      countdown: mm + ':' + (ss < 10 ? '0' + ss : ss),
+      activeHeadline: this.state.activeHeadline,
+      copyLabel: copied ? 'Copied!' : 'Copy code',
+      generateLabel: code ? 'Replace with a new code' : 'Generate code',
+      onCopy: () => this.copy(),
+      onNew: () => this.generate(),
+      onGenerate: () => this.generate(),
+      amountChips: amts.map(m => this.chip(amount === m, () => this.setAmount(m), this.amountLabel(m))),
+      scopeChips: ['Everything','YouTube'].map(s => this.chip(scope === s, () => this.setScope(s), s === 'YouTube' ? 'Just YouTube' : s)),
+      recent: this.state.recent.map(r => ({
+        ...r,
+        statusLabel: r.status === 'used' ? 'Used' : 'Expired',
+        statusStyle: r.status === 'used'
+          ? 'font-size:12px;font-weight:800;color:#15795A;background:#DFF6EC;padding:4px 10px;border-radius:99px;white-space:nowrap;'
+          : 'font-size:12px;font-weight:800;color:#8A7C96;background:#F2EAE2;padding:4px 10px;border-radius:99px;white-space:nowrap;',
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -23,17 +23,26 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.screentime.tv.service.BlockReason
 import com.screentime.tv.ui.BackPressHandler
 import com.screentime.tv.ui.BlockOverlayContent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.screentime.shared.limits.LimitsProvider
+import com.screentime.shared.room.UsageRepository
+import com.screentime.shared.model.Limits
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 
 @Singleton
 class BlockOverlayController @Inject constructor(
     @ApplicationContext private val context: Context,
     private val codeRedeemer: CodeRedeemer,
     private val requestController: RequestController,
+    private val limitsProvider: LimitsProvider,
+    private val usage: UsageRepository,
 ) {
     private val windowManager: WindowManager =
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -41,22 +50,41 @@ class BlockOverlayController @Inject constructor(
 
     private var hostedView: View? = null
     private val currentPackage = mutableStateOf<String?>(null)
+    private val currentBlockReason = mutableStateOf(BlockReason.DailyLimitReached)
+    private val nextWindowAt = mutableStateOf<String?>(null)
     private val backPressHandler = BackPressHandler()
 
     // WindowManager + the Compose lifecycle/SavedState registries must be
     // touched from the main thread, but evaluate() runs on Dispatchers.Default.
-    fun show(blockedPackage: String) {
+    fun show(blockedPackage: String, reason: BlockReason = BlockReason.DailyLimitReached, nextWindow: String? = null) {
         mainHandler.post {
             currentPackage.value = blockedPackage
+            currentBlockReason.value = reason
+            nextWindowAt.value = nextWindow
             if (hostedView == null) {
                 val composeView = ComposeView(context).apply {
                     setContent {
                         val lockout by codeRedeemer.lockout.collectAsState()
                         val requestStatus by requestController.requestStatus.collectAsState()
+                        val approvedMinutes by requestController.approvedMinutes.collectAsState()
+                        val limits by limitsProvider.limits().collectAsState(initial = Limits())
+                        
+                        var usedMillis by remember(currentPackage.value) { mutableStateOf(0L) }
+                        LaunchedEffect(currentPackage.value, limits) {
+                            currentPackage.value?.let { pkg ->
+                                usedMillis = usage.millisForToday(pkg)
+                            }
+                        }
+
                         BlockOverlayContent(
                             blockedPackage = currentPackage.value ?: "",
+                            blockReason = currentBlockReason.value,
+                            nextWindowAt = nextWindowAt.value,
                             lockout = lockout,
                             requestStatus = requestStatus,
+                            approvedMinutes = approvedMinutes,
+                            limits = limits,
+                            usedMillis = usedMillis,
                             backPressHandler = backPressHandler,
                             onSubmitCode = { entered -> codeRedeemer.redeem(entered, currentPackage.value) },
                             onSubmitRequest = { minutes ->

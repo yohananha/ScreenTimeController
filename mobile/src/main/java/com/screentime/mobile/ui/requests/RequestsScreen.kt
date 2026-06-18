@@ -1,72 +1,101 @@
 package com.screentime.mobile.ui.requests
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.HourglassEmpty
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.screentime.mobile.R
-import com.screentime.mobile.ui.components.EmptyState
+import com.screentime.mobile.ui.theme.rememberScreenPadding
+import com.screentime.mobile.ui.components.ChipGroup
+import com.screentime.mobile.ui.components.SproutGhostButton
+import com.screentime.mobile.ui.components.SproutPrimaryButton
+import com.screentime.mobile.ui.components.TopHeader
+import com.screentime.mobile.ui.theme.Sprout
 import com.screentime.shared.model.TimeRequest
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
-    Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_requests)) }) },
-    ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+    val selectedAmounts = remember { mutableStateMapOf<String, Int>() }
+    val hPad = rememberScreenPadding()
+
+    Box(modifier = Modifier.fillMaxSize().background(Sprout.colors.background), contentAlignment = Alignment.TopCenter) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().widthIn(max = 600.dp),
+            contentPadding = PaddingValues(start = hPad, end = hPad, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item { TopHeader(familyName = "Family", parentInitial = "P") }
+            item {
+                Column(modifier = Modifier.padding(top = 4.dp, bottom = 6.dp)) {
+                    Text("Requests", style = Sprout.typography.display, color = Sprout.colors.ink)
+                    Text(
+                        text = "Approve or deny extra time the TV asks for.",
+                        style = Sprout.typography.caption,
+                        color = Sprout.colors.inkMuted,
+                        modifier = Modifier.padding(top = 5.dp),
+                    )
+                }
+            }
+
             if (state.pending.isEmpty() && state.active.isEmpty()) {
-                EmptyState(
-                    icon = Icons.Filled.CheckCircle,
-                    text = "All caught up — no requests right now.",
-                    modifier = Modifier.align(Alignment.Center).padding(32.dp),
-                )
+                item { EmptyState() }
             } else {
-                LazyColumn(
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    if (state.pending.isNotEmpty()) {
-                        item { SectionHeader("Pending", Icons.Filled.HourglassEmpty) }
-                        items(state.pending, key = { it.id }) { req ->
-                            PendingCard(req, viewModel::approve, viewModel::deny)
-                        }
+                if (state.pending.isNotEmpty()) {
+                    items(state.pending, key = { it.id }) { req ->
+                        val selected = selectedAmounts[req.id] ?: req.requestedMinutes
+                        PendingCard(
+                            request = req,
+                            selectedAmount = selected,
+                            onAmountChange = { selectedAmounts[req.id] = it },
+                            onApprove = { viewModel.approve(req, selected) },
+                            onDeny = { viewModel.deny(req) },
+                        )
                     }
-                    if (state.active.isNotEmpty()) {
-                        item { SectionHeader("Extra time granted", Icons.Filled.CheckCircle) }
-                        items(state.active, key = { it.id }) { req -> ActiveGrantCard(req) }
+                }
+                if (state.active.isNotEmpty()) {
+                    item {
+                        Text(
+                            "Active",
+                            style = Sprout.typography.title,
+                            color = Sprout.colors.ink,
+                            modifier = Modifier.padding(top = 12.dp, start = 2.dp),
+                        )
                     }
+                    items(state.active, key = { it.id }) { req -> ActiveGrantRow(req) }
                 }
             }
         }
@@ -74,69 +103,192 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun SectionHeader(label: String, icon: ImageVector) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.padding(top = 8.dp),
+private fun EmptyState() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Sprout.colors.surface, Sprout.radius.card)
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-        Text(label, style = MaterialTheme.typography.titleMedium)
+        Box(
+            modifier = Modifier.size(88.dp).background(Sprout.colors.positiveContainer, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.Filled.Check, contentDescription = null, tint = Sprout.colors.positiveText, modifier = Modifier.size(40.dp))
+        }
+        Text("You're all caught up", style = Sprout.typography.title, color = Sprout.colors.ink)
+        Text(
+            "No pending requests right now.",
+            style = Sprout.typography.bodyStrong,
+            color = Sprout.colors.inkMuted,
+        )
     }
 }
+
 
 @Composable
 private fun PendingCard(
     request: TimeRequest,
-    onApprove: (TimeRequest, Int) -> Unit,
-    onDeny: (TimeRequest) -> Unit,
+    selectedAmount: Int,
+    onAmountChange: (Int) -> Unit,
+    onApprove: () -> Unit,
+    onDeny: () -> Unit,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-        ),
-    ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(request.appPackage, fontWeight = FontWeight.SemiBold)
-            Text("Requested ${request.requestedMinutes} min")
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = { onApprove(request, request.requestedMinutes) }) {
-                    Text("Approve ${request.requestedMinutes}")
-                }
-                listOf(15, 30, 60).forEach { minutes ->
-                    AssistChip(
-                        onClick = { onApprove(request, minutes) },
-                        label = { Text("$minutes") },
-                    )
-                }
-            }
-            TextButton(onClick = { onDeny(request) }) { Text("Deny") }
+    val context = LocalContext.current
+    val appLabel = remember(request.appPackage) {
+        try {
+            val pm = context.packageManager
+            val info = pm.getApplicationInfo(request.appPackage, 0)
+            pm.getApplicationLabel(info).toString()
+        } catch (e: Exception) {
+            request.appPackage.substringAfterLast('.').replaceFirstChar { it.uppercase() }
         }
     }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Sprout.colors.surface, Sprout.radius.card)
+            .padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(
+                modifier = Modifier.size(44.dp).background(Sprout.colors.ink, RoundedCornerShape(14.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.Tv, contentDescription = null, tint = Sprout.colors.background, modifier = Modifier.size(22.dp))
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Living Room TV", style = Sprout.typography.headline, color = Sprout.colors.ink)
+                val relativeTime = formatRelativeTime(request.createdAt)
+                Text(relativeTime, style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
+            }
+            // App pill on the right
+            Row(
+                modifier = Modifier
+                    .background(Sprout.colors.accentContainer, Sprout.radius.pill)
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val appColor = appAccentFor(request.appPackage)
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .background(appColor, RoundedCornerShape(6.dp)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = appLabel.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                        style = Sprout.typography.label.copy(fontSize = 11.sp),
+                        color = Color.White
+                    )
+                }
+                Text(
+                    text = appLabel,
+                    style = Sprout.typography.label,
+                    color = Sprout.colors.ink
+                )
+            }
+        }
+        Text(
+            buildAnnotatedAsk(request.requestedMinutes),
+            style = Sprout.typography.title,
+        )
+
+        Text(
+            "GRANT HOW LONG?",
+            style = Sprout.typography.label,
+            color = Sprout.colors.inkFaint,
+        )
+        ChipGroup(
+            options = listOf(15, 30, 60),
+            selected = selectedAmount.coerceIn(15, 60),
+            onSelect = onAmountChange,
+            label = { "${it}m" },
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            SproutPrimaryButton(
+                text = "Approve ${selectedAmount}m",
+                onClick = onApprove,
+                modifier = Modifier.weight(1f),
+            )
+            SproutGhostButton(
+                text = "Deny",
+                onClick = onDeny,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+private fun appAccentFor(packageName: String): Color {
+    val appAccents = listOf(
+        Color(0xFFE5483A), Color(0xFF5B6B7B), Color(0xFF2A2730), Color(0xFF4FA98C),
+        Color(0xFF8E86D9), Color(0xFFF2A93B), Color(0xFFB9A8F0),
+    )
+    return appAccents[(packageName.hashCode().let { if (it < 0) -it else it }) % appAccents.size]
+}
+
+private fun formatRelativeTime(createdAt: java.time.Instant): String {
+    val duration = java.time.Duration.between(createdAt, java.time.Instant.now())
+    val seconds = duration.seconds
+    return when {
+        seconds < 60 -> "just now"
+        seconds < 3600 -> "${seconds / 60}m ago"
+        else -> "${seconds / 3600}h ago"
+    }
+}
+
+@Composable
+private fun buildAnnotatedAsk(minutes: Int) = buildAnnotatedString {
+    append("Wants ")
+    withStyle(SpanStyle(color = Sprout.colors.overDisplay)) {
+        append("${minutes}m")
+    }
+    append(" more")
 }
 
 private val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
 
 @Composable
-private fun ActiveGrantCard(request: TimeRequest) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        ),
+private fun ActiveGrantRow(request: TimeRequest) {
+    val context = LocalContext.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Sprout.colors.surfaceSunken, Sprout.radius.input)
+            .padding(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(11.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(request.appPackage, fontWeight = FontWeight.SemiBold)
+        Box(
+            modifier = Modifier.size(36.dp).background(Sprout.colors.outline, RoundedCornerShape(11.dp)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.Filled.Tv, contentDescription = null, tint = Sprout.colors.inkMuted, modifier = Modifier.size(18.dp))
+        }
+        Column(modifier = Modifier.weight(1f)) {
             val granted = request.approvedMinutes ?: request.requestedMinutes
-            Text("Extra time granted: $granted min", style = MaterialTheme.typography.bodyMedium)
+            val appLabel = remember(request.appPackage) {
+                try {
+                    val pm = context.packageManager
+                    val info = pm.getApplicationInfo(request.appPackage, 0)
+                    pm.getApplicationLabel(info).toString()
+                } catch (e: Exception) {
+                    request.appPackage.substringAfterLast('.').replaceFirstChar { it.uppercase() }
+                }
+            }
+            Text("Approved ${granted}m on $appLabel", style = Sprout.typography.bodyStrong, color = Sprout.colors.ink)
             request.grantExpiresAt()?.let { expiry ->
                 val until = timeFormatter.withZone(ZoneId.systemDefault()).format(expiry)
                 Text(
                     "Active until $until",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = Sprout.typography.caption,
+                    color = Sprout.colors.inkMuted,
                 )
             }
         }

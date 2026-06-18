@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Varela+Round&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  @keyframes stfade{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</helmet>
+
+<div style="background:#E7E6E4;min-height:100vh;padding:40px 40px 80px;font-family:'Varela Round',sans-serif;color:#3A2A4D;overflow-x:auto;">
+  <div style="max-width:1980px;margin:0 auto;">
+
+    <div style="margin-bottom:28px;">
+      <div style="font-family:'Rubik',sans-serif;font-size:22px;font-weight:600;">TV Permission Setup — Variants 2 &amp; 3</div>
+      <div style="font-size:14px;color:#8A7C96;margin-top:4px;">Android TV · 1920 × 1080 · Sprout · tap ghost buttons for transparency panels</div>
+    </div>
+
+    <!-- ===== VARIANT 1 — OVERLAY PERMISSION ===== -->
+    <div style="margin-bottom:18px;">
+      <div style="font-size:14px;font-weight:800;color:#5B4D69;margin-bottom:10px;letter-spacing:.04em;text-transform:uppercase;">Variant 2 of 3 — Display over other apps</div>
+      <div style="background:#15101F;border-radius:28px;padding:18px;box-shadow:0 40px 100px rgba(0,0,0,.35);">
+        <div style="position:relative;width:1920px;height:1080px;border-radius:14px;overflow:hidden;background:#2E2140;color:#FCF6F0;font-family:'Varela Round',sans-serif;">
+
+          <!-- blobs -->
+          <div style="position:absolute;right:-160px;top:-160px;width:560px;height:560px;border-radius:99px;background:radial-gradient(circle,#4A356A,transparent 70%);"></div>
+          <div style="position:absolute;left:-120px;bottom:-180px;width:520px;height:520px;border-radius:99px;background:radial-gradient(circle,#3E2C57,transparent 70%);"></div>
+
+          <!-- brand chip -->
+          <div style="position:absolute;top:48px;left:64px;display:flex;align-items:center;gap:12px;">
+            <div style="width:38px;height:38px;border-radius:12px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;"><div style="width:15px;height:15px;border-radius:99px;background:#3A2A4D;"></div></div>
+            <span style="font-family:'Rubik',sans-serif;font-size:24px;font-weight:600;color:#EFE7F3;">ScreenTime</span>
+          </div>
+
+          <!-- remote hint -->
+          <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;color:#9785AC;">
+            <span style="border:2px solid #5A4A72;border-radius:8px;padding:2px 10px;">◀ ▶ ▲ ▼</span> move
+            <span style="border:2px solid #5A4A72;border-radius:8px;padding:2px 12px;margin-left:8px;">OK</span> select
+          </div>
+
+          <!-- content -->
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 200px;">
+
+            <!-- illustration: layered windows -->
+            <div style="width:168px;height:168px;border-radius:99px;background:#ECE5FB;display:flex;align-items:center;justify-content:center;margin-bottom:44px;">
+              <svg width="82" height="82" viewBox="0 0 80 80" fill="none">
+                <!-- back window -->
+                <rect x="6" y="18" width="50" height="38" rx="8" fill="#C9BCEE" stroke="#5B4D8C" stroke-width="3"/>
+                <!-- front window -->
+                <rect x="24" y="28" width="50" height="38" rx="8" fill="#ECE5FB" stroke="#5B4D8C" stroke-width="3"/>
+                <!-- dot/notification -->
+                <circle cx="65" cy="26" r="9" fill="#FF6B5E"/>
+                <circle cx="65" cy="26" r="5" fill="#3A2A4D"/>
+              </svg>
+            </div>
+
+            <h1 style="font-family:'Rubik',sans-serif;font-size:78px;font-weight:600;margin:0;line-height:1;">One more setting</h1>
+            <p style="font-size:32px;font-weight:600;color:#C6B9D6;max-width:1200px;line-height:1.45;margin:32px 0 0;">ScreenTime needs <strong style="color:#FCF6F0;">"Display over other apps"</strong> permission so it can show the gentle reminder when time's up. We never collect what you watch — only when the limit hits.</p>
+
+            <!-- step dots: 2 of 3 filled -->
+            <div style="display:flex;gap:10px;align-items:center;margin:38px 0 52px;">
+              <span style="width:44px;height:12px;border-radius:99px;background:#FF6B5E;"></span>
+              <span style="width:44px;height:12px;border-radius:99px;background:#FF6B5E;"></span>
+              <span style="width:14px;height:12px;border-radius:99px;background:#5A4A72;"></span>
+            </div>
+
+            <div style="display:flex;gap:28px;align-items:flex-start;">
+              <div style="background:#FF6B5E;color:#3A2A4D;font-family:'Varela Round',sans-serif;font-size:30px;font-weight:800;padding:24px 46px;border-radius:99px;cursor:pointer;white-space:nowrap;box-shadow:0 0 0 0px #FCF6F0;transition:box-shadow .15s;">Open Android settings</div>
+              <div onClick="{{ onToggleInfo1 }}" style="background:rgba(255,255,255,0.08);color:#FCF6F0;font-family:'Varela Round',sans-serif;font-size:30px;font-weight:800;padding:24px 46px;border-radius:99px;cursor:pointer;border:3px solid rgba(255,255,255,0.24);white-space:nowrap;">Why do you need this?</div>
+            </div>
+
+            <!-- info panel v1 -->
+            <sc-if value="{{ info1Open }}">
+              <div style="margin-top:32px;background:rgba(255,255,255,0.07);border:2px solid rgba(255,255,255,0.14);border-radius:24px;padding:30px 38px;max-width:1100px;text-align:left;animation:stfade .2s ease-out;">
+                <div style="font-size:24px;font-weight:700;color:#C6B9D6;line-height:1.5;">This permission lets ScreenTime draw a single overlay window — the block screen — when time's up. It can't see the content of any app, only when a limit is hit. You can revoke it in Android Settings → Apps → ScreenTime anytime.</div>
+              </div>
+            </sc-if>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== VARIANT 2 — ACCESSIBILITY SERVICE ===== -->
+    <div style="margin-bottom:18px;">
+      <div style="font-size:14px;font-weight:800;color:#5B4D69;margin-bottom:10px;letter-spacing:.04em;text-transform:uppercase;">Variant 3 of 3 — Accessibility service</div>
+      <div style="background:#15101F;border-radius:28px;padding:18px;box-shadow:0 40px 100px rgba(0,0,0,.35);">
+        <div style="position:relative;width:1920px;height:1080px;border-radius:14px;overflow:hidden;background:#2E2140;color:#FCF6F0;font-family:'Varela Round',sans-serif;">
+
+          <!-- blobs -->
+          <div style="position:absolute;right:-160px;top:-160px;width:560px;height:560px;border-radius:99px;background:radial-gradient(circle,#4A356A,transparent 70%);"></div>
+          <div style="position:absolute;left:-120px;bottom:-180px;width:520px;height:520px;border-radius:99px;background:radial-gradient(circle,#3E2C57,transparent 70%);"></div>
+
+          <!-- brand chip -->
+          <div style="position:absolute;top:48px;left:64px;display:flex;align-items:center;gap:12px;">
+            <div style="width:38px;height:38px;border-radius:12px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;"><div style="width:15px;height:15px;border-radius:99px;background:#3A2A4D;"></div></div>
+            <span style="font-family:'Rubik',sans-serif;font-size:24px;font-weight:600;color:#EFE7F3;">ScreenTime</span>
+          </div>
+
+          <!-- remote hint -->
+          <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;color:#9785AC;">
+            <span style="border:2px solid #5A4A72;border-radius:8px;padding:2px 10px;">◀ ▶ ▲ ▼</span> move
+            <span style="border:2px solid #5A4A72;border-radius:8px;padding:2px 12px;margin-left:8px;">OK</span> select
+          </div>
+
+          <!-- content -->
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 200px;">
+
+            <!-- illustration: hand touch with glow arcs -->
+            <div style="width:168px;height:168px;border-radius:99px;background:#ECE5FB;display:flex;align-items:center;justify-content:center;margin-bottom:44px;">
+              <svg width="82" height="82" viewBox="0 0 80 80" fill="none">
+                <!-- concentric arcs behind hand (touch ripples) -->
+                <circle cx="40" cy="52" r="28" stroke="#C9BCEE" stroke-width="3" stroke-dasharray="6 4" opacity=".6"/>
+                <circle cx="40" cy="52" r="20" stroke="#B9A8F0" stroke-width="3" opacity=".5"/>
+                <!-- hand/finger -->
+                <rect x="34" y="20" width="12" height="30" rx="6" fill="#5B4D8C"/>
+                <rect x="22" y="32" width="12" height="24" rx="6" fill="#5B4D8C"/>
+                <rect x="46" y="32" width="12" height="24" rx="6" fill="#5B4D8C"/>
+                <rect x="22" y="56" width="36" height="14" rx="7" fill="#5B4D8C"/>
+              </svg>
+            </div>
+
+            <h1 style="font-family:'Rubik',sans-serif;font-size:78px;font-weight:600;margin:0;line-height:1;">Almost there!</h1>
+            <p style="font-size:32px;font-weight:600;color:#C6B9D6;max-width:1200px;line-height:1.45;margin:32px 0 0;">Turn on the <strong style="color:#FCF6F0;">ScreenTime accessibility service</strong> so it can tell which app is open and step in only when needed. You can review what it has access to in Android Settings any time.</p>
+
+            <!-- step dots: 3 of 3 filled -->
+            <div style="display:flex;gap:10px;align-items:center;margin:38px 0 52px;">
+              <span style="width:44px;height:12px;border-radius:99px;background:#FF6B5E;"></span>
+              <span style="width:44px;height:12px;border-radius:99px;background:#FF6B5E;"></span>
+              <span style="width:44px;height:12px;border-radius:99px;background:#FF6B5E;"></span>
+            </div>
+
+            <div style="display:flex;gap:28px;align-items:flex-start;">
+              <div style="background:#FF6B5E;color:#3A2A4D;font-family:'Varela Round',sans-serif;font-size:30px;font-weight:800;padding:24px 46px;border-radius:99px;cursor:pointer;white-space:nowrap;">Open Android settings</div>
+              <div onClick="{{ onToggleInfo2 }}" style="background:rgba(255,255,255,0.08);color:#FCF6F0;font-family:'Varela Round',sans-serif;font-size:30px;font-weight:800;padding:24px 46px;border-radius:99px;cursor:pointer;border:3px solid rgba(255,255,255,0.24);white-space:nowrap;">What does this do?</div>
+            </div>
+
+            <!-- info panel v2 -->
+            <sc-if value="{{ info2Open }}">
+              <div style="margin-top:32px;background:rgba(255,255,255,0.07);border:2px solid rgba(255,255,255,0.14);border-radius:24px;padding:30px 38px;max-width:1100px;text-align:left;animation:stfade .2s ease-out;">
+                <div style="font-size:24px;font-weight:700;color:#C6B9D6;line-height:1.5;">The Accessibility Service watches for app-switch events — the same signal that tells ScreenTime "YouTube just opened." It cannot read text, see passwords, or interact with apps on your behalf. Disable it in Android Settings → Accessibility → ScreenTime whenever you like.</div>
+              </div>
+            </sc-if>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;font-size:13px;color:#8A7C96;margin-top:8px;">1920 × 1080 · Sprout · steps 2 &amp; 3 of a 3-step first-run permission flow</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:2000}}">
+class Component extends DCLogic {
+  state = { info1Open: false, info2Open: false };
+  renderVals(){
+    return {
+      info1Open: this.state.info1Open,
+      info2Open: this.state.info2Open,
+      onToggleInfo1: () => this.setState(s => ({ info1Open: !s.info1Open })),
+      onToggleInfo2: () => this.setState(s => ({ info2Open: !s.info2Open })),
+    };
+  }
+}
+</script>
+</body>
+</html>

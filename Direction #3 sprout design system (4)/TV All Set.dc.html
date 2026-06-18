@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Varela+Round&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  @keyframes sthalo{0%,100%{transform:scale(1);opacity:.25;}50%{transform:scale(1.14);opacity:.45;}}
+  @keyframes stpop{0%{transform:scale(.7);opacity:0;}80%{transform:scale(1.04);}100%{transform:scale(1);opacity:1;}}
+  @keyframes stfadein{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes stdismiss{from{opacity:1;}to{opacity:0;}}
+</style>
+</helmet>
+
+<div style="background:#E7E6E4;min-height:100vh;padding:40px 40px 64px;font-family:'Varela Round',sans-serif;color:#3A2A4D;overflow-x:auto;">
+  <div style="max-width:1980px;margin:0 auto;">
+
+    <div style="margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div style="font-family:'Rubik',sans-serif;font-size:22px;font-weight:600;">TV — All set / operational confirmation</div>
+        <div style="font-size:14px;color:#8A7C96;margin-top:4px;">1920 × 1080 · Sprout · <strong style="color:#3A2A4D;">press any key</strong> to simulate returning to TV content</div>
+      </div>
+    </div>
+
+    <div style="background:#15101F;border-radius:28px;padding:18px;box-shadow:0 40px 100px rgba(0,0,0,.35);">
+      <div style="position:relative;width:1920px;height:1080px;border-radius:14px;overflow:hidden;font-family:'Varela Round',sans-serif;">
+
+        <!-- ===== ALL SET screen ===== -->
+        <sc-if value="{{ isAllSet }}">
+          <div style="position:absolute;inset:0;background:#2E2140;color:#FCF6F0;animation:stfadein .5s ease-out;">
+
+            <!-- blobs -->
+            <div style="position:absolute;right:-160px;top:-160px;width:560px;height:560px;border-radius:99px;background:radial-gradient(circle,#4A356A,transparent 70%);"></div>
+            <div style="position:absolute;left:-120px;bottom:-180px;width:520px;height:520px;border-radius:99px;background:radial-gradient(circle,#3E2C57,transparent 70%);"></div>
+
+            <!-- brand chip -->
+            <div style="position:absolute;top:48px;left:64px;display:flex;align-items:center;gap:12px;z-index:2;">
+              <div style="width:38px;height:38px;border-radius:12px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;"><div style="width:15px;height:15px;border-radius:99px;background:#3A2A4D;"></div></div>
+              <span style="font-family:'Rubik',sans-serif;font-size:24px;font-weight:600;color:#EFE7F3;">ScreenTime</span>
+            </div>
+
+            <!-- remote hint -->
+            <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;color:#9785AC;white-space:nowrap;z-index:2;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9785AC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+              Press any key to dismiss
+            </div>
+
+            <!-- center content -->
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 200px;">
+
+              <!-- mint halo + circle + check -->
+              <div style="position:relative;width:210px;height:210px;margin-bottom:48px;animation:stpop .5s .1s ease-out both;">
+                <div style="position:absolute;inset:-30px;border-radius:99px;background:#4FCFA1;opacity:.22;animation:sthalo 2.4s ease-in-out infinite;"></div>
+                <div style="position:relative;width:210px;height:210px;border-radius:99px;background:#4FCFA1;display:flex;align-items:center;justify-content:center;">
+                  <svg width="104" height="104" viewBox="0 0 24 24" fill="none" stroke="#0F1F18" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+                </div>
+              </div>
+
+              <h1 style="font-family:'Rubik',sans-serif;font-size:88px;font-weight:600;margin:0;line-height:1;animation:stfadein .4s .25s ease-out both;">You're all set!</h1>
+
+              <p style="font-size:32px;font-weight:600;color:#C6B9D6;max-width:1100px;line-height:1.45;margin:28px 0 0;animation:stfadein .4s .35s ease-out both;">ScreenTime is running in the background. We'll only show up when a limit hits — promise.</p>
+
+              <!-- status chips -->
+              <div style="display:flex;gap:18px;margin-top:44px;animation:stfadein .4s .45s ease-out both;">
+                <!-- paired chip -->
+                <div style="display:inline-flex;align-items:center;gap:12px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.14);border-radius:99px;padding:12px 24px 12px 16px;">
+                  <div style="width:28px;height:28px;border-radius:8px;background:#3A2A4D;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FCF6F0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                  </div>
+                  <span style="font-size:22px;font-weight:800;color:#FCF6F0;white-space:nowrap;">Paired with Garcia family</span>
+                </div>
+                <!-- owner chip -->
+                <div style="display:inline-flex;align-items:center;gap:12px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.14);border-radius:99px;padding:12px 24px 12px 16px;">
+                  <div style="width:28px;height:28px;border-radius:99px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:14px;color:#3A2A4D;flex-shrink:0;">D</div>
+                  <span style="font-size:22px;font-weight:800;color:#FCF6F0;white-space:nowrap;">Owner: Dana</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ===== TV CONTENT placeholder ===== -->
+        <sc-if value="{{ isDismissed }}">
+          <div style="position:absolute;inset:0;background:#0F0A18;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;animation:stfadein .4s ease-out;">
+            <!-- simulated content -->
+            <div style="width:100%;height:100%;background:linear-gradient(160deg,#1A1030 0%,#0D0820 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+              <div style="font-family:'Rubik',sans-serif;font-size:52px;font-weight:600;color:rgba(255,255,255,.12);margin-bottom:32px;">← TV content playing</div>
+              <!-- silent indicator top-right -->
+              <div style="position:absolute;top:40px;right:56px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:99px;padding:8px 20px;">
+                <span style="width:8px;height:8px;border-radius:99px;background:#4FCFA1;"></span>
+                <span style="font-size:18px;font-weight:700;color:rgba(255,255,255,.35);">ScreenTime active · 43m used today</span>
+              </div>
+              <!-- reset demo hint -->
+              <div onClick="{{ onReset }}" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);color:rgba(255,255,255,.5);font-size:20px;font-weight:700;padding:16px 32px;border-radius:99px;cursor:pointer;margin-top:32px;">↩ Demo: return to All Set screen</div>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+
+    <div style="text-align:center;font-size:13px;color:#8A7C96;margin-top:14px;">End of first-run flow · 1920 × 1080 · WCAG AA · ScreenTime is silent until a limit hits</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:2000}}">
+class Component extends DCLogic {
+  state = { dismissed: false };
+
+  componentDidMount(){
+    this._h = (e) => {
+      if(this.state.dismissed) return;
+      // ignore modifier-only keys
+      if(['Shift','Control','Alt','Meta','CapsLock'].includes(e.key)) return;
+      this.setState({ dismissed: true });
+    };
+    document.addEventListener('keydown', this._h);
+  }
+  componentWillUnmount(){ document.removeEventListener('keydown', this._h); }
+
+  renderVals(){
+    return {
+      isAllSet: !this.state.dismissed,
+      isDismissed: this.state.dismissed,
+      onReset: () => this.setState({ dismissed: false }),
+    };
+  }
+}
+</script>
+</body>
+</html>

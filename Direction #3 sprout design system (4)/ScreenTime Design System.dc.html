@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Varela+Round&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .mono{font-family:'Varela Round',sans-serif;font-variant-numeric:tabular-nums;}
+</style>
+</helmet>
+
+<div style="background:#E7E6E4;min-height:100vh;padding:56px 48px 80px;font-family:'Varela Round',sans-serif;color:#3A2A4D;overflow-x:auto;">
+
+  <!-- header -->
+  <div style="max-width:1120px;margin:0 auto 40px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:34px;height:34px;border-radius:11px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;"><div style="width:14px;height:14px;border-radius:99px;background:#3A2A4D;"></div></div>
+      <div style="font-family:'Rubik',sans-serif;font-size:22px;font-weight:600;">ScreenTime</div>
+      <span style="font-size:12px;font-weight:700;color:#8A7C96;background:#fff;padding:5px 11px;border-radius:99px;">Sprout · Design System</span>
+    </div>
+    <h1 style="font-family:'Rubik',sans-serif;font-size:36px;font-weight:600;margin:18px 0 8px;">The building blocks</h1>
+    <p style="max-width:640px;font-size:16px;line-height:1.55;color:#5B4D69;margin:0;">Color roles, type scale, spacing, radii and the core components every ScreenTime screen is built from — phone and TV. WCAG AA throughout.</p>
+  </div>
+
+  <!-- ===== COLOR ROLES ===== -->
+  <div style="max-width:1120px;margin:0 auto 24px;background:#fff;border-radius:24px;padding:36px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 34px rgba(0,0,0,.05);">
+    <div style="font-family:'Rubik',sans-serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;font-weight:500;margin-bottom:20px;">Color roles</div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+      <!-- each swatch: bg, role, hex, on-color -->
+      <div style="border-radius:16px;overflow:hidden;border:1px solid #EEE3DA;">
+        <div style="height:78px;background:#FCF6F0;display:flex;align-items:flex-end;padding:8px;"><span style="font-size:12px;color:#3A2A4D;font-weight:700;">Aa</span></div>
+        <div style="padding:10px 12px;"><div style="font-size:13px;font-weight:800;">Background</div><div class="mono" style="font-size:12px;color:#8A7C96;">#FCF6F0 · Cream</div></div>
+      </div>
+      <div style="border-radius:16px;overflow:hidden;border:1px solid #EEE3DA;">
+        <div style="height:78px;background:#FFFFFF;display:flex;align-items:flex-end;padding:8px;"><span style="font-size:12px;color:#3A2A4D;font-weight:700;">Aa</span></div>
+        <div style="padding:10px 12px;"><div style="font-size:13px;font-weight:800;">Surface</div><div class="mono" style="font-size:12px;color:#8A7C96;">#FFFFFF · Card</div></div>
+      </div>
+      <div style="border-radius:16px;overflow:hidden;border:1px solid #EEE3DA;">
+        <div style="height:78px;background:#3A2A4D;display:flex;align-items:flex-end;padding:8px;"><span style="font-size:12px;color:#FCF6F0;font-weight:700;">Aa</span></div>
+        <div style="padding:10px 12px;"><div style="font-size:13px;font-weight:800;">Ink</div><div class="mono" style="font-size:12px;color:#8A7C96;">#3A2A4D · Plum</div></div>
+      </div>
+      <div style="border-radius:16px;overflow:hidden;border:1px solid #EEE3DA;">
+        <div style="height:78px;background:#FF6B5E;display:flex;align-items:flex-end;padding:8px;"><span style="font-size:12px;color:#3A2A4D;font-weight:800;">Aa</span></div>
+        <div style="padding:10px 12px;"><div style="font-size:13px;font-weight:800;">Primary</div><div class="mono" style="font-size:12px;color:#8A7C96;">#FF6B5E · Coral</div></div>
+      </div>
+
+      <div style="border-radius:16px;overflow:hidden;border:1px solid #EEE3DA;">
+        <div style="height:78px;background:#B9A8F0;display:flex;align-items:flex-end;padding:8px;"><span style="font-size:12px;color:#3A2A4D;font-weight:800;">Aa</span></div>
+        <div style="padding:10px 12px;"><div style="font-size:13px;font-weight:800;">Accent</div><div class="mono" style="font-size:12px;color:#8A7C96;">#B9A8F0 · Lilac</div></div>
+      </div>
+      <div style="border-radius:16px;overflow:hidden;border:1px solid #EEE3DA;">
+        <div style="height:78px;background:#4FCFA1;display:flex;align-items:flex-end;padding:8px;"><span style="font-size:12px;color:#15795A;font-weight:800;">Aa</span></div>
+        <div style="padding:10px 12px;"><div style="font-size:13px;font-weight:800;">Positive</div><div class="mono" style="font-size:12px;color:#8A7C96;">#4FCFA1 · Mint</div></div>
+      </div>
+      <div style="border-radius:16px;overflow:hidden;border:1px solid #EEE3DA;">
+        <div style="height:78px;background:#F2A93B;display:flex;align-items:flex-end;padding:8px;"><span style="font-size:12px;color:#3A2A4D;font-weight:800;">Aa</span></div>
+        <div style="padding:10px 12px;"><div style="font-size:13px;font-weight:800;">Warning</div><div class="mono" style="font-size:12px;color:#8A7C96;">#F2A93B · Amber</div></div>
+      </div>
+      <div style="border-radius:16px;overflow:hidden;border:1px solid #EEE3DA;">
+        <div style="height:78px;background:#E5483A;display:flex;align-items:flex-end;padding:8px;"><span style="font-size:12px;color:#fff;font-weight:800;">Aa</span></div>
+        <div style="padding:10px 12px;"><div style="font-size:13px;font-weight:800;">Over limit</div><div class="mono" style="font-size:12px;color:#8A7C96;">#E5483A · Deep coral</div></div>
+      </div>
+    </div>
+
+    <!-- supporting roles -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+      <div style="display:flex;align-items:center;gap:8px;background:#FAF5EF;border:1px solid #EEE3DA;border-radius:99px;padding:6px 12px 6px 6px;"><span style="width:22px;height:22px;border-radius:99px;background:#8A7C96;"></span><span style="font-size:12px;font-weight:700;">Ink muted <span class="mono" style="color:#8A7C96;">#8A7C96</span></span></div>
+      <div style="display:flex;align-items:center;gap:8px;background:#FAF5EF;border:1px solid #EEE3DA;border-radius:99px;padding:6px 12px 6px 6px;"><span style="width:22px;height:22px;border-radius:99px;background:#B6ABBF;"></span><span style="font-size:12px;font-weight:700;">Ink faint <span class="mono" style="color:#8A7C96;">#B6ABBF</span></span></div>
+      <div style="display:flex;align-items:center;gap:8px;background:#FAF5EF;border:1px solid #EEE3DA;border-radius:99px;padding:6px 12px 6px 6px;"><span style="width:22px;height:22px;border-radius:99px;background:#ECE5FB;border:1px solid #DDD2F2;"></span><span style="font-size:12px;font-weight:700;">Accent container <span class="mono" style="color:#8A7C96;">#ECE5FB</span></span></div>
+      <div style="display:flex;align-items:center;gap:8px;background:#FAF5EF;border:1px solid #EEE3DA;border-radius:99px;padding:6px 12px 6px 6px;"><span style="width:22px;height:22px;border-radius:99px;background:#DFF6EC;border:1px solid #C6ECDC;"></span><span style="font-size:12px;font-weight:700;">Positive container <span class="mono" style="color:#8A7C96;">#DFF6EC</span></span></div>
+      <div style="display:flex;align-items:center;gap:8px;background:#FAF5EF;border:1px solid #EEE3DA;border-radius:99px;padding:6px 12px 6px 6px;"><span style="width:22px;height:22px;border-radius:99px;background:#fff;border:1px solid #EADFD4;"></span><span style="font-size:12px;font-weight:700;">Outline <span class="mono" style="color:#8A7C96;">#EADFD4</span></span></div>
+    </div>
+    <p style="font-size:13px;color:#8A7C96;margin:18px 0 0;line-height:1.5;">Buttons and the TV block use <strong style="color:#3A2A4D;">plum text on coral</strong> (4.65:1, AA). Status text uses the darker semantic tokens — positive text <span class="mono">#15795A</span>, warning text <span class="mono">#9A6313</span> — never the bright display hues on light backgrounds.</p>
+  </div>
+
+  <!-- ===== TYPE + SPACING/RADIUS (two col) ===== -->
+  <div style="max-width:1120px;margin:0 auto 24px;display:grid;grid-template-columns:1.35fr 1fr;gap:24px;">
+
+    <!-- type -->
+    <div style="background:#fff;border-radius:24px;padding:36px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 34px rgba(0,0,0,.05);">
+      <div style="font-family:'Rubik',sans-serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;font-weight:500;margin-bottom:8px;">Type scale</div>
+      <div style="font-size:13px;color:#8A7C96;margin-bottom:22px;">Display in <strong style="color:#3A2A4D;">Rubik</strong>, everything else in <strong style="color:#3A2A4D;">Varela Round</strong>.</div>
+
+      <div style="display:flex;flex-direction:column;gap:18px;">
+        <div style="display:flex;align-items:baseline;gap:16px;border-bottom:1px solid #F2EAE2;padding-bottom:18px;">
+          <div style="font-family:'Rubik',sans-serif;font-size:34px;font-weight:600;line-height:1;">All done!</div>
+          <div class="mono" style="font-size:12px;color:#A99BB5;margin-left:auto;white-space:nowrap;">Display · Rubik 600 · 34/40</div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:16px;border-bottom:1px solid #F2EAE2;padding-bottom:18px;">
+          <div style="font-family:'Rubik',sans-serif;font-size:24px;font-weight:600;line-height:1;">Daily limits</div>
+          <div class="mono" style="font-size:12px;color:#A99BB5;margin-left:auto;white-space:nowrap;">Title · Rubik 600 · 24/30</div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:16px;border-bottom:1px solid #F2EAE2;padding-bottom:18px;">
+          <div style="font-family:'Rubik',sans-serif;font-size:20px;font-weight:500;line-height:1;">YouTube</div>
+          <div class="mono" style="font-size:12px;color:#A99BB5;margin-left:auto;white-space:nowrap;">Headline · Rubik 500 · 20/26</div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:16px;border-bottom:1px solid #F2EAE2;padding-bottom:18px;">
+          <div style="font-size:16px;font-weight:600;line-height:1.4;">45 minutes left of today's hour.</div>
+          <div class="mono" style="font-size:12px;color:#A99BB5;margin-left:auto;white-space:nowrap;">Body · Nunito 600 · 16/24</div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:16px;border-bottom:1px solid #F2EAE2;padding-bottom:18px;">
+          <div style="font-size:13px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;line-height:1;">Add limit</div>
+          <div class="mono" style="font-size:12px;color:#A99BB5;margin-left:auto;white-space:nowrap;">Label · Nunito 800 · 13/16</div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:16px;">
+          <div style="font-size:12px;font-weight:600;color:#8A7C96;line-height:1;">Updated just now</div>
+          <div class="mono" style="font-size:12px;color:#A99BB5;margin-left:auto;white-space:nowrap;">Caption · Nunito 600 · 12/16</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- spacing + radius -->
+    <div style="background:#fff;border-radius:24px;padding:36px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 34px rgba(0,0,0,.05);">
+      <div style="font-family:'Rubik',sans-serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;font-weight:500;margin-bottom:18px;">Spacing · 4px base</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:30px;">
+        <div style="display:flex;align-items:center;gap:12px;"><div style="height:14px;width:4px;background:#FF6B5E;border-radius:2px;"></div><span class="mono" style="font-size:12px;color:#8A7C96;">4 · hairline gap</span></div>
+        <div style="display:flex;align-items:center;gap:12px;"><div style="height:14px;width:8px;background:#FF6B5E;border-radius:2px;"></div><span class="mono" style="font-size:12px;color:#8A7C96;">8 · icon ↔ label</span></div>
+        <div style="display:flex;align-items:center;gap:12px;"><div style="height:14px;width:12px;background:#FF6B5E;border-radius:2px;"></div><span class="mono" style="font-size:12px;color:#8A7C96;">12 · inside chips</span></div>
+        <div style="display:flex;align-items:center;gap:12px;"><div style="height:14px;width:16px;background:#FF6B5E;border-radius:3px;"></div><span class="mono" style="font-size:12px;color:#8A7C96;">16 · card padding / gutter</span></div>
+        <div style="display:flex;align-items:center;gap:12px;"><div style="height:14px;width:24px;background:#FF6B5E;border-radius:3px;"></div><span class="mono" style="font-size:12px;color:#8A7C96;">24 · between cards</span></div>
+        <div style="display:flex;align-items:center;gap:12px;"><div style="height:14px;width:32px;background:#FF6B5E;border-radius:4px;"></div><span class="mono" style="font-size:12px;color:#8A7C96;">32 · section breaks</span></div>
+      </div>
+
+      <div style="font-family:'Rubik',sans-serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;font-weight:500;margin-bottom:18px;">Corner radius</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <div style="text-align:center;"><div style="width:54px;height:54px;background:#ECE5FB;border:1px solid #DDD2F2;border-radius:10px;"></div><div class="mono" style="font-size:11px;color:#8A7C96;margin-top:6px;">10 · icon</div></div>
+        <div style="text-align:center;"><div style="width:54px;height:54px;background:#ECE5FB;border:1px solid #DDD2F2;border-radius:18px;"></div><div class="mono" style="font-size:11px;color:#8A7C96;margin-top:6px;">18 · input</div></div>
+        <div style="text-align:center;"><div style="width:54px;height:54px;background:#ECE5FB;border:1px solid #DDD2F2;border-radius:24px;"></div><div class="mono" style="font-size:11px;color:#8A7C96;margin-top:6px;">24 · card</div></div>
+        <div style="text-align:center;"><div style="width:54px;height:54px;background:#ECE5FB;border:1px solid #DDD2F2;border-radius:99px;"></div><div class="mono" style="font-size:11px;color:#8A7C96;margin-top:6px;">pill · button</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== COMPONENTS ===== -->
+  <div style="max-width:1120px;margin:0 auto;background:#fff;border-radius:24px;padding:36px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 34px rgba(0,0,0,.05);">
+    <div style="font-family:'Rubik',sans-serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;font-weight:500;margin-bottom:24px;">Core components</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px 40px;">
+
+      <!-- buttons -->
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#8A7C96;margin-bottom:14px;">Buttons</div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+          <div style="background:#FF6B5E;color:#3A2A4D;font-size:14px;font-weight:800;padding:13px 22px;border-radius:99px;">Approve 15 min</div>
+          <div style="background:#ECE5FB;color:#3A2A4D;font-size:14px;font-weight:800;padding:13px 22px;border-radius:99px;">Maybe later</div>
+          <div style="background:transparent;border:1.5px solid #EADFD4;color:#3A2A4D;font-size:14px;font-weight:800;padding:11px 20px;border-radius:99px;">Edit</div>
+          <div style="color:#FF6B5E;font-size:14px;font-weight:800;padding:11px 8px;">Deny</div>
+        </div>
+      </div>
+
+      <!-- chips / status -->
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#8A7C96;margin-bottom:14px;">Status badges</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+          <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:#15795A;background:#DFF6EC;padding:6px 12px;border-radius:99px;"><span style="width:7px;height:7px;border-radius:99px;background:#2E9E78;"></span>On track</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:#9A6313;background:#FCEFD7;padding:6px 12px;border-radius:99px;"><span style="width:7px;height:7px;border-radius:99px;background:#F2A93B;"></span>Almost up</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:#B5281C;background:#FBE2DF;padding:6px 12px;border-radius:99px;"><span style="width:7px;height:7px;border-radius:99px;background:#E5483A;"></span>Time's up</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:#3A2A4D;background:#ECE5FB;padding:6px 12px;border-radius:99px;">Paused</span>
+        </div>
+      </div>
+
+      <!-- list row -->
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#8A7C96;margin-bottom:14px;">App limit row</div>
+        <div style="background:#FCF6F0;border-radius:20px;padding:14px 16px;display:flex;align-items:center;gap:14px;">
+          <div style="width:44px;height:44px;border-radius:14px;background:#FF6B5E;flex-shrink:0;"></div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-family:'Rubik',sans-serif;font-size:17px;font-weight:500;">YouTube</span><span class="mono" style="font-size:13px;font-weight:700;color:#8A7C96;">45m / 1h</span></div>
+            <div style="height:8px;border-radius:99px;background:#EEDFD3;margin-top:9px;overflow:hidden;"><div style="width:75%;height:100%;background:#FF6B5E;border-radius:99px;"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- card -->
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#8A7C96;margin-bottom:14px;">Summary card</div>
+        <div style="background:#3A2A4D;border-radius:24px;padding:20px;color:#FCF6F0;">
+          <div style="font-size:13px;font-weight:700;color:#C9BBD6;">Today's screen time</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px;"><span style="font-family:'Rubik',sans-serif;font-size:34px;font-weight:600;">2h 15m</span><span style="font-size:14px;color:#C9BBD6;">of 3h</span></div>
+          <div style="height:10px;border-radius:99px;background:#52436A;margin-top:14px;overflow:hidden;"><div style="width:75%;height:100%;background:#4FCFA1;border-radius:99px;"></div></div>
+        </div>
+      </div>
+
+      <!-- empty state (full width) -->
+      <div style="grid-column:1 / -1;">
+        <div style="font-size:13px;font-weight:800;color:#8A7C96;margin-bottom:14px;">Empty state</div>
+        <div style="background:#FCF6F0;border-radius:24px;padding:36px;display:flex;flex-direction:column;align-items:center;text-align:center;">
+          <div style="width:96px;height:96px;border-radius:99px;background:#ECE5FB;display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
+            <div style="width:42px;height:42px;border-radius:14px;background:#B9A8F0;"></div>
+          </div>
+          <div style="font-family:'Rubik',sans-serif;font-size:22px;font-weight:600;">No limits yet</div>
+          <div style="font-size:15px;color:#5B4D69;max-width:360px;margin:8px 0 20px;line-height:1.5;">Add a daily limit for an app and ScreenTime will keep track on the TV automatically.</div>
+          <div style="background:#FF6B5E;color:#3A2A4D;font-size:14px;font-weight:800;padding:13px 24px;border-radius:99px;">Add your first limit</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1216}}"></script>
+</body>
+</html>

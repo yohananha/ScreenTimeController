@@ -1,60 +1,67 @@
 package com.screentime.mobile.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.CompositionLocalProvider
 
-private val Light = lightColorScheme(
-    primary = Color(0xFF3D5AFE),
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFE0E4FF),
-    onPrimaryContainer = Color(0xFF1A237E),
-    secondary = Color(0xFF00BFA5),
-    onSecondary = Color.White,
-    secondaryContainer = Color(0xFFC5F6EF),
-    onSecondaryContainer = Color(0xFF00504A),
-    tertiary = Color(0xFFFF8A65),
-    onTertiary = Color.White,
-    tertiaryContainer = Color(0xFFFFE0D6),
-    onTertiaryContainer = Color(0xFF5C2A1A),
-    background = Color(0xFFFAFBFF),
-    surface = Color(0xFFFAFBFF),
+private val SproutMaterialColors = lightColorScheme(
+    primary = SproutPalette.primary,
+    onPrimary = SproutPalette.onPrimary,
+    primaryContainer = SproutPalette.accentContainer,
+    onPrimaryContainer = SproutPalette.ink,
+    secondary = SproutPalette.accent,
+    onSecondary = SproutPalette.ink,
+    secondaryContainer = SproutPalette.accentContainer,
+    onSecondaryContainer = SproutPalette.ink,
+    tertiary = SproutPalette.positiveDisplay,
+    onTertiary = SproutPalette.positiveText,
+    tertiaryContainer = SproutPalette.positiveContainer,
+    onTertiaryContainer = SproutPalette.positiveText,
+    background = SproutPalette.background,
+    onBackground = SproutPalette.ink,
+    surface = SproutPalette.surface,
+    onSurface = SproutPalette.ink,
+    surfaceVariant = SproutPalette.surfaceSunken,
+    onSurfaceVariant = SproutPalette.inkMuted,
+    outline = SproutPalette.outline,
+    outlineVariant = SproutPalette.outlineStrong,
+    error = SproutPalette.overDisplay,
+    onError = SproutPalette.surface,
+    errorContainer = SproutPalette.overContainer,
+    onErrorContainer = SproutPalette.overText,
 )
 
-private val Dark = darkColorScheme(
-    primary = Color(0xFF8C9EFF),
-    onPrimary = Color(0xFF0B1226),
-    primaryContainer = Color(0xFF2A3470),
-    onPrimaryContainer = Color(0xFFDDE1FF),
-    secondary = Color(0xFF64FFDA),
-    onSecondary = Color(0xFF00352F),
-    secondaryContainer = Color(0xFF00504A),
-    onSecondaryContainer = Color(0xFF9CF6E8),
-    tertiary = Color(0xFFFFB59D),
-    onTertiary = Color(0xFF5C2A1A),
-    tertiaryContainer = Color(0xFF7A3B26),
-    onTertiaryContainer = Color(0xFFFFDBCD),
-    background = Color(0xFF10131C),
-    surface = Color(0xFF181B25),
-)
-
-/** Slightly rounder than Material defaults for a softer, friendlier feel. */
-private val FriendlyShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(24.dp),
-    extraLarge = RoundedCornerShape(32.dp),
+private val SproutShapes = Shapes(
+    extraSmall = SproutRadius.icon,
+    small = SproutRadius.input,
+    medium = SproutRadius.card,
+    large = SproutRadius.large,
+    extraLarge = SproutRadius.large,
 )
 
 @Composable
 fun ScreenTimeTheme(content: @Composable () -> Unit) {
-    val colors = if (isSystemInDarkTheme()) Dark else Light
-    MaterialTheme(colorScheme = colors, shapes = FriendlyShapes, content = content)
+    val typeScale = rememberSproutTypeScale()
+    CompositionLocalProvider(
+        LocalSproutColors provides SproutPalette,
+        LocalSproutTypography provides typeScale,
+    ) {
+        MaterialTheme(
+            colorScheme = SproutMaterialColors,
+            typography = materialTypeBridge(typeScale),
+            shapes = SproutShapes,
+            content = content,
+        )
+    }
+}
+
+object Sprout {
+    val colors: SproutColors
+        @Composable get() = LocalSproutColors.current
+    val typography: SproutTypography
+        @Composable get() = LocalSproutTypography.current
+    val spacing: SproutSpacing = SproutSpacing
+    val radius: SproutRadius = SproutRadius
 }

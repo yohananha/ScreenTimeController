@@ -6,6 +6,7 @@ import com.screentime.shared.model.InstalledApp
 import com.screentime.shared.model.Limits
 import com.screentime.shared.model.LockoutMode
 import com.screentime.shared.model.LockoutSettings
+import com.screentime.shared.model.TimeFrameSchedule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -63,5 +64,35 @@ class LimitsRepository @Inject constructor(
     suspend fun unlockNow() {
         val id = familyIdProvider.familyId.value ?: return
         firestore.clearLockout(id)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observeTimeFrame(): Flow<TimeFrameSchedule> = familyIdProvider.familyId.flatMapLatest { id ->
+        if (id == null) flowOf(TimeFrameSchedule.DEFAULT) else firestore.timeFrameFlow(id)
+    }
+
+    suspend fun setTimeFrame(schedule: TimeFrameSchedule) {
+        val id = familyIdProvider.familyId.value ?: return
+        firestore.setTimeFrame(id, schedule)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observeAllowAllDay(): Flow<String?> = familyIdProvider.familyId.flatMapLatest { id ->
+        if (id == null) flowOf(null) else firestore.allowAllDayFlow(id)
+    }
+
+    suspend fun setAllowAllDay(date: String?) {
+        val id = familyIdProvider.familyId.value ?: return
+        firestore.setAllowAllDay(id, date)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observeInstantLock(): Flow<Boolean> = familyIdProvider.familyId.flatMapLatest { id ->
+        if (id == null) flowOf(false) else firestore.instantLockFlow(id)
+    }
+
+    suspend fun setInstantLock(locked: Boolean) {
+        val id = familyIdProvider.familyId.value ?: return
+        firestore.setInstantLock(id, locked)
     }
 }

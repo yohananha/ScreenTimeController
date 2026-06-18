@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Varela+Round&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .num{font-variant-numeric:tabular-nums;}
+  .scrollarea::-webkit-scrollbar{width:0;background:transparent;}
+  .chartscroll::-webkit-scrollbar{height:0;background:transparent;}
+  @keyframes stexpand{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</helmet>
+
+<div style="background:#E7E6E4;min-height:100vh;padding:48px 24px 64px;font-family:'Varela Round',sans-serif;display:flex;flex-direction:column;align-items:center;gap:18px;min-width:fit-content;">
+
+  <div style="text-align:center;">
+    <div style="font-family:'Rubik',sans-serif;font-size:20px;font-weight:600;color:#3A2A4D;">History — usage last 7 days</div>
+    <div style="font-size:13px;color:#8A7C96;">Parent's phone · Sprout · tap a bar or day card to expand</div>
+  </div>
+
+  <x-import component="AndroidDevice" from="./android-frame.jsx" dark="{{ false }}" hint-size="412px,892px">
+
+    <div style="height:100%;display:flex;flex-direction:column;background:#FCF6F0;font-family:'Varela Round',sans-serif;color:#3A2A4D;">
+
+      <div class="scrollarea" style="flex:1;overflow-y:auto;padding:8px 16px 110px;">
+
+        <!-- header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0 14px;">
+          <div style="display:flex;align-items:center;gap:9px;background:#fff;border:1px solid #EADFD4;border-radius:99px;padding:5px 12px 5px 5px;">
+            <div style="width:30px;height:30px;border-radius:99px;background:#B9A8F0;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:14px;color:#3A2A4D;">G</div>
+            <span style="font-size:14px;font-weight:800;white-space:nowrap;">Garcia family</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A7C96" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div style="width:38px;height:38px;border-radius:99px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:15px;color:#3A2A4D;">D</div>
+        </div>
+
+        <!-- title -->
+        <div style="margin-bottom:20px;">
+          <h1 style="font-family:'Rubik',sans-serif;font-size:30px;font-weight:600;margin:0;line-height:1;">Usage</h1>
+          <div style="font-size:13px;font-weight:600;color:#8A7C96;margin-top:5px;">Last 7 days · 4h daily limit</div>
+        </div>
+
+        <!-- CHART -->
+        <div style="background:#fff;border:1px solid #F2E7DB;border-radius:20px;padding:16px 16px 12px;margin-bottom:18px;">
+          <div class="chartscroll" style="overflow-x:auto;overflow-y:hidden;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:0;min-width:280px;position:relative;">
+
+              <!-- limit line -->
+              <div style="{{ limitLineStyle }}">
+                <span style="position:absolute;right:0;top:-16px;font-size:10px;font-weight:700;color:#C9BCD0;white-space:nowrap;">4h</span>
+              </div>
+
+              <sc-for list="{{ bars }}" as="b" hint-placeholder-count="7">
+                <div onClick="{{ b.onClick }}" style="display:flex;flex-direction:column;align-items:center;cursor:pointer;gap:0;width:36px;">
+                  <div style="height:94px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;width:36px;gap:4px;">
+                    <div style="{{ b.dotStyle }}"></div>
+                    <div style="{{ b.barStyle }}"></div>
+                  </div>
+                  <div style="{{ b.labelStyle }}">{{ b.shortLabel }}</div>
+                </div>
+              </sc-for>
+
+            </div>
+          </div>
+          <div style="display:flex;gap:14px;margin-top:12px;padding-top:10px;border-top:1px solid #F7F0E8;">
+            <div style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:99px;background:#4FCFA1;"></span><span style="font-size:11px;font-weight:700;color:#8A7C96;">On track</span></div>
+            <div style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:99px;background:#F2A93B;"></span><span style="font-size:11px;font-weight:700;color:#8A7C96;">Almost up</span></div>
+            <div style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:99px;background:#E5483A;"></span><span style="font-size:11px;font-weight:700;color:#8A7C96;">Over limit</span></div>
+          </div>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <sc-if value="{{ noData }}">
+          <div style="background:#fff;border-radius:24px;padding:36px;text-align:center;">
+            <div style="width:88px;height:88px;border-radius:99px;background:#DFF6EC;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2E9E78" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            </div>
+            <div style="font-family:'Rubik',sans-serif;font-size:21px;font-weight:600;">No usage yet</div>
+            <div style="font-size:15px;color:#5B4D69;margin-top:8px;line-height:1.5;">Your family hasn't watched anything today. Enjoy the quiet!</div>
+          </div>
+        </sc-if>
+
+        <!-- DAY CARDS -->
+        <sc-if value="{{ hasData }}">
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <sc-for list="{{ cardDays }}" as="d" hint-placeholder-count="7">
+              <div style="{{ d.cardStyle }}">
+
+                <!-- card header row -->
+                <div onClick="{{ d.onClick }}" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:8px;">
+                  <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                    <span style="font-family:'Rubik',sans-serif;font-size:17px;font-weight:500;white-space:nowrap;">{{ d.displayLabel }}</span>
+                    <span style="{{ d.badgeStyle }}">{{ d.statusLabel }}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                    <span class="num" style="font-family:'Rubik',sans-serif;font-size:17px;font-weight:600;">{{ d.totalFmt }}</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B6ABBF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="{{ d.chevronStyle }}"><path d="M9 6l6 6-6 6"/></svg>
+                  </div>
+                </div>
+
+                <!-- stacked bar -->
+                <div style="height:8px;border-radius:99px;overflow:hidden;display:flex;margin-top:12px;gap:2px;">
+                  <sc-for list="{{ d.segments }}" as="s" hint-placeholder-count="3">
+                    <div style="{{ s.style }}"></div>
+                  </sc-for>
+                </div>
+
+                <!-- chips -->
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+                  <sc-for list="{{ d.chips }}" as="c" hint-placeholder-count="4">
+                    <div style="display:inline-flex;align-items:center;gap:5px;background:#FAF5EF;border-radius:99px;padding:4px 10px 4px 6px;">
+                      <span style="width:8px;height:8px;border-radius:99px;flex-shrink:0;background:{{ c.color }};"></span>
+                      <span style="font-size:13px;font-weight:600;color:#5B4D69;">{{ c.name }}</span>
+                      <span class="num" style="font-size:13px;font-weight:800;color:#3A2A4D;">{{ c.time }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+
+                <!-- expanded breakdown -->
+                <sc-if value="{{ d.isExpanded }}">
+                  <div style="margin-top:14px;padding-top:14px;border-top:1px solid #F2E7DB;display:flex;flex-direction:column;gap:11px;animation:stexpand .2s ease-out;">
+                    <sc-for list="{{ d.rows }}" as="r" hint-placeholder-count="4">
+                      <div style="display:flex;align-items:center;gap:11px;">
+                        <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:16px;color:#fff;flex-shrink:0;background:{{ r.color }};">{{ r.initial }}</div>
+                        <div style="flex:1;min-width:0;">
+                          <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                            <span style="font-family:'Rubik',sans-serif;font-size:15px;font-weight:500;">{{ r.name }}</span>
+                            <span class="num" style="font-size:13px;font-weight:800;color:#3A2A4D;">{{ r.time }}</span>
+                          </div>
+                          <div style="height:6px;border-radius:99px;background:#F2E7DB;overflow:hidden;"><div style="height:100%;border-radius:99px;background:{{ r.color }};width:{{ r.barW }};"></div></div>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+      </div>
+
+      <!-- bottom nav — Limits active (history is reached from Limits) -->
+      <div style="background:#fff;border-top:1px solid #F2E7DB;padding:8px 6px 10px;display:flex;justify-content:space-around;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;border-radius:99px;background:#ECE5FB;display:flex;align-items:center;justify-content:center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3A2A4D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+          </div>
+          <span style="font-size:11px;font-weight:800;color:#3A2A4D;">Limits</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;display:flex;align-items:center;justify-content:center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A7C96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0112 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 004 0"/></svg>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#8A7C96;">Requests</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;display:flex;align-items:center;justify-content:center;">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3.5px;"><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span></div>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#8A7C96;">Codes</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;display:flex;align-items:center;justify-content:center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A7C96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M16 14c2.4 0 4.5 1.6 4.5 4"/></svg>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#8A7C96;">Family</span>
+        </div>
+      </div>
+
+    </div>
+
+  </x-import>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:620}}">
+class Component extends DCLogic {
+  state = { expandedDay: null };
+
+  fmt(m){
+    if(m < 60) return m + 'm';
+    const h = Math.floor(m/60), rm = m%60;
+    return rm > 0 ? h + 'h ' + rm + 'm' : h + 'h';
+  }
+
+  statusColor(m){ return m > 240 ? '#E5483A' : m > 180 ? '#F2A93B' : '#4FCFA1'; }
+  statusLabel(m){ return m > 240 ? 'Over' : m > 180 ? 'Almost up' : 'On track'; }
+  statusPair(m){
+    if(m > 240) return { bg:'#FBE2DF', text:'#B5281C' };
+    if(m > 180) return { bg:'#FCEFD7', text:'#9A6313' };
+    return { bg:'#DFF6EC', text:'#15795A' };
+  }
+
+  renderVals(){
+    const A = {
+      yt:{ name:'YouTube', color:'#E5483A', initial:'Y' },
+      rb:{ name:'Roblox', color:'#5B6B7B', initial:'R' },
+      tt:{ name:'TikTok', color:'#2A2730', initial:'T' },
+      gm:{ name:'Games', color:'#4FA98C', initial:'G' },
+      dp:{ name:'Disney+', color:'#8E86D9', initial:'D' },
+    };
+
+    const raw = [
+      { label:'Wed', date:'Jun 11', apps:[{...A.yt,m:60},{...A.rb,m:45},{...A.gm,m:30},{...A.dp,m:20}] },
+      { label:'Thu', date:'Jun 12', apps:[{...A.yt,m:90},{...A.tt,m:50},{...A.rb,m:40},{...A.gm,m:40}] },
+      { label:'Fri', date:'Jun 13', apps:[{...A.yt,m:120},{...A.rb,m:60},{...A.tt,m:50},{...A.gm,m:30},{...A.dp,m:25}] },
+      { label:'Sat', date:'Jun 14', apps:[{...A.yt,m:130},{...A.rb,m:70},{...A.tt,m:60},{...A.gm,m:30},{...A.dp,m:20}] },
+      { label:'Sun', date:'Jun 15', apps:[{...A.yt,m:80},{...A.rb,m:50},{...A.tt,m:30},{...A.gm,m:20}] },
+      { label:'Mon', date:'Jun 16', apps:[{...A.yt,m:40},{...A.rb,m:30},{...A.gm,m:25}] },
+      { label:'Today', date:'', apps:[{...A.yt,m:70},{...A.rb,m:45},{...A.gm,m:25},{...A.dp,m:15}] },
+    ];
+
+    const days = raw.map((d,i) => ({ ...d, i, total: d.apps.reduce((s,a) => s+a.m, 0) }));
+    const maxTotal = Math.max(...days.map(d => d.total)); // 310
+    const barMaxH = 80, limit = 240;
+    const limitLineH = Math.round((limit/maxTotal)*barMaxH);
+    const shortLabels = ['W','T','F','S','S','M','T'];
+
+    const bars = days.map((d,i) => {
+      const h = Math.max(4, Math.round((d.total/maxTotal)*barMaxH));
+      const col = this.statusColor(d.total);
+      const isToday = i === 6;
+      const isActive = this.state.expandedDay === i;
+      return {
+        shortLabel: shortLabels[i], isToday, isActive, onClick: () => this.setState(s => ({ expandedDay: s.expandedDay === i ? null : i })),
+        barStyle: `width:36px;height:${h}px;border-radius:8px 8px 3px 3px;background:${col};`,
+        dotStyle: `width:8px;height:8px;border-radius:99px;background:${col};` + (isActive ? '' : 'visibility:hidden;'),
+        labelStyle: `font-family:'Varela Round',sans-serif;font-size:11px;font-weight:800;margin-top:6px;` + (isToday ? 'color:#3A2A4D;' : isActive ? 'color:#3A2A4D;' : 'color:#B6ABBF;'),
+      };
+    });
+
+    const noData = days.every(d => d.total === 0);
+
+    const cardDays = [...days].reverse().map(d => {
+      const isExpanded = this.state.expandedDay === d.i;
+      const sp = this.statusPair(d.total);
+      return {
+        ...d,
+        isExpanded,
+        displayLabel: d.label === 'Today' ? 'Today' : d.label + ' · ' + d.date,
+        totalFmt: this.fmt(d.total),
+        statusLabel: this.statusLabel(d.total),
+        badgeStyle: `display:inline-flex;align-items:center;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;white-space:nowrap;background:${sp.bg};color:${sp.text};`,
+        cardStyle: `background:#fff;border:1px solid ${d.label==='Today'?'#F2A93B':'#F2E7DB'};border-radius:24px;padding:16px;${d.label==='Today'?'box-shadow:0 4px 16px rgba(58,42,77,.07);':''}`,
+        chevronStyle: `transition:transform .2s;` + (isExpanded ? 'transform:rotate(90deg);' : ''),
+        onClick: () => this.setState(s => ({ expandedDay: s.expandedDay === d.i ? null : d.i })),
+        segments: d.apps.map(a => ({ color: a.color, style: `flex:${a.m};height:8px;background:${a.color};` })),
+        chips: d.apps.map(a => ({ color: a.color, name: a.name, time: this.fmt(a.m) })),
+        rows: d.apps.map(a => ({
+          ...a, time: this.fmt(a.m),
+          barW: Math.round((a.m/d.total)*100) + '%',
+        })),
+      };
+    });
+
+    return {
+      bars,
+      limitLineStyle: `position:absolute;left:0;right:0;height:1px;border-top:1.5px dashed #EADFD4;bottom:${limitLineH+3}px;pointer-events:none;`,
+      cardDays, noData, hasData: !noData,
+    };
+  }
+}
+</script>
+</body>
+</html>

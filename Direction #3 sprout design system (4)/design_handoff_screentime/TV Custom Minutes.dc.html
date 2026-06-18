@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  @keyframes stblink{0%,100%{opacity:.3;}50%{opacity:1;}}
+  @keyframes stspin{to{transform:rotate(360deg);}}
+  @keyframes stpulse{0%,100%{transform:scale(1);opacity:.55;}50%{transform:scale(1.18);opacity:1;}}
+</style>
+</helmet>
+
+<div style="background:#E7E6E4;min-height:100vh;padding:40px 40px 64px;font-family:'Nunito Sans',sans-serif;color:#3A2A4D;">
+  <div style="max-width:1980px;margin:0 auto;">
+
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:18px;">
+      <div>
+        <div style="font-family:'Fredoka',sans-serif;font-size:22px;font-weight:600;">TV — Custom minutes request</div>
+        <div style="font-size:14px;color:#8A7C96;margin-top:4px;">Click the screen · <strong style="color:#3A2A4D;">← → ↑ ↓ + Enter</strong> to navigate · Backspace = ⌫ · Escape = cancel</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <sc-for list="{{ jumps }}" as="j" hint-placeholder-count="4">
+          <div style="{{ j.style }}" onClick="{{ j.onClick }}">{{ j.label }}</div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:#15101F;border-radius:28px;padding:18px;box-shadow:0 40px 100px rgba(0,0,0,.35);">
+      <div style="position:relative;width:1920px;height:1080px;border-radius:14px;overflow:hidden;font-family:'Nunito Sans',sans-serif;">
+
+        <!-- ===== INPUT scene ===== -->
+        <sc-if value="{{ isInput }}">
+          <div style="position:absolute;inset:0;background:#2E2140;color:#FCF6F0;">
+            <!-- blobs -->
+            <div style="position:absolute;right:-160px;top:-160px;width:560px;height:560px;border-radius:99px;background:radial-gradient(circle,#4A356A,transparent 70%);pointer-events:none;"></div>
+            <div style="position:absolute;left:-120px;bottom:-180px;width:520px;height:520px;border-radius:99px;background:radial-gradient(circle,#3E2C57,transparent 70%);pointer-events:none;"></div>
+            <!-- brand -->
+            <div style="position:absolute;top:48px;left:64px;display:flex;align-items:center;gap:12px;z-index:2;">
+              <div style="width:38px;height:38px;border-radius:12px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;"><div style="width:15px;height:15px;border-radius:99px;background:#3A2A4D;"></div></div>
+              <span style="font-family:'Fredoka',sans-serif;font-size:24px;font-weight:600;color:#EFE7F3;">ScreenTime</span>
+            </div>
+            <!-- remote hint -->
+            <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;color:#9785AC;z-index:2;">
+              <span style="border:2px solid #5A4A72;border-radius:8px;padding:2px 10px;">◀ ▶ ▲ ▼</span> move
+              <span style="border:2px solid #5A4A72;border-radius:8px;padding:2px 12px;margin-left:8px;">OK</span> select
+            </div>
+
+            <!-- two-column layout -->
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:120px;padding:0 160px;">
+
+              <!-- LEFT: prompt + tile + buttons -->
+              <div style="display:flex;flex-direction:column;align-items:flex-start;width:580px;flex-shrink:0;">
+                <h1 style="font-family:'Fredoka',sans-serif;font-size:72px;font-weight:600;margin:0;line-height:1.05;color:#FCF6F0;">How many minutes?</h1>
+                <p style="font-size:28px;font-weight:600;color:#C6B9D6;max-width:720px;line-height:1.45;margin:22px 0 0;">Anywhere from 1 to 240 minutes. We'll send the request to a parent's phone.</p>
+
+                <!-- tile -->
+                <div style="font-size:22px;font-weight:800;letter-spacing:.04em;color:#9785AC;margin:36px 0 12px;text-transform:uppercase;">Minutes</div>
+                <div style="{{ tileStyle }}">
+                  <sc-if value="{{ hasValue }}">
+                    <span class="num" style="font-family:'Fredoka',sans-serif;font-size:120px;font-weight:600;color:#3A2A4D;line-height:1;">{{ value }}</span>
+                  </sc-if>
+                  <sc-if value="{{ noValue }}">
+                    <div style="width:6px;height:100px;border-radius:3px;background:#FF6B5E;animation:stblink 1s ease-in-out infinite;"></div>
+                  </sc-if>
+                </div>
+
+                <!-- error chip -->
+                <sc-if value="{{ isError }}">
+                  <div style="display:flex;align-items:center;gap:12px;background:rgba(229,72,58,.18);border:2px solid #E5483A;border-radius:18px;padding:14px 22px;margin-top:16px;max-width:480px;">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFB7AF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                    <span style="font-size:26px;font-weight:800;color:#FFD9D4;">Pick a number between 1 and 240</span>
+                  </div>
+                </sc-if>
+
+                <!-- buttons -->
+                <div style="display:flex;gap:28px;margin-top:32px;align-items:center;">
+                  <div style="{{ sendStyle }}" onClick="{{ onSend }}">Send to parent</div>
+                  <div style="{{ cancelStyle }}" onClick="{{ onCancel }}">Cancel</div>
+                </div>
+              </div>
+
+              <!-- RIGHT: keypad -->
+              <div style="display:grid;grid-template-columns:repeat(3,150px);gap:22px;flex-shrink:0;">
+                <sc-for list="{{ keys }}" as="k" hint-placeholder-count="12">
+                  <div style="{{ k.style }}" onClick="{{ k.onClick }}">{{ k.label }}</div>
+                </sc-for>
+              </div>
+
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ===== SENT / WAITING scene ===== -->
+        <sc-if value="{{ isSent }}">
+          <div style="position:absolute;inset:0;background:#2E2140;color:#FCF6F0;">
+            <div style="position:absolute;right:-160px;top:-160px;width:560px;height:560px;border-radius:99px;background:radial-gradient(circle,#4A356A,transparent 70%);pointer-events:none;"></div>
+            <div style="position:absolute;left:-120px;bottom:-180px;width:520px;height:520px;border-radius:99px;background:radial-gradient(circle,#3E2C57,transparent 70%);pointer-events:none;"></div>
+            <div style="position:absolute;top:48px;left:64px;display:flex;align-items:center;gap:12px;z-index:2;">
+              <div style="width:38px;height:38px;border-radius:12px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;"><div style="width:15px;height:15px;border-radius:99px;background:#3A2A4D;"></div></div>
+              <span style="font-family:'Fredoka',sans-serif;font-size:24px;font-weight:600;color:#EFE7F3;">ScreenTime</span>
+            </div>
+            <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;color:#9785AC;z-index:2;">
+              <span style="border:2px solid #5A4A72;border-radius:8px;padding:2px 10px;">◀ ▶ ▲ ▼</span> move
+              <span style="border:2px solid #5A4A72;border-radius:8px;padding:2px 12px;margin-left:8px;">OK</span> select
+            </div>
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 200px;">
+              <div style="width:200px;height:200px;border-radius:99px;background:#B9A8F0;display:flex;align-items:center;justify-content:center;margin-bottom:44px;animation:stpulse 1.8s ease-in-out infinite;">
+                <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="#3A2A4D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="13" rx="3"/><path d="M8 21h8M12 17v4"/><path d="M9 10h6M9 13h4"/></svg>
+              </div>
+              <h1 style="font-family:'Fredoka',sans-serif;font-size:84px;font-weight:600;margin:0;line-height:1;">Asked for {{ value }} minutes!</h1>
+              <p style="font-size:32px;font-weight:600;color:#C6B9D6;max-width:1080px;line-height:1.4;margin:30px 0 56px;">Your parent just got a notification. Hang tight — or enter an unlock code if they gave you one.</p>
+              <div style="display:flex;gap:28px;">
+                <div onClick="{{ onCancel }}" style="background:rgba(255,255,255,0.08);color:#FCF6F0;font-family:'Nunito Sans',sans-serif;font-size:30px;font-weight:800;padding:24px 46px;border-radius:99px;cursor:pointer;border:3px solid rgba(255,255,255,0.24);white-space:nowrap;">Enter a code instead</div>
+                <div onClick="{{ onCancel }}" style="background:rgba(255,255,255,0.08);color:#FCF6F0;font-family:'Nunito Sans',sans-serif;font-size:30px;font-weight:800;padding:24px 46px;border-radius:99px;cursor:pointer;border:3px solid rgba(255,255,255,0.24);white-space:nowrap;">Cancel</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+    <div style="text-align:center;font-size:13px;color:#8A7C96;margin-top:14px;">1920 × 1080 · D-pad navigable · valid range 1–240 · max 3 digits · leading zeros stripped</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:2000}}">
+class Component extends DCLogic {
+  state = { value:'', keyFocus:0, btnFocus:0, zone:'keypad', scene:'input' };
+
+  componentDidMount(){ this._h = (e)=>this.onKey(e); document.addEventListener('keydown',this._h); }
+  componentWillUnmount(){ document.removeEventListener('keydown',this._h); }
+
+  keyValues(){ return ['1','2','3','4','5','6','7','8','9','C','0','⌫']; }
+
+  pressKey(v){
+    if(v==='C'){ this.setState({value:''}); return; }
+    if(v==='⌫'){ this.setState(s=>({value:s.value.slice(0,-1)})); return; }
+    this.setState(s=>{
+      if(s.value.length>=3) return {};
+      const raw = s.value+v;
+      const num = parseInt(raw,10);
+      return {value:isNaN(num)?v:String(num)};
+    });
+  }
+
+  send(){
+    const num=parseInt(this.state.value,10);
+    if(isNaN(num)||num<1||num>240) return;
+    this.setState({scene:'sent'});
+  }
+  cancel(){ this.setState({value:'',scene:'input',zone:'keypad',keyFocus:0,btnFocus:0}); }
+
+  onKey(e){
+    if(this.state.scene==='sent'){ if(e.key==='Escape'){e.preventDefault();this.cancel();} return; }
+    const {zone,keyFocus,btnFocus}=this.state;
+    if(zone==='keypad'){
+      let row=Math.floor(keyFocus/3),col=keyFocus%3;
+      if(e.key==='ArrowRight'){e.preventDefault();this.setState({keyFocus:row*3+Math.min(2,col+1)});}
+      else if(e.key==='ArrowLeft'){e.preventDefault();this.setState({keyFocus:row*3+Math.max(0,col-1)});}
+      else if(e.key==='ArrowDown'){e.preventDefault();this.setState({keyFocus:Math.min(3,row+1)*3+col});}
+      else if(e.key==='ArrowUp'){e.preventDefault(); row===0?this.setState({zone:'buttons',btnFocus:0}):this.setState({keyFocus:(row-1)*3+col});}
+      else if(e.key==='Enter'||e.key===' '){e.preventDefault();this.pressKey(this.keyValues()[keyFocus]);}
+      else if(e.key==='Backspace'){e.preventDefault();this.pressKey('⌫');}
+      else if(e.key==='Escape'){e.preventDefault();this.cancel();}
+    } else {
+      if(e.key==='ArrowLeft'){e.preventDefault();this.setState({btnFocus:0});}
+      else if(e.key==='ArrowRight'){e.preventDefault();this.setState({btnFocus:1});}
+      else if(e.key==='ArrowDown'){e.preventDefault();this.setState({zone:'keypad',keyFocus:0});}
+      else if(e.key==='ArrowUp'){e.preventDefault();} // clamp
+      else if(e.key==='Enter'||e.key===' '){e.preventDefault();btnFocus===0?this.send():this.cancel();}
+      else if(e.key==='Escape'){e.preventDefault();this.cancel();}
+    }
+  }
+
+  btnStyle(kind,focused,disabled){
+    const c="font-family:'Nunito Sans',sans-serif;font-size:30px;font-weight:800;padding:24px 46px;border-radius:99px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;transition:transform .12s,box-shadow .12s;";
+    if(kind==='primary'){
+      if(disabled) return c+'background:rgba(255,107,94,.25);color:rgba(58,42,77,.45);border:3px solid transparent;pointer-events:none;'+(focused?'box-shadow:0 0 0 6px rgba(255,107,94,.3);transform:scale(1.04);':'');
+      return c+'background:#FF6B5E;color:#3A2A4D;border:3px solid #FF6B5E;'+(focused?'box-shadow:0 0 0 6px #FCF6F0;transform:scale(1.06);':'');
+    }
+    return c+'background:rgba(255,255,255,0.08);color:#FCF6F0;border:3px solid rgba(255,255,255,0.24);'+(focused?'border-color:#FF6B5E;background:rgba(255,107,94,.16);box-shadow:0 0 0 6px rgba(255,107,94,.5);transform:scale(1.06);':'');
+  }
+
+  renderVals(){
+    const {value,keyFocus,btnFocus,zone,scene}=this.state;
+    const num=parseInt(value,10), hasValue=value.length>0;
+    const isError=hasValue&&num>240, isValid=hasValue&&num>=1&&num<=240;
+    const kVals=this.keyValues();
+    const keys=kVals.map((v,i)=>{
+      const focused=(zone==='keypad')&&(i===keyFocus), sp=v==='C'||v==='⌫';
+      const b="display:flex;align-items:center;justify-content:center;height:150px;border-radius:26px;cursor:pointer;font-family:'Fredoka',sans-serif;font-size:56px;font-weight:600;transition:transform .1s,box-shadow .1s;";
+      return {label:v,onClick:()=>this.pressKey(v),
+        style:focused?b+'background:#FF6B5E;color:#3A2A4D;border:3px solid #FF6B5E;box-shadow:0 0 0 6px #FCF6F0;transform:scale(1.06);':b+'background:rgba(255,255,255,.07);color:'+(sp?'#B9A8F0':'#FCF6F0')+';border:3px solid rgba(255,255,255,.14);'};
+    });
+    let tileStyle="width:420px;height:180px;border-radius:28px;display:flex;align-items:center;justify-content:center;";
+    if(isError) tileStyle+='background:rgba(229,72,58,.18);border:3px solid #E5483A;';
+    else if(hasValue) tileStyle+='background:#FCF6F0;border:4px solid #FCF6F0;';
+    else tileStyle+='background:rgba(252,246,240,.10);border:4px solid #FF6B5E;box-shadow:0 0 0 6px rgba(255,107,94,.3);';
+
+    const jumpDefs=[
+      {key:'empty',label:'Empty',fn:()=>this.setState({value:'',scene:'input',zone:'keypad',keyFocus:0,btnFocus:0})},
+      {key:'filled',label:'Filled (45)',fn:()=>this.setState({value:'45',scene:'input',zone:'keypad',keyFocus:0,btnFocus:0})},
+      {key:'error',label:'Error (999)',fn:()=>this.setState({value:'999',scene:'input',zone:'keypad',keyFocus:0,btnFocus:0})},
+      {key:'sent',label:'Request sent',fn:()=>this.setState({value:'45',scene:'sent'})},
+    ];
+    const curKey=scene==='sent'?'sent':(isError?'error':(hasValue?'filled':'empty'));
+    const jumps=jumpDefs.map(j=>({label:j.label,onClick:j.fn,
+      style:(j.key===curKey)?'font-size:13px;font-weight:800;padding:8px 14px;border-radius:99px;cursor:pointer;background:#3A2A4D;color:#FCF6F0;':'font-size:13px;font-weight:800;padding:8px 14px;border-radius:99px;cursor:pointer;background:#fff;color:#5B4D69;border:1px solid #DDCFC2;'}));
+    return {
+      isInput:scene==='input', isSent:scene==='sent',
+      value, hasValue, noValue:!hasValue, isError, tileStyle, keys, jumps,
+      sendStyle:this.btnStyle('primary',zone==='buttons'&&btnFocus===0,!isValid),
+      cancelStyle:this.btnStyle('ghost',zone==='buttons'&&btnFocus===1,false),
+      onSend:()=>this.send(), onCancel:()=>this.cancel(),
+    };
+  }
+}
+</script>
+</body>
+</html>

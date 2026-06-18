@@ -17,9 +17,13 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -68,6 +72,13 @@ class EnforcementAccessibilityService : AccessibilityService() {
                 }
             }
         }
+        // Tick every minute so time-frame windows activate/deactivate without
+        // needing an app switch event.
+        scope.launch {
+            minuteTicker().collect {
+                foregroundPackage.value?.let { pkg -> evaluate(pkg) }
+            }
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -90,6 +101,20 @@ class EnforcementAccessibilityService : AccessibilityService() {
         val limits = currentLimits.value
         val perAppLimit = limits.perApp[pkg]
 
+        // Parent-initiated instant lock — absolute override, nothing pierces it.
+        if (limits.instantLocked) {
+            Log.d(TAG, "Eval $pkg: instant lock active")
+            overlay.show(pkg, BlockReason.InstantLocked)
+            return
+        }
+
+        // Parent toggled "Allow all day" for today — nothing blocks.
+        if (limits.allowAllDayDate == LocalDate.now().toString()) {
+            Log.d(TAG, "Eval $pkg: allow-all-day active")
+            overlay.hide()
+            return
+        }
+
         // "Always allow" — this app is exempt from per-app and overall limits.
         if (perAppLimit?.dailyLimitMinutes == Limits.UNLIMITED) {
             overlay.hide()
@@ -97,10 +122,20 @@ class EnforcementAccessibilityService : AccessibilityService() {
         }
 
         // A code redemption or approved request grants N minutes from now,
-        // regardless of how much usage already accumulated today.
+        // bypassing both daily limits and time-frame schedule.
         if (bonusStore.isActive(pkg)) {
             Log.d(TAG, "Eval $pkg: bonus active until ${bonusStore.expiryFor(pkg)}")
             overlay.hide()
+            return
+        }
+
+        // Outside allowed hours — block even if daily quota hasn't been used.
+        val now = LocalDateTime.now()
+        if (!limits.timeFrame.isAllowedAt(now)) {
+            val nextLabel = limits.timeFrame.nextAllowedMinute(now)
+                ?.let { java.time.format.DateTimeFormatter.ofPattern("h:mm a").format(it) }
+            Log.d(TAG, "Eval $pkg: outside time-frame schedule, next=$nextLabel")
+            overlay.show(pkg, BlockReason.OutsideHours, nextLabel)
             return
         }
 
@@ -119,9 +154,18 @@ class EnforcementAccessibilityService : AccessibilityService() {
         )
 
         if (perAppExceeded || overallExceeded) {
-            overlay.show(pkg)
+            overlay.show(pkg, BlockReason.DailyLimitReached)
         } else {
             overlay.hide()
+        }
+    }
+
+    private fun minuteTicker() = flow<Unit> {
+        while (true) {
+            val now = LocalDateTime.now()
+            val secondsUntilNextMinute = 60L - now.second
+            delay(secondsUntilNextMinute * 1_000L)
+            emit(Unit)
         }
     }
 
@@ -129,3 +173,5 @@ class EnforcementAccessibilityService : AccessibilityService() {
         private const val TAG = "EnforcementSvc"
     }
 }
+
+enum class BlockReason { DailyLimitReached, OutsideHours, InstantLocked }

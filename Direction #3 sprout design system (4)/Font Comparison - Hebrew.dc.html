@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Varela+Round&family=Assistant:wght@400;600;700;800&family=Heebo:wght@400;500;600;700;800&family=Fredoka:wght@500;600;700&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+</style>
+</helmet>
+
+<div style="background:#E7E6E4;min-height:100vh;padding:48px 40px 80px;font-family:'Nunito Sans',sans-serif;color:#3A2A4D;overflow-x:auto;">
+  <div style="max-width:1200px;margin:0 auto;">
+
+    <!-- header -->
+    <div style="margin-bottom:10px;">
+      <h1 style="font-family:'Fredoka',sans-serif;font-size:32px;font-weight:600;margin:0;">Hebrew font swap — Sprout system</h1>
+      <p style="font-size:15px;color:#8A7C96;margin:8px 0 0;line-height:1.5;">Fredoka and Nunito Sans have no Hebrew glyphs. These are the closest Google Fonts that cover Hebrew + Latin. Each card shows Latin + Hebrew specimens and a mini Sprout UI sample.</p>
+    </div>
+
+    <!-- current system note -->
+    <div style="background:#ECE5FB;border-radius:16px;padding:14px 18px;margin-bottom:32px;display:flex;align-items:center;gap:12px;">
+      <span style="font-size:13px;font-weight:800;color:#5B4D8C;">Current Sprout stack (Latin only):</span>
+      <span style="font-family:'Fredoka',sans-serif;font-size:17px;font-weight:600;color:#3A2A4D;">Fredoka display</span>
+      <span style="font-size:13px;color:#8A7C96;">+</span>
+      <span style="font-family:'Nunito Sans',sans-serif;font-size:15px;font-weight:700;color:#3A2A4D;">Nunito Sans body</span>
+      <span style="font-size:12px;color:#8A7C96;margin-left:4px;">— no Hebrew support</span>
+    </div>
+
+    <!-- ===== RUBIK ===== -->
+    <div style="background:#fff;border-radius:24px;padding:28px;margin-bottom:20px;box-shadow:0 4px 20px rgba(58,42,77,.06);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <span style="font-size:13px;font-weight:800;color:#fff;background:#FF6B5E;padding:5px 12px;border-radius:99px;">⭐ Recommended</span>
+        <span style="font-family:'Rubik',sans-serif;font-size:22px;font-weight:700;color:#3A2A4D;">Rubik</span>
+        <span style="font-size:13px;font-weight:600;color:#8A7C96;">weights 300–900 · Latin + Hebrew · Google Fonts</span>
+      </div>
+      <p style="font-size:14px;color:#5B4D69;margin:0 0 20px;line-height:1.5;max-width:760px;">Rounded terminals, geometric proportions — nearest Hebrew match to Nunito. Can replace <strong>both</strong> Fredoka (at 600–700) and Nunito Sans (at 400–600) with one family, keeping a unified Hebrew+Latin identity.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
+        <!-- Latin -->
+        <div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;margin-bottom:12px;">Latin</div>
+          <div style="font-family:'Rubik',sans-serif;font-size:34px;font-weight:600;line-height:1.1;color:#3A2A4D;">All done today!</div>
+          <div style="font-family:'Rubik',sans-serif;font-size:16px;font-weight:400;color:#5B4D69;margin-top:8px;line-height:1.5;">Sign in to manage your family's screen time. YouTube · 45 min of 1h.</div>
+          <div style="font-family:'Rubik',sans-serif;font-size:13px;font-weight:700;color:#8A7C96;margin-top:6px;">LABEL · On track · Ask for time</div>
+        </div>
+        <!-- Hebrew -->
+        <div dir="rtl">
+          <div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;margin-bottom:12px;direction:ltr;">Hebrew</div>
+          <div style="font-family:'Rubik',sans-serif;font-size:34px;font-weight:600;line-height:1.1;color:#3A2A4D;">הכל מוגדר!</div>
+          <div style="font-family:'Rubik',sans-serif;font-size:16px;font-weight:400;color:#5B4D69;margin-top:8px;line-height:1.5;">היכנס לניהול זמן המסך של המשפחה. YouTube · 45 דקות מתוך שעה.</div>
+          <div style="font-family:'Rubik',sans-serif;font-size:13px;font-weight:700;color:#8A7C96;margin-top:6px;">בקש עוד זמן · במסלול</div>
+        </div>
+        <!-- UI sample -->
+        <div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;margin-bottom:12px;">Sprout UI sample</div>
+          <div style="background:#FCF6F0;border-radius:20px;padding:14px 15px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:44px;height:44px;border-radius:14px;background:#E5483A;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:20px;color:#fff;flex-shrink:0;">Y</div>
+              <div style="flex:1;">
+                <div style="display:flex;justify-content:space-between;"><span style="font-family:'Rubik',sans-serif;font-size:17px;font-weight:600;">YouTube</span><span style="font-family:'Rubik',sans-serif;font-size:13px;font-weight:700;color:#8A7C96;">45m / 1h</span></div>
+                <div style="height:8px;background:#EEDFD3;border-radius:99px;margin-top:8px;overflow:hidden;"><div style="width:75%;height:100%;background:#FF6B5E;border-radius:99px;"></div></div>
+              </div>
+            </div>
+            <div style="background:#FF6B5E;color:#3A2A4D;font-family:'Rubik',sans-serif;font-size:14px;font-weight:700;padding:12px 0;border-radius:99px;text-align:center;margin-top:12px;">בקש עוד זמן / Ask for time</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== VARELA ROUND ===== -->
+    <div style="background:#fff;border-radius:24px;padding:28px;margin-bottom:20px;box-shadow:0 4px 20px rgba(58,42,77,.06);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <span style="font-size:13px;font-weight:800;color:#3A2A4D;background:#ECE5FB;padding:5px 12px;border-radius:99px;">Most rounded</span>
+        <span style="font-family:'Varela Round',sans-serif;font-size:22px;font-weight:400;color:#3A2A4D;">Varela Round</span>
+        <span style="font-size:13px;font-weight:600;color:#8A7C96;">weight 400 only · Latin + Hebrew · Google Fonts</span>
+      </div>
+      <p style="font-size:14px;color:#5B4D69;margin:0 0 20px;line-height:1.5;max-width:760px;">Closest to Nunito's roundness — identical rounded-terminal feel. <strong>Caveat:</strong> only one weight (400), so no bold hierarchy. Good for body text but you'd need a second font for display/buttons.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
+        <div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;margin-bottom:12px;">Latin</div>
+          <div style="font-family:'Varela Round',sans-serif;font-size:34px;font-weight:400;line-height:1.1;color:#3A2A4D;">All done today!</div>
+          <div style="font-family:'Varela Round',sans-serif;font-size:16px;font-weight:400;color:#5B4D69;margin-top:8px;line-height:1.5;">Sign in to manage your family's screen time. YouTube · 45 min of 1h.</div>
+          <div style="font-family:'Varela Round',sans-serif;font-size:13px;color:#8A7C96;margin-top:6px;">LABEL · On track · Ask for time</div>
+        </div>
+        <div dir="rtl">
+          <div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;margin-bottom:12px;direction:ltr;">Hebrew</div>
+          <div style="font-family:'Varela Round',sans-serif;font-size:34px;font-weight:400;line-height:1.1;color:#3A2A4D;">הכל מוגדר!</div>
+          <div style="font-family:'Varela Round',sans-serif;font-size:16px;font-weight:400;color:#5B4D69;margin-top:8px;line-height:1.5;">היכנס לניהול זמן המסך של המשפחה. YouTube · 45 דקות מתוך שעה.</div>
+          <div style="font-family:'Varela Round',sans-serif;font-size:13px;color:#8A7C96;margin-top:6px;">בקש עוד זמן · במסלול</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;margin-bottom:12px;">Sprout UI sample</div>
+          <div style="background:#FCF6F0;border-radius:20px;padding:14px 15px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:44px;height:44px;border-radius:14px;background:#E5483A;display:flex;align-items:center;justify-content:center;font-family:'Varela Round',sans-serif;font-size:20px;color:#fff;flex-shrink:0;">Y</div>
+              <div style="flex:1;">
+                <div style="display:flex;justify-content:space-between;"><span style="font-family:'Varela Round',sans-serif;font-size:17px;">YouTube</span><span style="font-family:'Varela Round',sans-serif;font-size:13px;color:#8A7C96;">45m / 1h</span></div>
+                <div style="height:8px;background:#EEDFD3;border-radius:99px;margin-top:8px;overflow:hidden;"><div style="width:75%;height:100%;background:#FF6B5E;border-radius:99px;"></div></div>
+              </div>
+            </div>
+            <div style="background:#FF6B5E;color:#3A2A4D;font-family:'Varela Round',sans-serif;font-size:14px;padding:12px 0;border-radius:99px;text-align:center;margin-top:12px;">בקש עוד זמן / Ask for time</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ASSISTANT ===== -->
+    <div style="background:#fff;border-radius:24px;padding:28px;margin-bottom:20px;box-shadow:0 4px 20px rgba(58,42,77,.06);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <span style="font-size:13px;font-weight:800;color:#3A2A4D;background:#DFF6EC;padding:5px 12px;border-radius:99px;">Best readability</span>
+        <span style="font-family:'Assistant',sans-serif;font-size:22px;font-weight:700;color:#3A2A4D;">Assistant</span>
+        <span style="font-size:13px;font-weight:600;color:#8A7C96;">weights 200–800 · Latin + Hebrew · Google Fonts</span>
+      </div>
+      <p style="font-size:14px;color:#5B4D69;margin:0 0 20px;line-height:1.5;max-width:760px;">Designed specifically for Hebrew UIs — wide range of weights, clean and open. Less rounded than Nunito but very legible. Good choice if Hebrew-first is a priority (it was built for it).</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
+        <div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;margin-bottom:12px;">Latin</div>
+          <div style="font-family:'Assistant',sans-serif;font-size:34px;font-weight:700;line-height:1.1;color:#3A2A4D;">All done today!</div>
+          <div style="font-family:'Assistant',sans-serif;font-size:16px;font-weight:400;color:#5B4D69;margin-top:8px;line-height:1.5;">Sign in to manage your family's screen time. YouTube · 45 min of 1h.</div>
+          <div style="font-family:'Assistant',sans-serif;font-size:13px;font-weight:700;color:#8A7C96;margin-top:6px;">LABEL · On track · Ask for time</div>
+        </div>
+        <div dir="rtl">
+          <div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;margin-bottom:12px;direction:ltr;">Hebrew</div>
+          <div style="font-family:'Assistant',sans-serif;font-size:34px;font-weight:700;line-height:1.1;color:#3A2A4D;">הכל מוגדר!</div>
+          <div style="font-family:'Assistant',sans-serif;font-size:16px;font-weight:400;color:#5B4D69;margin-top:8px;line-height:1.5;">היכנס לניהול זמן המסך של המשפחה. YouTube · 45 דקות מתוך שעה.</div>
+          <div style="font-family:'Assistant',sans-serif;font-size:13px;font-weight:700;color:#8A7C96;margin-top:6px;">בקש עוד זמן · במסלול</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;margin-bottom:12px;">Sprout UI sample</div>
+          <div style="background:#FCF6F0;border-radius:20px;padding:14px 15px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:44px;height:44px;border-radius:14px;background:#E5483A;display:flex;align-items:center;justify-content:center;font-family:'Assistant',sans-serif;font-weight:700;font-size:20px;color:#fff;flex-shrink:0;">Y</div>
+              <div style="flex:1;">
+                <div style="display:flex;justify-content:space-between;"><span style="font-family:'Assistant',sans-serif;font-size:17px;font-weight:700;">YouTube</span><span style="font-family:'Assistant',sans-serif;font-size:13px;font-weight:600;color:#8A7C96;">45m / 1h</span></div>
+                <div style="height:8px;background:#EEDFD3;border-radius:99px;margin-top:8px;overflow:hidden;"><div style="width:75%;height:100%;background:#FF6B5E;border-radius:99px;"></div></div>
+              </div>
+            </div>
+            <div style="background:#FF6B5E;color:#3A2A4D;font-family:'Assistant',sans-serif;font-size:14px;font-weight:800;padding:12px 0;border-radius:99px;text-align:center;margin-top:12px;">בקש עוד זמן / Ask for time</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== HEEBO ===== -->
+    <div style="background:#fff;border-radius:24px;padding:28px;box-shadow:0 4px 20px rgba(58,42,77,.06);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <span style="font-size:13px;font-weight:800;color:#3A2A4D;background:#F2EAE2;padding:5px 12px;border-radius:99px;">Most popular</span>
+        <span style="font-family:'Heebo',sans-serif;font-size:22px;font-weight:700;color:#3A2A4D;">Heebo</span>
+        <span style="font-size:13px;font-weight:600;color:#8A7C96;">weights 100–900 · Latin + Hebrew · Google Fonts</span>
+      </div>
+      <p style="font-size:14px;color:#5B4D69;margin:0 0 20px;line-height:1.5;max-width:760px;">The most-used Hebrew Google Font. Based on Roboto with Hebrew glyphs added. More neutral/corporate feel — less rounded than Nunito, less warm. Fine if you go neutral, but it'll shift the Sprout personality slightly.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
+        <div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;margin-bottom:12px;">Latin</div>
+          <div style="font-family:'Heebo',sans-serif;font-size:34px;font-weight:700;line-height:1.1;color:#3A2A4D;">All done today!</div>
+          <div style="font-family:'Heebo',sans-serif;font-size:16px;font-weight:400;color:#5B4D69;margin-top:8px;line-height:1.5;">Sign in to manage your family's screen time. YouTube · 45 min of 1h.</div>
+          <div style="font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;color:#8A7C96;margin-top:6px;">LABEL · On track · Ask for time</div>
+        </div>
+        <div dir="rtl">
+          <div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;margin-bottom:12px;direction:ltr;">Hebrew</div>
+          <div style="font-family:'Heebo',sans-serif;font-size:34px;font-weight:700;line-height:1.1;color:#3A2A4D;">הכל מוגדר!</div>
+          <div style="font-family:'Heebo',sans-serif;font-size:16px;font-weight:400;color:#5B4D69;margin-top:8px;line-height:1.5;">היכנס לניהול זמן המסך של המשפחה. YouTube · 45 דקות מתוך שעה.</div>
+          <div style="font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;color:#8A7C96;margin-top:6px;">בקש עוד זמן · במסלול</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#A99BB5;margin-bottom:12px;">Sprout UI sample</div>
+          <div style="background:#FCF6F0;border-radius:20px;padding:14px 15px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:44px;height:44px;border-radius:14px;background:#E5483A;display:flex;align-items:center;justify-content:center;font-family:'Heebo',sans-serif;font-weight:700;font-size:20px;color:#fff;flex-shrink:0;">Y</div>
+              <div style="flex:1;">
+                <div style="display:flex;justify-content:space-between;"><span style="font-family:'Heebo',sans-serif;font-size:17px;font-weight:700;">YouTube</span><span style="font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;color:#8A7C96;">45m / 1h</span></div>
+                <div style="height:8px;background:#EEDFD3;border-radius:99px;margin-top:8px;overflow:hidden;"><div style="width:75%;height:100%;background:#FF6B5E;border-radius:99px;"></div></div>
+              </div>
+            </div>
+            <div style="background:#FF6B5E;color:#3A2A4D;font-family:'Heebo',sans-serif;font-size:14px;font-weight:800;padding:12px 0;border-radius:99px;text-align:center;margin-top:12px;">בקש עוד זמן / Ask for time</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- verdict -->
+    <div style="background:#3A2A4D;border-radius:24px;padding:24px 28px;margin-top:24px;color:#FCF6F0;">
+      <div style="font-family:'Rubik',sans-serif;font-size:20px;font-weight:600;margin-bottom:10px;">Recommendation</div>
+      <div style="font-size:15px;font-weight:500;color:#C9BBD6;line-height:1.6;">Use <strong style="color:#FF6B5E;">Rubik</strong> for everything — replace both Fredoka (display, 600–700) and Nunito Sans (body, 400–600) with a single Rubik family. It covers Hebrew + Latin, has the same rounded warmth as Nunito, and its weight range lets you keep all existing type hierarchy. Change one line in the Google Fonts URL and two font-family declarations. The Sprout personality survives intact.</div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280}}"></script>
+</body>
+</html>

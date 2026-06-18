@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .num{font-variant-numeric:tabular-nums;}
+  .scrollarea::-webkit-scrollbar{width:0;background:transparent;}
+</style>
+</helmet>
+
+<div style="background:#E7E6E4;min-height:100vh;padding:48px 24px 64px;font-family:'Rubik',sans-serif;display:flex;flex-direction:column;align-items:center;gap:18px;min-width:fit-content;">
+
+  <div style="text-align:center;">
+    <div style="font-family:'Rubik',sans-serif;font-size:20px;font-weight:600;color:#3A2A4D;">Limits — home</div>
+    <div style="font-size:13px;color:#8A7C96;">Parent's phone · Android · Sprout · Rubik swap</div>
+  </div>
+
+  <x-import component="AndroidDevice" from="./android-frame.jsx" dark="{{ false }}" hint-size="412px,892px">
+
+    <div style="height:100%;display:flex;flex-direction:column;background:#FCF6F0;position:relative;font-family:'Rubik',sans-serif;color:#3A2A4D;">
+
+      <!-- scrollable content -->
+      <div class="scrollarea" style="flex:1;overflow-y:auto;padding:8px 16px 132px;">
+
+        <!-- header row: family switcher + avatar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0 14px;">
+          <div style="display:flex;align-items:center;gap:9px;background:#fff;border:1px solid #EADFD4;border-radius:99px;padding:5px 12px 5px 5px;">
+            <div style="width:30px;height:30px;border-radius:99px;background:#B9A8F0;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:14px;color:#3A2A4D;">G</div>
+            <span style="font-size:14px;font-weight:700;white-space:nowrap;">Garcia family</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A7C96" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="display:flex;align-items:center;gap:6px;background:#DFF6EC;border-radius:99px;padding:6px 11px;">
+              <span style="width:7px;height:7px;border-radius:99px;background:#2E9E78;"></span>
+              <span style="font-size:12px;font-weight:700;color:#15795A;">TV on</span>
+            </div>
+            <div style="width:38px;height:38px;border-radius:99px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:15px;color:#3A2A4D;">D</div>
+          </div>
+        </div>
+
+        <!-- title -->
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <h1 style="font-family:'Rubik',sans-serif;font-size:30px;font-weight:600;margin:0;line-height:1;">Limits</h1>
+            <div style="font-size:13px;font-weight:600;color:#8A7C96;margin-top:5px;">Tuesday, June 17</div>
+          </div>
+        </div>
+
+        <!-- HERO: today's total -->
+        <div style="background:#3A2A4D;border-radius:26px;padding:22px 22px 24px;color:#FCF6F0;position:relative;overflow:hidden;">
+          <div style="position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:99px;background:#52436A;opacity:.5;"></div>
+          <div style="position:relative;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#C9BBD6;">Today's screen time</span>
+              <span style="font-size:12px;font-weight:700;color:#0F1F18;background:#4FCFA1;padding:5px 11px;border-radius:99px;white-space:nowrap;">On track</span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:8px;margin-top:10px;white-space:nowrap;">
+              <span class="num" style="font-family:'Rubik',sans-serif;font-size:46px;font-weight:600;line-height:1;white-space:nowrap;">2h 35m</span>
+              <span style="font-size:15px;font-weight:700;color:#C9BBD6;">of 4h daily</span>
+            </div>
+            <div style="height:12px;border-radius:99px;background:#52436A;margin-top:16px;overflow:hidden;display:flex;">
+              <div style="width:64%;height:100%;background:#4FCFA1;border-radius:99px;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:9px;">
+              <span style="font-size:13px;font-weight:700;color:#C9BBD6;">1h 25m left</span>
+              <span style="font-size:13px;font-weight:700;color:#C9BBD6;">Resets at midnight</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- request banner -->
+        <div style="display:flex;align-items:center;gap:12px;background:#ECE5FB;border-radius:20px;padding:12px 14px;margin-top:14px;">
+          <div style="width:38px;height:38px;border-radius:12px;background:#3A2A4D;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#FCF6F0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;line-height:1.25;">TV wants 15 more minutes</div>
+            <div style="font-size:12px;font-weight:600;color:#6E5C7E;">on YouTube · just now</div>
+          </div>
+          <div style="font-size:13px;font-weight:700;color:#3A2A4D;background:#fff;padding:9px 15px;border-radius:99px;">Review</div>
+        </div>
+
+        <!-- section header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:24px 2px 12px;">
+          <span style="font-family:'Rubik',sans-serif;font-size:19px;font-weight:600;">App limits</span>
+          <span style="font-size:13px;font-weight:700;color:#8A7C96;">5 apps</span>
+        </div>
+
+        <!-- app rows -->
+        <div style="display:flex;flex-direction:column;gap:10px;">
+
+          <!-- YouTube — almost up -->
+          <div style="background:#fff;border:1px solid #F2E7DB;border-radius:20px;padding:14px 15px;">
+            <div style="display:flex;align-items:center;gap:13px;">
+              <div style="width:46px;height:46px;border-radius:14px;background:#E5483A;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:20px;color:#fff;flex-shrink:0;">Y</div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <span style="font-family:'Rubik',sans-serif;font-size:17px;font-weight:500;">YouTube</span>
+                  <span class="num" style="font-size:14px;font-weight:700;color:#3A2A4D;">45m <span style="color:#B6ABBF;font-weight:700;">/ 1h</span></span>
+                </div>
+                <div style="height:8px;border-radius:99px;background:#F2E7DB;margin-top:9px;overflow:hidden;"><div style="width:75%;height:100%;background:#F2A93B;border-radius:99px;"></div></div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:11px;">
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#9A6313;background:#FCEFD7;padding:5px 11px;border-radius:99px;"><span style="width:7px;height:7px;border-radius:99px;background:#F2A93B;"></span>Almost up · 15m left</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B6ABBF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </div>
+          </div>
+
+          <!-- Roblox — on track -->
+          <div style="background:#fff;border:1px solid #F2E7DB;border-radius:20px;padding:14px 15px;">
+            <div style="display:flex;align-items:center;gap:13px;">
+              <div style="width:46px;height:46px;border-radius:14px;background:#5B6B7B;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:20px;color:#fff;flex-shrink:0;">R</div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <span style="font-family:'Rubik',sans-serif;font-size:17px;font-weight:500;">Roblox</span>
+                  <span class="num" style="font-size:14px;font-weight:700;color:#3A2A4D;">40m <span style="color:#B6ABBF;font-weight:700;">/ 1h 30m</span></span>
+                </div>
+                <div style="height:8px;border-radius:99px;background:#F2E7DB;margin-top:9px;overflow:hidden;"><div style="width:44%;height:100%;background:#4FCFA1;border-radius:99px;"></div></div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:11px;">
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#15795A;background:#DFF6EC;padding:5px 11px;border-radius:99px;"><span style="width:7px;height:7px;border-radius:99px;background:#2E9E78;"></span>On track</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B6ABBF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </div>
+          </div>
+
+          <!-- TikTok — time's up -->
+          <div style="background:#fff;border:1px solid #F2E7DB;border-radius:20px;padding:14px 15px;">
+            <div style="display:flex;align-items:center;gap:13px;">
+              <div style="width:46px;height:46px;border-radius:14px;background:#2A2730;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:20px;color:#fff;flex-shrink:0;">T</div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <span style="font-family:'Rubik',sans-serif;font-size:17px;font-weight:500;">TikTok</span>
+                  <span class="num" style="font-size:14px;font-weight:700;color:#3A2A4D;">30m <span style="color:#B6ABBF;font-weight:700;">/ 30m</span></span>
+                </div>
+                <div style="height:8px;border-radius:99px;background:#F2E7DB;margin-top:9px;overflow:hidden;"><div style="width:100%;height:100%;background:#E5483A;border-radius:99px;"></div></div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:11px;">
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#B5281C;background:#FBE2DF;padding:5px 11px;border-radius:99px;"><span style="width:7px;height:7px;border-radius:99px;background:#E5483A;"></span>Time's up for today</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B6ABBF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </div>
+          </div>
+
+          <!-- Games — on track -->
+          <div style="background:#fff;border:1px solid #F2E7DB;border-radius:20px;padding:14px 15px;">
+            <div style="display:flex;align-items:center;gap:13px;">
+              <div style="width:46px;height:46px;border-radius:14px;background:#4FA98C;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;"><span style="width:8px;height:8px;border-radius:3px;background:#fff;"></span><span style="width:8px;height:8px;border-radius:3px;background:#fff;"></span><span style="width:8px;height:8px;border-radius:3px;background:#fff;"></span><span style="width:8px;height:8px;border-radius:3px;background:#fff;"></span></div>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <span style="font-family:'Rubik',sans-serif;font-size:17px;font-weight:500;">Games</span>
+                  <span class="num" style="font-size:14px;font-weight:700;color:#3A2A4D;">20m <span style="color:#B6ABBF;font-weight:700;">/ 1h</span></span>
+                </div>
+                <div style="height:8px;border-radius:99px;background:#F2E7DB;margin-top:9px;overflow:hidden;"><div style="width:33%;height:100%;background:#4FCFA1;border-radius:99px;"></div></div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:11px;">
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#15795A;background:#DFF6EC;padding:5px 11px;border-radius:99px;"><span style="width:7px;height:7px;border-radius:99px;background:#2E9E78;"></span>On track · 6 apps</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B6ABBF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </div>
+          </div>
+
+          <!-- Disney+ — paused -->
+          <div style="background:#fff;border:1px solid #F2E7DB;border-radius:20px;padding:14px 15px;opacity:.78;">
+            <div style="display:flex;align-items:center;gap:13px;">
+              <div style="width:46px;height:46px;border-radius:14px;background:#8E86D9;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-weight:600;font-size:20px;color:#fff;flex-shrink:0;">D</div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <span style="font-family:'Rubik',sans-serif;font-size:17px;font-weight:500;">Disney+</span>
+                  <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#3A2A4D;background:#ECE5FB;padding:5px 11px;border-radius:99px;">Paused</span>
+                </div>
+                <div style="font-size:13px;font-weight:600;color:#8A7C96;margin-top:7px;">No limit while paused</div>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B6ABBF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- FAB -->
+      <div style="position:absolute;right:18px;bottom:96px;display:flex;align-items:center;gap:10px;background:#FF6B5E;color:#3A2A4D;padding:15px 20px 15px 17px;border-radius:20px;box-shadow:0 10px 24px rgba(255,107,94,.45);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3A2A4D" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span style="font-size:15px;font-weight:700;">Add limit</span>
+      </div>
+
+      <!-- bottom nav -->
+      <div style="background:#fff;border-top:1px solid #F2E7DB;padding:8px 6px 10px;display:flex;justify-content:space-around;">
+        <!-- Limits (active) -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;border-radius:99px;background:#ECE5FB;display:flex;align-items:center;justify-content:center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3A2A4D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#3A2A4D;">Limits</span>
+        </div>
+        <!-- Requests -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;display:flex;align-items:center;justify-content:center;position:relative;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A7C96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0112 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 004 0"/></svg>
+            <span style="position:absolute;top:0;right:14px;min-width:16px;height:16px;border-radius:99px;background:#E5483A;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;">1</span>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#8A7C96;">Requests</span>
+        </div>
+        <!-- Codes -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;display:flex;align-items:center;justify-content:center;">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3.5px;"><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span><span style="width:4.5px;height:4.5px;border-radius:99px;background:#8A7C96;"></span></div>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#8A7C96;">Codes</span>
+        </div>
+        <!-- Family -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;">
+          <div style="width:60px;height:32px;display:flex;align-items:center;justify-content:center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A7C96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M16 14c2.4 0 4.5 1.6 4.5 4"/></svg>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#8A7C96;">Family</span>
+        </div>
+      </div>
+
+    </div>
+
+  </x-import>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:620}}"></script>
+</body>
+</html>

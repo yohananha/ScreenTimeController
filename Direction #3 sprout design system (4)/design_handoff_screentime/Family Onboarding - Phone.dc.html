@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  @keyframes stspin{to{transform:rotate(360deg);}}
+  @keyframes stslide{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes stpop{0%{transform:scale(.7);opacity:0;}80%{transform:scale(1.06);}100%{transform:scale(1);opacity:1;}}
+</style>
+</helmet>
+
+<div style="background:#E7E6E4;min-height:100vh;padding:48px 24px 64px;font-family:'Nunito Sans',sans-serif;display:flex;flex-direction:column;align-items:center;gap:18px;">
+
+  <div style="text-align:center;">
+    <div style="font-family:'Fredoka',sans-serif;font-size:20px;font-weight:600;color:#3A2A4D;">Family onboarding — create or join</div>
+    <div style="font-size:13px;color:#8A7C96;">Parent's phone · Android · Material 3 · Sprout · tap both cards</div>
+  </div>
+
+  <x-import component="AndroidDevice" from="./android-frame.jsx" dark="{{ false }}" hint-size="412px,892px">
+
+    <div style="height:100%;display:flex;flex-direction:column;background:#FCF6F0;font-family:'Nunito Sans',sans-serif;color:#3A2A4D;">
+
+      <!-- header: brand left, avatar right -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px;">
+        <div style="display:flex;align-items:center;gap:9px;">
+          <div style="width:30px;height:30px;border-radius:10px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;"><div style="width:12px;height:12px;border-radius:99px;background:#3A2A4D;"></div></div>
+          <span style="font-family:'Fredoka',sans-serif;font-size:17px;font-weight:600;color:#3A2A4D;">ScreenTime</span>
+        </div>
+        <div style="width:38px;height:38px;border-radius:99px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-weight:600;font-size:15px;color:#3A2A4D;">D</div>
+      </div>
+
+      <!-- title -->
+      <div style="padding:8px 16px 20px;">
+        <h1 style="font-family:'Fredoka',sans-serif;font-size:30px;font-weight:600;margin:0;line-height:1;">Set up your family</h1>
+        <p style="font-size:15px;font-weight:600;color:#8A7C96;margin:7px 0 0;line-height:1.4;">Create a new family or join one a co-parent set up.</p>
+      </div>
+
+      <!-- CHOICE cards -->
+      <sc-if value="{{ isChoice }}">
+        <div style="padding:0 16px;display:flex;flex-direction:column;gap:14px;">
+
+          <!-- Card 1: Create -->
+          <div onClick="{{ onTapCreate }}" style="background:#fff;border-radius:24px;padding:20px;box-shadow:0 4px 16px rgba(58,42,77,.07);cursor:pointer;">
+            <div style="display:flex;align-items:center;gap:15px;">
+              <div style="width:52px;height:52px;border-radius:99px;background:#ECE5FB;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <sc-if value="{{ card1Loading }}">
+                  <div style="width:24px;height:24px;border-radius:99px;border:3px solid rgba(58,42,77,.15);border-top-color:#B9A8F0;animation:stspin .7s linear infinite;"></div>
+                </sc-if>
+                <sc-if value="{{ card1Ready }}">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5B4D8C" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                </sc-if>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:'Fredoka',sans-serif;font-size:19px;font-weight:500;">Create a family</div>
+                <div style="font-size:14px;font-weight:600;color:#8A7C96;margin-top:3px;">Start fresh. You'll be the owner.</div>
+              </div>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF6B5E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M9 6l6 6-6 6"/></svg>
+            </div>
+          </div>
+
+          <!-- Card 2: Join -->
+          <div style="background:#fff;border-radius:24px;padding:20px;box-shadow:0 4px 16px rgba(58,42,77,.07);">
+            <!-- header row -->
+            <div onClick="{{ onTapJoin }}" style="display:flex;align-items:center;gap:15px;cursor:pointer;">
+              <div style="width:52px;height:52px;border-radius:99px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3A2A4D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:'Fredoka',sans-serif;font-size:19px;font-weight:500;">Join a family</div>
+                <div style="font-size:14px;font-weight:600;color:#8A7C96;margin-top:3px;">Use the invite code from your co-parent.</div>
+              </div>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF6B5E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="{{ chevron2Style }}"><path d="M9 6l6 6-6 6"/></svg>
+            </div>
+
+            <!-- code expand -->
+            <sc-if value="{{ expanded }}">
+              <div style="margin-top:18px;animation:stslide .2s ease-out;">
+                <div style="font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#A99BB5;margin-bottom:10px;">Enter the 6-digit invite code</div>
+                <!-- slots row + hidden input -->
+                <div style="position:relative;">
+                  <div style="display:flex;gap:8px;margin-bottom:14px;">
+                    <sc-for list="{{ codeSlots }}" as="s" hint-placeholder-count="6">
+                      <div onClick="{{ onFocusInput }}" style="{{ s.style }}">{{ s.char }}</div>
+                    </sc-for>
+                  </div>
+                  <input ref="{{ inputRef }}" type="tel" maxlength="6" value="{{ code }}" onChange="{{ onCodeChange }}" style="position:absolute;top:0;left:0;opacity:0;width:100%;height:60px;pointer-events:none;" />
+                </div>
+                <div onClick="{{ onContinue }}" style="{{ continueStyle }}">
+                  <sc-if value="{{ card2Loading }}">
+                    <div style="width:20px;height:20px;border-radius:99px;border:3px solid rgba(58,42,77,.2);border-top-color:#3A2A4D;animation:stspin .7s linear infinite;"></div>
+                  </sc-if>
+                  <sc-if value="{{ card2Ready }}">
+                    <span style="font-size:15px;font-weight:800;">Continue</span>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+
+        </div>
+      </sc-if>
+
+      <!-- SUCCESS state -->
+      <sc-if value="{{ isSuccess }}">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px;text-align:center;animation:stpop .4s ease-out;">
+          <div style="width:110px;height:110px;border-radius:99px;background:#4FCFA1;display:flex;align-items:center;justify-content:center;margin-bottom:24px;box-shadow:0 0 0 14px rgba(79,207,161,.15);">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#0F1F18" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+          </div>
+          <h2 style="font-family:'Fredoka',sans-serif;font-size:30px;font-weight:600;margin:0;">{{ successHeadline }}</h2>
+          <p style="font-size:15px;font-weight:600;color:#8A7C96;max-width:300px;margin:10px 0 32px;line-height:1.5;">{{ successSub }}</p>
+          <div style="width:100%;background:#FF6B5E;color:#3A2A4D;font-size:15px;font-weight:800;padding:15px 0;border-radius:99px;text-align:center;cursor:pointer;box-shadow:0 8px 18px rgba(255,107,94,.3);">Get started</div>
+        </div>
+      </sc-if>
+
+    </div>
+
+  </x-import>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:620}}">
+class Component extends DCLogic {
+  state = {
+    step: 'choice',    // 'choice' | 'success'
+    card1Loading: false,
+    card2Loading: false,
+    expanded: false,
+    code: '',
+    successType: null, // 'create' | 'join'
+  };
+
+  componentDidUpdate(_, prev){
+    if(this.state.expanded && !prev.expanded){
+      setTimeout(() => this._inp && this._inp.focus(), 80);
+    }
+  }
+  componentWillUnmount(){ clearTimeout(this._t1); clearTimeout(this._t2); }
+
+  tapCreate(){
+    if(this.state.card1Loading || this.state.step !== 'choice') return;
+    this.setState({ card1Loading:true });
+    clearTimeout(this._t1);
+    this._t1 = setTimeout(() => this.setState({ step:'success', card1Loading:false, successType:'create' }), 1500);
+  }
+
+  tapJoin(){
+    if(this.state.card2Loading) return;
+    this.setState(s => ({ expanded: !s.expanded, code: s.expanded ? '' : s.code }));
+  }
+
+  codeChange(e){
+    const v = e.target.value.replace(/[^0-9]/g,'').slice(0,6);
+    this.setState({ code: v });
+  }
+
+  continue_(){
+    if(this.state.code.length !== 6 || this.state.card2Loading) return;
+    this.setState({ card2Loading:true });
+    clearTimeout(this._t2);
+    this._t2 = setTimeout(() => this.setState({ step:'success', card2Loading:false, successType:'join' }), 1500);
+  }
+
+  slotStyle(i, code){
+    const filled = i < code.length;
+    const active = i === code.length;
+    const base = "flex:1;height:62px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Fredoka',sans-serif;font-size:32px;font-weight:600;color:#3A2A4D;cursor:text;";
+    if(filled) return base + 'background:#FCF6F0;border:1.5px solid #EADFD4;';
+    if(active) return base + 'background:#FCF6F0;border:2px solid #FF6B5E;box-shadow:0 0 0 4px rgba(255,107,94,.18);';
+    return base + 'background:#FAF5EF;border:1.5px solid #EEE3DA;';
+  }
+
+  renderVals(){
+    const { step, card1Loading, card2Loading, expanded, code, successType } = this.state;
+    const codeReady = code.length === 6;
+    const continueBase = "display:flex;align-items:center;justify-content:center;padding:14px 0;border-radius:99px;text-align:center;";
+    return {
+      isChoice: step === 'choice',
+      isSuccess: step === 'success',
+      card1Loading, card1Ready: !card1Loading,
+      expanded, card2Loading, card2Ready: !card2Loading,
+      code,
+      chevron2Style: 'flex-shrink:0;transition:transform .2s;' + (expanded ? 'transform:rotate(90deg);' : ''),
+      codeSlots: [0,1,2,3,4,5].map(i => ({ char: code[i] || '', style: this.slotStyle(i, code) })),
+      inputRef: (el) => { this._inp = el; },
+      onCodeChange: (e) => this.codeChange(e),
+      onFocusInput: () => this._inp && this._inp.focus(),
+      onTapCreate: () => this.tapCreate(),
+      onTapJoin: () => this.tapJoin(),
+      onContinue: () => this.continue_(),
+      continueStyle: continueBase + (codeReady
+        ? 'background:#FF6B5E;color:#3A2A4D;cursor:pointer;box-shadow:0 6px 16px rgba(255,107,94,.28);'
+        : 'background:#F2EAE2;color:#B6ABBF;cursor:default;'),
+      successHeadline: successType === 'create' ? 'Family created!' : 'You\'re in!',
+      successSub: successType === 'create'
+        ? 'You\'re the owner. Invite a co-parent anytime from Family & devices.'
+        : 'You\'ve joined the family. Limits are already set up — you\'re ready to go.',
+    };
+  }
+}
+</script>
+</body>
+</html>

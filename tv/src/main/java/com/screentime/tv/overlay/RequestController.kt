@@ -27,13 +27,18 @@ class RequestController @Inject constructor(
     private var watcherJob: Job? = null
 
     private val _requestStatus = MutableStateFlow<TimeRequest.Status?>(null)
+    private val _approvedMinutes = MutableStateFlow<Int?>(null)
 
     /** Status of the most recently submitted request, observed by the block overlay so it can react to a parent's decision. */
     val requestStatus: StateFlow<TimeRequest.Status?> = _requestStatus.asStateFlow()
+    
+    /** Minutes granted in the most recently approved request. */
+    val approvedMinutes: StateFlow<Int?> = _approvedMinutes.asStateFlow()
 
     suspend fun submit(appPackage: String, requestedMinutes: Int): String? {
         val familyId = familyIdProvider.familyId.value ?: return null
         _requestStatus.value = TimeRequest.Status.Pending
+        _approvedMinutes.value = null
         val id = firestore.createRequest(familyId, appPackage, requestedMinutes)
         watch(id, appPackage)
         return id
@@ -49,6 +54,7 @@ class RequestController @Inject constructor(
                 when (request.status) {
                     TimeRequest.Status.Approved -> {
                         val granted = request.approvedMinutes ?: request.requestedMinutes
+                        _approvedMinutes.value = granted
                         Log.i(TAG, "Request $requestId approved for $granted min on $appPackage")
                         bonusStore.addBonus(appPackage, granted * 60_000L)
                     }

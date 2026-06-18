@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Varela+Round&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .num{font-variant-numeric:tabular-nums;}
+  @keyframes stpulse{0%,100%{transform:scale(1);opacity:.55;}50%{transform:scale(1.18);opacity:1;}}
+  @keyframes stblink{0%,100%{opacity:.35;}50%{opacity:1;}}
+</style>
+</helmet>
+
+<div style="background:#E7E6E4;min-height:100vh;padding:16px 16px 40px;font-family:'Varela Round',sans-serif;color:#3A2A4D;">
+
+  <div ref="{{ boardRef }}" style="width:100%;">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:18px;">
+      <div>
+        <div style="font-family:'Rubik',sans-serif;font-size:22px;font-weight:600;">ScreenTime — Android TV (10-foot UI)</div>
+        <div style="font-size:14px;color:#8A7C96;margin-top:4px;">Click the screen, then drive it with <strong style="color:#3A2A4D;">← → ↑ ↓</strong> and <strong style="color:#3A2A4D;">Enter</strong> — like a remote. Demo unlock code: <strong style="color:#3A2A4D;">1&nbsp;2&nbsp;3&nbsp;4</strong></div>
+      </div>
+      <!-- reviewer scene jumps -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:1100px;justify-content:flex-end;">
+        <sc-for list="{{ jumps }}" as="j" hint-placeholder-count="10">
+          <div style="{{ j.style }}" onClick="{{ j.onClick }}">{{ j.label }}</div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- TV bezel -->
+    <div ref="{{ wrapRef }}" style="width:100%;overflow:hidden;">
+    <div ref="{{ bezelRef }}" style="background:#15101F;border-radius:28px;padding:18px;box-shadow:0 40px 100px rgba(0,0,0,.35);transform-origin:top left;display:inline-block;">
+      <div style="position:relative;width:1920px;height:1080px;border-radius:14px;overflow:hidden;background:#2E2140;color:#FCF6F0;font-family:'Varela Round',sans-serif;">
+
+        <!-- decorative -->
+        <div style="position:absolute;right:-160px;top:-160px;width:560px;height:560px;border-radius:99px;background:radial-gradient(circle at center,#4A356A,transparent 70%);"></div>
+        <div style="position:absolute;left:-120px;bottom:-180px;width:520px;height:520px;border-radius:99px;background:radial-gradient(circle at center,#3E2C57,transparent 70%);"></div>
+
+        <!-- brand chip -->
+        <div style="position:absolute;top:48px;left:64px;display:flex;align-items:center;gap:12px;z-index:5;">
+          <div style="width:38px;height:38px;border-radius:12px;background:#FF6B5E;display:flex;align-items:center;justify-content:center;"><div style="width:15px;height:15px;border-radius:99px;background:#3A2A4D;"></div></div>
+          <span style="font-family:'Rubik',sans-serif;font-size:24px;font-weight:600;color:#EFE7F3;">ScreenTime</span>
+        </div>
+
+        <!-- remote hint -->
+        <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;color:#9785AC;z-index:5;">
+          <span style="border:2px solid #5A4A72;border-radius:8px;padding:2px 10px;">◀ ▶ ▲ ▼</span> move
+          <span style="border:2px solid #5A4A72;border-radius:8px;padding:2px 12px;margin-left:8px;">OK</span> select
+        </div>
+
+        <!-- ================= PERMISSION ================= -->
+        <sc-if value="{{ isPermission }}">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 200px;">
+            <div style="width:168px;height:168px;border-radius:99px;background:#ECE5FB;display:flex;align-items:center;justify-content:center;margin-bottom:44px;">
+              <svg width="84" height="84" viewBox="0 0 24 24" fill="none" stroke="#5B4D8C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <h1 style="font-family:'Rubik',sans-serif;font-size:78px;font-weight:600;margin:0;line-height:1;">One quick setup</h1>
+            <p style="font-size:32px;font-weight:600;color:#C6B9D6;max-width:1180px;line-height:1.45;margin:32px 0 0;">ScreenTime needs <strong style="color:#FCF6F0;">Usage Access</strong> so it can see which app is open and keep your family's limits. That's the only thing it looks at.</p>
+            <div style="display:flex;gap:12px;margin:40px 0 56px;">
+              <span style="width:44px;height:12px;border-radius:99px;background:#FF6B5E;"></span>
+              <span style="width:14px;height:12px;border-radius:99px;background:#5A4A72;"></span>
+            </div>
+            <div style="display:flex;gap:28px;">
+              <sc-for list="{{ actions }}" as="a" hint-placeholder-count="2"><div style="{{ a.style }}" onClick="{{ a.onClick }}">{{ a.label }}</div></sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ================= PAIRING ================= -->
+        <sc-if value="{{ isPairing }}">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 200px;">
+            <h1 style="font-family:'Rubik',sans-serif;font-size:72px;font-weight:600;margin:0;line-height:1;">Pair with a parent's phone</h1>
+            <p style="font-size:30px;font-weight:600;color:#C6B9D6;max-width:1100px;line-height:1.45;margin:28px 0 0;">In the ScreenTime app, open <strong style="color:#FCF6F0;">Family &amp; devices → Pair a TV</strong>, then enter this code:</p>
+            <div style="display:flex;gap:18px;margin:48px 0 36px;">
+              <sc-for list="{{ pairDigits }}" as="d" hint-placeholder-count="6">
+                <div class="num" style="width:118px;height:148px;border-radius:24px;background:#FCF6F0;color:#3A2A4D;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-size:84px;font-weight:600;">{{ d }}</div>
+              </sc-for>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:52px;">
+              <span style="width:16px;height:16px;border-radius:99px;background:#4FCFA1;animation:stblink 1.4s ease-in-out infinite;"></span>
+              <span style="font-size:26px;font-weight:700;color:#9FE9CE;">Waiting for the phone…</span>
+            </div>
+            <div style="display:flex;gap:28px;">
+              <sc-for list="{{ actions }}" as="a" hint-placeholder-count="2"><div style="{{ a.style }}" onClick="{{ a.onClick }}">{{ a.label }}</div></sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ================= BLOCK (core) ================= -->
+        <sc-if value="{{ isBlock }}">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 180px;">
+            <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.16);border-radius:99px;padding:10px 22px;margin-bottom:40px;">
+              <span style="width:26px;height:26px;border-radius:8px;background:#E5483A;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-size:15px;font-weight:600;color:#fff;">Y</span>
+              <span style="font-size:24px;font-weight:800;color:#EFE7F3;">YouTube · 1 hour watched today</span>
+            </div>
+            <div style="width:210px;height:210px;border-radius:99px;background:#4FCFA1;display:flex;align-items:center;justify-content:center;margin-bottom:40px;box-shadow:0 0 0 16px rgba(79,207,161,.18);">
+              <svg width="104" height="104" viewBox="0 0 24 24" fill="none" stroke="#0F1F18" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            </div>
+            <h1 style="font-family:'Rubik',sans-serif;font-size:90px;font-weight:600;margin:0;line-height:1;">That's a wrap for today!</h1>
+            <p style="font-size:34px;font-weight:600;color:#C6B9D6;max-width:1180px;line-height:1.4;margin:30px 0 0;">Nice watching. You've used all your YouTube time — see you tomorrow, or ask for a little more.</p>
+            <div style="display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,0.07);border-radius:99px;padding:10px 22px;margin:30px 0 52px;font-size:22px;font-weight:700;color:#9785AC;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9785AC" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+              Resets at midnight · 5h 12m
+            </div>
+            <div style="display:flex;gap:28px;">
+              <sc-for list="{{ actions }}" as="a" hint-placeholder-count="2"><div style="{{ a.style }}" onClick="{{ a.onClick }}">{{ a.label }}</div></sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ================= ASK ================= -->
+        <sc-if value="{{ isAsk }}">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 200px;">
+            <h1 style="font-family:'Rubik',sans-serif;font-size:84px;font-weight:600;margin:0;line-height:1;">How much more?</h1>
+            <p style="font-size:32px;font-weight:600;color:#C6B9D6;max-width:1000px;line-height:1.4;margin:28px 0 56px;">We'll send a quick request to a parent's phone.</p>
+            <div style="display:flex;gap:28px;">
+              <sc-for list="{{ actions }}" as="a" hint-placeholder-count="3"><div style="{{ a.style }}" onClick="{{ a.onClick }}">{{ a.label }}</div></sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ================= WAITING ================= -->
+        <sc-if value="{{ isWaiting }}">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 200px;">
+            <div style="width:200px;height:200px;border-radius:99px;background:#B9A8F0;display:flex;align-items:center;justify-content:center;margin-bottom:44px;animation:stpulse 1.8s ease-in-out infinite;">
+              <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="#3A2A4D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="13" rx="3"/><path d="M8 21h8M12 17v4"/><path d="M9 10h6M9 13h4"/></svg>
+            </div>
+            <h1 style="font-family:'Rubik',sans-serif;font-size:84px;font-weight:600;margin:0;line-height:1;">Asked your parent!</h1>
+            <p style="font-size:32px;font-weight:600;color:#C6B9D6;max-width:1080px;line-height:1.4;margin:30px 0 56px;">They just got a notification. Hang tight — you can wait, or punch in an unlock code if they gave you one.</p>
+            <div style="display:flex;gap:28px;">
+              <sc-for list="{{ actions }}" as="a" hint-placeholder-count="2"><div style="{{ a.style }}" onClick="{{ a.onClick }}">{{ a.label }}</div></sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ================= APPROVED ================= -->
+        <sc-if value="{{ isApproved }}">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 200px;">
+            <div style="width:210px;height:210px;border-radius:99px;background:#4FCFA1;display:flex;align-items:center;justify-content:center;margin-bottom:44px;box-shadow:0 0 0 16px rgba(79,207,161,.18);">
+              <svg width="104" height="104" viewBox="0 0 24 24" fill="none" stroke="#0F1F18" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            </div>
+            <h1 style="font-family:'Rubik',sans-serif;font-size:88px;font-weight:600;margin:0;line-height:1;">You got {{ askAmount }} more!</h1>
+            <p style="font-size:34px;font-weight:600;color:#C6B9D6;max-width:1000px;line-height:1.4;margin:30px 0 56px;">Make it count — your timer's running again.</p>
+            <div style="display:flex;gap:28px;">
+              <sc-for list="{{ actions }}" as="a" hint-placeholder-count="1"><div style="{{ a.style }}" onClick="{{ a.onClick }}">{{ a.label }}</div></sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ================= UNLOCKED ================= -->
+        <sc-if value="{{ isUnlocked }}">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 200px;">
+            <div style="width:210px;height:210px;border-radius:99px;background:#4FCFA1;display:flex;align-items:center;justify-content:center;margin-bottom:44px;box-shadow:0 0 0 16px rgba(79,207,161,.18);">
+              <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#0F1F18" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0"/></svg>
+            </div>
+            <h1 style="font-family:'Rubik',sans-serif;font-size:88px;font-weight:600;margin:0;line-height:1;">Code worked! +30 min</h1>
+            <p style="font-size:34px;font-weight:600;color:#C6B9D6;max-width:1000px;line-height:1.4;margin:30px 0 56px;">Limit's paused for a bit. Enjoy!</p>
+            <div style="display:flex;gap:28px;">
+              <sc-for list="{{ actions }}" as="a" hint-placeholder-count="1"><div style="{{ a.style }}" onClick="{{ a.onClick }}">{{ a.label }}</div></sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ================= DENIED ================= -->
+        <sc-if value="{{ isDenied }}">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 200px;">
+            <div style="width:200px;height:200px;border-radius:99px;background:#ECE5FB;display:flex;align-items:center;justify-content:center;margin-bottom:44px;">
+              <svg width="92" height="92" viewBox="0 0 24 24" fill="none" stroke="#5B4D8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5s1.2-1.5 3.5-1.5 3.5 1.5 3.5 1.5"/><path d="M9 9.5h.01M15 9.5h.01"/></svg>
+            </div>
+            <h1 style="font-family:'Rubik',sans-serif;font-size:84px;font-weight:600;margin:0;line-height:1;">Not right now</h1>
+            <p style="font-size:32px;font-weight:600;color:#C6B9D6;max-width:1080px;line-height:1.4;margin:30px 0 56px;">Your parent said maybe later — and that's okay. There's always tomorrow. Maybe something offline for now?</p>
+            <div style="display:flex;gap:28px;">
+              <sc-for list="{{ actions }}" as="a" hint-placeholder-count="2"><div style="{{ a.style }}" onClick="{{ a.onClick }}">{{ a.label }}</div></sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ================= LOCKED OUT ================= -->
+        <sc-if value="{{ isLockedout }}">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 200px;">
+            <div style="width:200px;height:200px;border-radius:99px;background:#F2C879;display:flex;align-items:center;justify-content:center;margin-bottom:40px;">
+              <svg width="92" height="92" viewBox="0 0 24 24" fill="none" stroke="#5A3E12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 016 6c0 4-3 4-3 9H9c0-5-3-5-3-9a6 6 0 016-6z"/><path d="M10 21h4"/></svg>
+            </div>
+            <h1 style="font-family:'Rubik',sans-serif;font-size:84px;font-weight:600;margin:0;line-height:1;">Let's take a short break</h1>
+            <p style="font-size:32px;font-weight:600;color:#C6B9D6;max-width:1040px;line-height:1.4;margin:30px 0 36px;">That's a few wrong codes. The TV unlocks again on its own — grab a snack or stretch!</p>
+            <div class="num" style="font-family:'Rubik',sans-serif;font-size:120px;font-weight:600;color:#F2C879;line-height:1;margin-bottom:48px;">{{ lockTime }}</div>
+            <div style="display:flex;gap:28px;">
+              <sc-for list="{{ actions }}" as="a" hint-placeholder-count="1"><div style="{{ a.style }}" onClick="{{ a.onClick }}">{{ a.label }}</div></sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ================= KEYPAD ================= -->
+        <sc-if value="{{ isKeypad }}">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:120px;padding:0 160px;">
+            <!-- left: prompt + slots -->
+            <div style="display:flex;flex-direction:column;align-items:flex-start;max-width:680px;">
+              <h1 style="font-family:'Rubik',sans-serif;font-size:72px;font-weight:600;margin:0;line-height:1.05;">Enter the unlock code</h1>
+              <p style="font-size:28px;font-weight:600;color:#C6B9D6;line-height:1.4;margin:24px 0 40px;">Ask a parent to read it to you, or check their phone.</p>
+              <div style="display:flex;gap:22px;">
+                <sc-for list="{{ codeSlots }}" as="s" hint-placeholder-count="4"><div style="{{ s.style }}">{{ s.char }}</div></sc-for>
+              </div>
+              <sc-if value="{{ error }}">
+                <div style="display:flex;align-items:center;gap:12px;margin-top:32px;background:rgba(229,72,58,.18);border:2px solid #E5483A;border-radius:18px;padding:16px 24px;">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFB7AF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                  <span style="font-size:26px;font-weight:800;color:#FFD9D4;">That code didn't work — {{ triesLeft }} left</span>
+                </div>
+              </sc-if>
+            </div>
+            <!-- right: keypad -->
+            <div style="display:grid;grid-template-columns:repeat(3,150px);gap:22px;">
+              <sc-for list="{{ keys }}" as="k" hint-placeholder-count="12"><div style="{{ k.style }}" onClick="{{ k.onClick }}">{{ k.label }}</div></sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+    </div><!-- /wrapRef -->
+
+    <div style="text-align:center;font-size:13px;color:#8A7C96;margin-top:16px;">1920 × 1080 · D-pad focusable · WCAG AA · the block screen says “no” without punishment</div>
+
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:2000}}">
+class Component extends DCLogic {
+  state = {
+    scene: 'block',
+    focus: 0,
+    pairCode: '427913',
+    code: [],
+    keyFocus: 0,
+    error: false,
+    tries: 3,
+    askAmount: '15 minutes',
+    lockSeconds: 300,
+  };
+
+  componentDidMount(){
+    this._h = (e) => this.onKey(e);
+    document.addEventListener('keydown', this._h);
+    this._scale = () => {
+      const wrap = this._wrapEl, bezel = this._bezelEl;
+      if(!wrap || !bezel) return;
+      const availW = wrap.clientWidth;
+      const designW = 1920 + 36; // 18px padding each side
+      const designH = 1080 + 36;
+      const s = availW / designW;
+      bezel.style.transform = 'scale(' + s + ')';
+      bezel.style.transformOrigin = 'top left';
+      wrap.style.height = Math.round(designH * s) + 'px';
+    };
+    setTimeout(this._scale, 50);
+    window.addEventListener('resize', this._scale);
+  }
+  componentWillUnmount(){
+    document.removeEventListener('keydown', this._h);
+    window.removeEventListener('resize', this._scale);
+    this.clearTimers();
+  }
+  clearTimers(){ clearTimeout(this._wt); clearInterval(this._lt); }
+
+  // raw focusable actions per scene (label, kind, onClick)
+  actionsFor(scene){
+    switch(scene){
+      case 'permission': return [
+        { label:'Open Android settings', kind:'primary', onClick:() => this.go('pairing') },
+        { label:'Why do you need this?', kind:'ghost', onClick:() => {} },
+      ];
+      case 'pairing': return [
+        { label:'Get a new code', kind:'ghost', onClick:() => this.regen() },
+        { label:'How to pair', kind:'ghost', onClick:() => {} },
+      ];
+      case 'block': return [
+        { label:'Ask a parent for more time', kind:'primary', onClick:() => this.go('ask') },
+        { label:'Enter an unlock code', kind:'ghost', onClick:() => this.go('keypad') },
+      ];
+      case 'ask': return [
+        { label:'15 more minutes', kind:'primary', onClick:() => this.ask('15 minutes') },
+        { label:'30 more minutes', kind:'primary', onClick:() => this.ask('30 minutes') },
+        { label:'Maybe later', kind:'ghost', onClick:() => this.go('block') },
+      ];
+      case 'waiting': return [
+        { label:'Enter a code instead', kind:'ghost', onClick:() => this.go('keypad') },
+        { label:'Cancel', kind:'ghost', onClick:() => this.go('block') },
+      ];
+      case 'approved': return [ { label:'Keep watching', kind:'primary', onClick:() => this.go('block') } ];
+      case 'unlocked': return [ { label:'Keep watching', kind:'primary', onClick:() => this.go('block') } ];
+      case 'denied': return [
+        { label:'Enter an unlock code', kind:'ghost', onClick:() => this.go('keypad') },
+        { label:'Okay', kind:'primary', onClick:() => this.go('block') },
+      ];
+      case 'lockedout': return [ { label:'Ask a parent instead', kind:'ghost', onClick:() => this.go('ask') } ];
+      default: return [];
+    }
+  }
+
+  go(scene){
+    this.clearTimers();
+    const base = { scene, focus:0 };
+    if(scene === 'keypad'){ base.code = []; base.keyFocus = 0; base.error = false; base.tries = 3; }
+    if(scene === 'lockedout'){ base.lockSeconds = 300; }
+    this.setState(base, () => {
+      if(scene === 'waiting'){
+        this._wt = setTimeout(() => { if(this.state.scene === 'waiting') this.setState({ scene:'approved', focus:0 }); }, 4500);
+      }
+      if(scene === 'lockedout'){
+        this._lt = setInterval(() => {
+          this.setState(st => {
+            if(st.scene !== 'lockedout'){ clearInterval(this._lt); return {}; }
+            const n = st.lockSeconds - 1;
+            if(n <= 0){ clearInterval(this._lt); return { scene:'block', focus:0, lockSeconds:0 }; }
+            return { lockSeconds:n };
+          });
+        }, 1000);
+      }
+    });
+  }
+
+  ask(amount){ this.setState({ askAmount: amount }); this.go('waiting'); }
+  regen(){ this.setState({ pairCode: String(Math.floor(100000 + Math.random() * 900000)) }); }
+
+  keyValues(){ return ['1','2','3','4','5','6','7','8','9','C','0','⌫']; }
+
+  pressKey(v){
+    if(v === 'C'){ this.setState({ code:[], error:false }); return; }
+    if(v === '⌫'){ this.setState(st => ({ code: st.code.slice(0,-1), error:false })); return; }
+    this.setState(st => {
+      if(st.code.length >= 4) return {};
+      return { code:[...st.code, v], error:false };
+    }, () => {
+      if(this.state.code.length === 4) setTimeout(() => this.validate(), 200);
+    });
+  }
+  validate(){
+    if(this.state.code.join('') === '1234'){
+      this.setState({ scene:'unlocked', focus:0, code:[] });
+    } else {
+      const tries = this.state.tries - 1;
+      if(tries <= 0){ this.go('lockedout'); }
+      else { this.setState({ error:true, tries, code:[] }); }
+    }
+  }
+
+  onKey(e){
+    const s = this.state.scene;
+    if(s === 'keypad'){
+      const keys = this.keyValues();
+      let i = this.state.keyFocus, row = Math.floor(i/3), col = i%3;
+      if(e.key === 'ArrowRight'){ e.preventDefault(); col = Math.min(2, col+1); }
+      else if(e.key === 'ArrowLeft'){ e.preventDefault(); col = Math.max(0, col-1); }
+      else if(e.key === 'ArrowDown'){ e.preventDefault(); row = Math.min(3, row+1); }
+      else if(e.key === 'ArrowUp'){ e.preventDefault(); row = Math.max(0, row-1); }
+      else if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); this.pressKey(keys[i]); return; }
+      else if(e.key === 'Backspace'){ e.preventDefault(); this.pressKey('⌫'); return; }
+      else if(e.key === 'Escape'){ e.preventDefault(); this.go('block'); return; }
+      else return;
+      this.setState({ keyFocus: row*3 + col });
+      return;
+    }
+    const acts = this.actionsFor(s);
+    if(!acts.length) return;
+    if(e.key === 'ArrowRight' || e.key === 'ArrowDown'){ e.preventDefault(); this.setState(st => ({ focus:(st.focus+1)%acts.length })); }
+    else if(e.key === 'ArrowLeft' || e.key === 'ArrowUp'){ e.preventDefault(); this.setState(st => ({ focus:(st.focus-1+acts.length)%acts.length })); }
+    else if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); const a = acts[this.state.focus]; if(a) a.onClick(); }
+  }
+
+  btnStyle(kind, focused){
+    const common = "font-family:'Varela Round',sans-serif;font-size:30px;font-weight:800;padding:24px 46px;border-radius:99px;cursor:pointer;transition:transform .12s, box-shadow .12s;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;";
+    if(kind === 'primary'){
+      return common + 'background:#FF6B5E;color:#3A2A4D;border:3px solid #FF6B5E;'
+        + (focused ? 'box-shadow:0 0 0 6px #FCF6F0;transform:scale(1.06);' : '');
+    }
+    return common + 'background:rgba(255,255,255,0.08);color:#FCF6F0;border:3px solid rgba(255,255,255,0.24);'
+      + (focused ? 'border-color:#FF6B5E;background:rgba(255,107,94,0.16);box-shadow:0 0 0 6px rgba(255,107,94,.5);transform:scale(1.06);' : '');
+  }
+
+  renderVals(){
+    const s = this.state.scene;
+    const acts = this.actionsFor(s).map((a, i) => ({
+      label:a.label, onClick:a.onClick, style:this.btnStyle(a.kind, i === this.state.focus),
+    }));
+
+    // keypad
+    const kf = this.state.keyFocus;
+    const keys = this.keyValues().map((v, i) => {
+      const focused = (s === 'keypad') && (i === kf);
+      const special = (v === 'C' || v === '⌫');
+      const base = "display:flex;align-items:center;justify-content:center;height:150px;border-radius:26px;cursor:pointer;font-family:'Rubik',sans-serif;font-weight:600;transition:transform .1s, box-shadow .1s;";
+      const style = focused
+        ? base + 'font-size:56px;background:#FF6B5E;color:#3A2A4D;border:3px solid #FF6B5E;box-shadow:0 0 0 6px #FCF6F0;transform:scale(1.06);'
+        : base + 'font-size:56px;background:rgba(255,255,255,0.07);color:' + (special ? '#B9A8F0' : '#FCF6F0') + ';border:3px solid rgba(255,255,255,0.14);';
+      return { label:v, style, onClick:() => this.pressKey(v) };
+    });
+
+    const codeSlots = [0,1,2,3].map(i => {
+      const filled = i < this.state.code.length;
+      const active = (i === this.state.code.length);
+      const base = "width:120px;height:150px;border-radius:24px;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-size:84px;font-weight:600;color:#3A2A4D;";
+      const style = filled
+        ? base + 'background:#FCF6F0;'
+        : (active
+            ? base + 'background:rgba(252,246,240,0.12);border:4px solid #FF6B5E;color:#FCF6F0;box-shadow:0 0 0 6px rgba(255,107,94,.3);'
+            : base + 'background:rgba(252,246,240,0.10);border:4px solid rgba(255,255,255,0.2);color:#FCF6F0;');
+      return { char: filled ? this.state.code[i] : '', style };
+    });
+
+    const mm = Math.floor(this.state.lockSeconds/60), ss = this.state.lockSeconds%60;
+
+    const jumpDefs = [
+      ['permission','Permission'],['pairing','Pairing'],['block','Block'],['ask','Ask'],
+      ['waiting','Waiting'],['approved','Approved'],['keypad','Keypad'],['unlocked','Unlocked'],
+      ['denied','Denied'],['lockedout','Locked out'],
+    ];
+    const jumps = jumpDefs.map(([key,label]) => ({
+      label,
+      onClick:() => this.go(key),
+      style: (s === key)
+        ? "font-size:13px;font-weight:800;padding:8px 14px;border-radius:99px;cursor:pointer;background:#3A2A4D;color:#FCF6F0;"
+        : "font-size:13px;font-weight:800;padding:8px 14px;border-radius:99px;cursor:pointer;background:#fff;color:#5B4D69;border:1px solid #DDCFC2;",
+    }));
+
+    return {
+      wrapRef: (el) => { if(el){ this._wrapEl = el; setTimeout(this._scale, 0); } },
+      bezelRef: (el) => { this._bezelEl = el; },
+      isPermission:s==='permission', isPairing:s==='pairing', isBlock:s==='block', isAsk:s==='ask',
+      isWaiting:s==='waiting', isApproved:s==='approved', isUnlocked:s==='unlocked',
+      isDenied:s==='denied', isLockedout:s==='lockedout', isKeypad:s==='keypad',
+      actions:acts, keys, codeSlots,
+      pairDigits:this.state.pairCode.split(''),
+      error:this.state.error, triesLeft:this.state.tries,
+      askAmount:this.state.askAmount,
+      lockTime: mm + ':' + (ss < 10 ? '0'+ss : ss),
+      jumps,
+    };
+  }
+}
+</script>
+</body>
+</html>
