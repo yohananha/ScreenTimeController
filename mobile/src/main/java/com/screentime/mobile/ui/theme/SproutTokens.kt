@@ -33,9 +33,9 @@ data class SproutColors(
     val overContainer: Color,
     val outline: Color,
     val outlineStrong: Color,
-    val tvBackground: Color,
-    val tvSurface: Color,
-    val tvMutedText: Color,
+    val darkBackground: Color,
+    val darkSurface: Color,
+    val darkMutedText: Color,
 )
 
 val SproutPalette = SproutColors(
@@ -61,9 +61,9 @@ val SproutPalette = SproutColors(
     overContainer = Color(0xFFFBE2DF),
     outline = Color(0xFFEADFD4),
     outlineStrong = Color(0xFFD9CABD),
-    tvBackground = Color(0xFF2E2140),
-    tvSurface = Color(0xFF52436A),
-    tvMutedText = Color(0xFFC9BBD6),
+    darkBackground = Color(0xFF2E2140),
+    darkSurface = Color(0xFF52436A),
+    darkMutedText = Color(0xFFC9BBD6),
 )
 
 val LocalSproutColors = staticCompositionLocalOf { SproutPalette }

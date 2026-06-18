@@ -20,13 +20,9 @@ val RubikFont = FontFamily(
     Font(R.font.rubik_variablefont_wght, FontWeight.Bold),
 )
 
-// Single weight — Compose synthesizes heavier weights via FontSynthesis.
+// Single weight only — registering multiple weights for the same file triggers synthesis artifacts.
 val VarelaFont = FontFamily(
     Font(R.font.varela_round_regular, FontWeight.Normal),
-    Font(R.font.varela_round_regular, FontWeight.SemiBold),
-    Font(R.font.varela_round_regular, FontWeight.Bold),
-    Font(R.font.varela_round_regular, FontWeight.ExtraBold),
-    Font(R.font.varela_round_regular, FontWeight.Black),
 )
 
 @Immutable
@@ -48,7 +44,7 @@ val SproutTypeScale = SproutTypography(
     bodyL = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 24.sp),
     body = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.Normal, fontSize = 15.sp, lineHeight = 22.sp),
     bodyStrong = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, lineHeight = 22.sp),
-    label = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp, lineHeight = 14.sp),
+    label = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.Bold, fontSize = 13.sp, lineHeight = 14.sp),
     caption = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, lineHeight = 16.sp),
 )
 
@@ -67,7 +63,7 @@ internal fun rememberSproutTypeScale(): SproutTypography {
         bodyL      = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold,  fontSize = (16 * s).sp, lineHeight = (24 * s).sp),
         body       = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.Normal,    fontSize = (15 * s).sp, lineHeight = (22 * s).sp),
         bodyStrong = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold,  fontSize = (15 * s).sp, lineHeight = (22 * s).sp),
-        label      = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.ExtraBold, fontSize = (13 * s).sp, lineHeight = (14 * s).sp),
+        label      = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.Bold,      fontSize = (13 * s).sp, lineHeight = (14 * s).sp),
         caption    = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold,  fontSize = (12 * s).sp, lineHeight = (16 * s).sp),
     )
 }

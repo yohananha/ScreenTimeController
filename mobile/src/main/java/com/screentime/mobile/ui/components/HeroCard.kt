@@ -45,7 +45,7 @@ fun HeroCard(
                 .align(Alignment.TopEnd)
                 .offset(x = 30.dp, y = (-30).dp)
                 .size(120.dp)
-                .background(Sprout.colors.tvSurface.copy(alpha = 0.5f), CircleShape),
+                .background(Sprout.colors.darkSurface.copy(alpha = 0.5f), CircleShape),
         )
         Box(modifier = Modifier.padding(22.dp)) {
             content()
@@ -79,7 +79,7 @@ fun DailyTotalHero(
                 Text(
                     "TODAY'S SCREEN TIME",
                     style = Sprout.typography.label,
-                    color = Sprout.colors.tvMutedText,
+                    color = Sprout.colors.darkMutedText,
                 )
                 StatusBadge(status = status)
             }
@@ -92,17 +92,17 @@ fun DailyTotalHero(
                 Text(
                     ofLabel,
                     style = Sprout.typography.bodyL,
-                    color = Sprout.colors.tvMutedText,
+                    color = Sprout.colors.darkMutedText,
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
             }
-            ProgressBar(progress = progress.coerceIn(0f, 1f), fill = statusColor, track = Sprout.colors.tvSurface)
+            ProgressBar(progress = progress.coerceIn(0f, 1f), fill = statusColor, track = Sprout.colors.darkSurface)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(timeLeft, style = Sprout.typography.caption, color = Sprout.colors.tvMutedText)
-                Text(resetLabel, style = Sprout.typography.caption, color = Sprout.colors.tvMutedText)
+                Text(timeLeft, style = Sprout.typography.caption, color = Sprout.colors.darkMutedText)
+                Text(resetLabel, style = Sprout.typography.caption, color = Sprout.colors.darkMutedText)
             }
         }
     }

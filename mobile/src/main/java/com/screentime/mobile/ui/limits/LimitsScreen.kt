@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.AlertDialog
@@ -47,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.screentime.mobile.ui.theme.rememberScreenPadding
+import com.screentime.mobile.ui.theme.appAccentFor
 import com.screentime.mobile.ui.components.AppLimitRow
 import com.screentime.mobile.ui.components.DailyTotalHero
 import com.screentime.mobile.ui.components.SproutDangerButton
@@ -126,16 +128,28 @@ fun LimitsScreen(
             }
             writeError?.let { err ->
                 item {
-                    Text(
-                        err,
-                        color = Sprout.colors.overText,
-                        style = Sprout.typography.caption,
+                    Row(
                         modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Sprout.colors.overContainer, Sprout.radius.input)
-                        .padding(horizontal = 14.dp, vertical = 10.dp)
-                        .clickable { viewModel.clearWriteError() },
-                    )
+                            .fillMaxWidth()
+                            .background(Sprout.colors.overContainer, Sprout.radius.input)
+                            .clickable { viewModel.clearWriteError() }
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            err,
+                            color = Sprout.colors.overText,
+                            style = Sprout.typography.caption,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Icon(
+                            Icons.Filled.Close,
+                            contentDescription = "Dismiss",
+                            tint = Sprout.colors.overText,
+                            modifier = Modifier.size(16.dp).padding(start = 8.dp),
+                        )
+                    }
                 }
             }
             item {
@@ -153,13 +167,23 @@ fun LimitsScreen(
                 )
             }
             item {
+                val totalUsedMs = state.totalUsageMillis
+                val overallMs = state.overallDailyMinutes * 60_000L
+                val overallProgress = if (overallMs > 0) (totalUsedMs / overallMs.toFloat()).coerceIn(0f, 1f) else 0f
+                val overallStatus = when {
+                    overallMs > 0 && totalUsedMs >= overallMs        -> Status.TimesUp
+                    overallMs > 0 && totalUsedMs >= overallMs * 0.8f -> Status.AlmostUp
+                    else                                               -> Status.OnTrack
+                }
+                val usedMin = (totalUsedMs / 60_000L).toInt()
+                val leftMin = (state.overallDailyMinutes - usedMin).coerceAtLeast(0)
                 DailyTotalHero(
-                    usedLabel = formatLimitLabel(0),
+                    usedLabel = formatLimitLabel(usedMin),
                     ofLabel = "of ${formatLimitLabel(state.overallDailyMinutes)} daily",
-                    progress = 0f,
-                    timeLeft = "${formatLimitLabel(state.overallDailyMinutes)} left",
+                    progress = overallProgress,
+                    timeLeft = "${formatLimitLabel(leftMin)} left",
                     resetLabel = "Resets at midnight",
-                    status = Status.OnTrack,
+                    status = overallStatus,
                     modifier = Modifier.clickable { editingOverall = true },
                 )
             }
@@ -217,15 +241,29 @@ fun LimitsScreen(
                     val displayName = state.availableApps
                         .firstOrNull { it.packageName == limit.packageName }
                         ?.label ?: limit.packageName.substringAfterLast(".")
+                    val usedMs = state.usagePerApp[limit.packageName] ?: 0L
+                    val limitMs = limit.dailyLimitMinutes * 60_000L
+                    val rowProgress = when {
+                        limit.dailyLimitMinutes <= 0 || limit.dailyLimitMinutes == Limits.UNLIMITED -> 0f
+                        else -> (usedMs / limitMs.toFloat()).coerceIn(0f, 1f)
+                    }
+                    val rowStatus = when {
+                        limit.dailyLimitMinutes == 0               -> Status.TimesUp
+                        limit.dailyLimitMinutes == Limits.UNLIMITED -> Status.Paused
+                        limitMs > 0 && usedMs >= limitMs           -> Status.TimesUp
+                        limitMs > 0 && usedMs >= limitMs * 0.8f    -> Status.AlmostUp
+                        else                                        -> Status.OnTrack
+                    }
+                    val usedMinutes = (usedMs / 60_000L).toInt()
                     AppLimitRow(
                         appName = displayName,
                         initial = displayName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
                         accent = appAccentFor(limit.packageName),
-                        usedLabel = formatLimitLabel(limit.dailyLimitMinutes),
-                        progress = 0f,
-                        status = if (limit.dailyLimitMinutes == 0) Status.TimesUp else Status.OnTrack,
+                        usedLabel = "${formatLimitLabel(usedMinutes)} / ${formatLimitLabel(limit.dailyLimitMinutes)}",
+                        progress = rowProgress,
+                        status = rowStatus,
                         paused = limit.dailyLimitMinutes == Limits.UNLIMITED,
-                        onClick = { editing = EditTarget(limit.packageName, limit.dailyLimitMinutes) },
+                        onClick = { editing = EditTarget(limit.packageName, displayName, limit.dailyLimitMinutes) },
                     )
                 }
             }
@@ -234,7 +272,7 @@ fun LimitsScreen(
         SproutPrimaryButton(
             text = "+ Add limit",
             onClick = { picking = true },
-            shape = RoundedCornerShape(20.dp),
+            shape = Sprout.radius.large,
             shadow = true,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -251,7 +289,7 @@ fun LimitsScreen(
             onDismiss = { picking = false },
             onPick = { app ->
                 picking = false
-                editing = EditTarget(app.packageName, defaultMinutes = 60)
+                editing = EditTarget(app.packageName, displayName = app.label, defaultMinutes = 60)
             },
         )
     }
@@ -294,15 +332,7 @@ fun LimitsScreen(
     }
 }
 
-private data class EditTarget(val packageName: String, val defaultMinutes: Int)
-
-private val appAccents = listOf(
-    Color(0xFFE5483A), Color(0xFF5B6B7B), Color(0xFF2A2730), Color(0xFF4FA98C),
-    Color(0xFF8E86D9), Color(0xFFF2A93B), Color(0xFFB9A8F0),
-)
-
-private fun appAccentFor(packageName: String): Color =
-    appAccents[(packageName.hashCode().let { if (it < 0) -it else it }) % appAccents.size]
+private data class EditTarget(val packageName: String, val displayName: String, val defaultMinutes: Int)
 
 @Composable
 private fun LockoutCard(
@@ -317,7 +347,7 @@ private fun LockoutCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Sprout.colors.surface, Sprout.radius.input)
+            .background(Sprout.colors.surface, Sprout.radius.card)
             .clickable(onClick = onClick)
             .padding(horizontal = 15.dp, vertical = 14.dp),
     ) {
@@ -408,7 +438,7 @@ private fun EditLimitDialog(
         title = { Text("Edit limit", style = Sprout.typography.headline) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(target.packageName, style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
+                Text(target.displayName, style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
                 Text(
                     if (unlimited) "Always allowed" else formatLimitLabel(minutes),
                     style = Sprout.typography.title,
@@ -661,13 +691,35 @@ private fun AllowAllDayCard(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text("Allow all day", style = Sprout.typography.headline, color = titleColor)
-            Text(
-                if (active) "All limits paused until midnight" else "Overrides schedule and time limits",
-                style = Sprout.typography.caption,
-                color = Sprout.colors.inkMuted,
-            )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.weight(1f),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(
+                        if (active) Sprout.colors.positiveDisplay.copy(alpha = 0.15f) else Sprout.colors.surfaceSunken,
+                        Sprout.radius.icon,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Filled.WbSunny,
+                    contentDescription = null,
+                    tint = if (active) Sprout.colors.positiveDisplay else Sprout.colors.inkMuted,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            Column {
+                Text("Allow all day", style = Sprout.typography.headline, color = titleColor)
+                Text(
+                    if (active) "All limits paused until midnight" else "Overrides schedule and time limits",
+                    style = Sprout.typography.caption,
+                    color = Sprout.colors.inkMuted,
+                )
+            }
         }
         Switch(
             checked = active,
@@ -687,17 +739,7 @@ private fun AllowAllDayCard(
 
 @Composable
 private fun AllowedHoursRow(schedule: TimeFrameSchedule, onClick: () -> Unit) {
-    val subtitle = when {
-        !schedule.enabled -> "No schedule set"
-        schedule.windowsByDay.isEmpty() -> "Enabled — no windows configured"
-        else -> schedule.windowsByDay.entries
-            .sortedBy { it.key }
-            .take(2)
-            .joinToString(" · ") { (day, windows) ->
-                val short = day.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
-                if (windows.isEmpty()) "$short blocked" else "$short ${windows.size}w"
-            }.let { if (schedule.windowsByDay.size > 2) "$it…" else it }
-    }
+    val subtitle = summarizeSchedule(schedule)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -752,4 +794,35 @@ private fun formatLimitLabel(minutes: Int): String = when {
     minutes == Limits.UNLIMITED -> "No limit"
     minutes <= 0 -> "0m"
     else -> formatDurationLabel(minutes)
+}
+
+private fun minutesToAmPm(minute: Int): String {
+    val h = minute / 60
+    val m = minute % 60
+    val period = if (h < 12) "AM" else "PM"
+    val displayHour = when {
+        h == 0 -> 12
+        h <= 12 -> h
+        else -> h - 12
+    }
+    return if (m == 0) "$displayHour $period" else "$displayHour:${m.toString().padStart(2, '0')} $period"
+}
+
+private fun summarizeSchedule(schedule: TimeFrameSchedule): String {
+    if (!schedule.enabled) return "No schedule set"
+    val sorted = schedule.windowsByDay.entries
+        .sortedBy { it.key.value }
+        .filter { it.value.isNotEmpty() }
+    if (sorted.isEmpty()) return "Schedule on — no windows set"
+    val first = sorted.first().value.first()
+    val windowStr = "${minutesToAmPm(first.startMinute)}–${minutesToAmPm(first.endMinute)}"
+    val allSame = sorted.all { it.value.size == 1 && it.value.first() == first }
+    return if (allSame) {
+        val days = sorted.map { it.key.name.take(1) + it.key.name.drop(1).lowercase().take(2) }
+        "${days.first()}–${days.last()}, $windowStr"
+    } else {
+        val dayShort = sorted.first().key.name.take(1) + sorted.first().key.name.drop(1).lowercase().take(2)
+        val more = sorted.size - 1
+        "$dayShort: $windowStr" + if (more > 0) " · $more more ${if (more == 1) "day" else "days"}" else ""
+    }
 }

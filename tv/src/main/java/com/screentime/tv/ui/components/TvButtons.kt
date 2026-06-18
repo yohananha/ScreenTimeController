@@ -18,6 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.focusable
@@ -47,6 +50,7 @@ fun TvPrimaryButton(
             .border(BorderStroke(haloWidth, Sprout.colors.tvCream), SproutRadius.pill)
             .focusable(interactionSource = interaction)
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
+            .semantics { role = Role.Button }
             .clickable(onClick = onClick)
             .padding(horizontal = 23.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.Center,
@@ -76,6 +80,7 @@ fun TvGhostButton(
             .border(BorderStroke(1.5.dp, borderColor), SproutRadius.pill)
             .focusable(interactionSource = interaction)
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
+            .semantics { role = Role.Button }
             .clickable(onClick = onClick)
             .padding(horizontal = 23.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.Center,

@@ -18,14 +18,14 @@ import androidx.compose.ui.unit.sp
 import com.screentime.mobile.ui.theme.RubikFont
 import com.screentime.mobile.ui.theme.Sprout
 
-/** 4 cream-on-dark digit tiles used in the active unlock-code hero card. */
+/** 6 cream-on-dark digit tiles used in the active unlock-code hero card. */
 @Composable
 fun CodeTilesRow(code: String, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(11.dp),
+        horizontalArrangement = Arrangement.spacedBy(9.dp),
     ) {
-        repeat(4) { i ->
+        repeat(6) { i ->
             Box(
                 modifier = Modifier
                     .weight(1f)

@@ -2,19 +2,25 @@ package com.screentime.mobile.ui.limits
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.screentime.shared.auth.FamilyIdProvider
+import com.screentime.shared.firestore.FirestoreRepository
 import com.screentime.shared.model.AppLimit
 import com.screentime.shared.model.InstalledApp
 import com.screentime.shared.model.Limits
 import com.screentime.shared.model.LockoutMode
 import com.screentime.shared.model.LockoutSettings
 import com.screentime.shared.model.TimeFrameSchedule
+import com.screentime.shared.model.UsageSnapshot
 import com.screentime.shared.room.LimitsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -28,15 +34,27 @@ data class LimitsUiState(
     val timeFrame: TimeFrameSchedule = TimeFrameSchedule.DEFAULT,
     val allowAllDayActive: Boolean = false,
     val instantLocked: Boolean = false,
+    val usagePerApp: Map<String, Long> = emptyMap(),
+    val totalUsageMillis: Long = 0L,
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 open class LimitsViewModel @Inject constructor(
     private val repo: LimitsRepository,
+    private val firestore: FirestoreRepository,
+    private val familyIdProvider: FamilyIdProvider,
 ) : ViewModel() {
 
     private val _writeError = MutableStateFlow<String?>(null)
     open val writeError: StateFlow<String?> = _writeError.asStateFlow()
+
+    private val _todayUsage: StateFlow<UsageSnapshot> = familyIdProvider.familyId
+        .flatMapLatest { familyId ->
+            if (familyId == null) return@flatMapLatest flowOf(UsageSnapshot(LocalDate.now().toString(), emptyMap()))
+            firestore.usageFlow(familyId, LocalDate.now())
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UsageSnapshot(LocalDate.now().toString(), emptyMap()))
 
     open val state: StateFlow<LimitsUiState> = combine(
         combine(repo.observe(), repo.observeInstalledApps(), repo.observeLockout()) { limits, apps, lockout ->
@@ -45,7 +63,8 @@ open class LimitsViewModel @Inject constructor(
         combine(repo.observeTimeFrame(), repo.observeAllowAllDay(), repo.observeInstantLock()) { tf, allDay, lock ->
             Triple(tf, allDay, lock)
         },
-    ) { (limits, apps, lockout), (timeFrame, allDayDate, instantLocked) ->
+        _todayUsage,
+    ) { (limits, apps, lockout), (timeFrame, allDayDate, instantLocked), usage ->
         LimitsUiState(
             limits = limits.perApp.values.sortedBy { it.packageName },
             overallDailyMinutes = limits.overallDailyMinutes,
@@ -54,6 +73,8 @@ open class LimitsViewModel @Inject constructor(
             timeFrame = timeFrame,
             allowAllDayActive = allDayDate == LocalDate.now().toString(),
             instantLocked = instantLocked,
+            usagePerApp = usage.perAppMillis,
+            totalUsageMillis = usage.totalMillis(),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LimitsUiState())
 

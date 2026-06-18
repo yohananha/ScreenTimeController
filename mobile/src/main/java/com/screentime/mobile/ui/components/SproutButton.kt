@@ -15,6 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.screentime.mobile.ui.theme.Sprout
 import com.screentime.mobile.ui.theme.SproutRadius
@@ -35,6 +38,7 @@ fun SproutPrimaryButton(
         modifier = modifier
             .then(shadowMod)
             .background(bg, shape)
+            .semantics { role = Role.Button }
             .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = 22.dp, vertical = 13.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
@@ -61,6 +65,7 @@ fun SproutGhostButton(
     Row(
         modifier = modifier
             .border(BorderStroke(1.5.dp, Sprout.colors.outline), SproutRadius.pill)
+            .semantics { role = Role.Button }
             .clickable(enabled = enabled, onClick = onClick)
             .padding(contentPadding),
         horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
@@ -83,7 +88,8 @@ fun SproutDangerButton(
 ) {
     Row(
         modifier = modifier
-            .background(Sprout.colors.overContainer, SproutRadius.pill)
+            .background(Sprout.colors.overDisplay, SproutRadius.pill)
+            .semantics { role = Role.Button }
             .clickable(onClick = onClick)
             .padding(horizontal = 18.dp, vertical = 11.dp),
         horizontalArrangement = Arrangement.Center,
@@ -92,7 +98,7 @@ fun SproutDangerButton(
         Text(
             text = text,
             style = Sprout.typography.label,
-            color = Sprout.colors.overText,
+            color = Sprout.colors.surface,
         )
     }
 }

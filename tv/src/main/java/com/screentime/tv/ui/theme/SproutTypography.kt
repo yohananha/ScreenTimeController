@@ -21,13 +21,9 @@ val RubikFont = FontFamily(
     Font(R.font.rubik_variablefont_wght, FontWeight.Bold),
 )
 
-// Single weight — Compose synthesizes heavier weights via FontSynthesis.
+// Single weight only — registering multiple weights for the same file triggers synthesis artifacts.
 val VarelaFont = FontFamily(
     Font(R.font.varela_round_regular, FontWeight.Normal),
-    Font(R.font.varela_round_regular, FontWeight.SemiBold),
-    Font(R.font.varela_round_regular, FontWeight.Bold),
-    Font(R.font.varela_round_regular, FontWeight.ExtraBold),
-    Font(R.font.varela_round_regular, FontWeight.Black),
 )
 
 @Immutable
@@ -48,8 +44,8 @@ val SproutTypeScale = SproutTypography(
     titleLarge   = TextStyle(fontFamily = RubikFont,  fontWeight = FontWeight.SemiBold,  fontSize = 36.sp, lineHeight = 40.sp),
     bodyLarge    = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold,  fontSize = 16.sp, lineHeight = 23.sp),
     bodyMedium   = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold,  fontSize = 13.sp, lineHeight = 18.sp),
-    button       = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, lineHeight = 18.sp),
-    label        = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.ExtraBold, fontSize = 12.sp, lineHeight = 15.sp),
+    button       = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.Bold, fontSize = 15.sp, lineHeight = 18.sp),
+    label        = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.Bold, fontSize = 12.sp, lineHeight = 15.sp),
     keypadDigit  = TextStyle(fontFamily = RubikFont,  fontWeight = FontWeight.SemiBold,  fontSize = 42.sp, lineHeight = 42.sp),
 )
 
@@ -67,8 +63,8 @@ internal fun rememberSproutTypeScale(): SproutTypography {
         titleLarge   = TextStyle(fontFamily = RubikFont,  fontWeight = FontWeight.SemiBold,  fontSize = (72 * s).sp, lineHeight = (78 * s).sp),
         bodyLarge    = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold,  fontSize = (32 * s).sp, lineHeight = (46 * s).sp),
         bodyMedium   = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold,  fontSize = (26 * s).sp, lineHeight = (36 * s).sp),
-        button       = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.ExtraBold, fontSize = (30 * s).sp, lineHeight = (36 * s).sp),
-        label        = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.ExtraBold, fontSize = (24 * s).sp, lineHeight = (30 * s).sp),
+        button       = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.Bold, fontSize = (30 * s).sp, lineHeight = (36 * s).sp),
+        label        = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.Bold, fontSize = (24 * s).sp, lineHeight = (30 * s).sp),
         keypadDigit  = TextStyle(fontFamily = RubikFont,  fontWeight = FontWeight.SemiBold,  fontSize = (84 * s).sp, lineHeight = (84 * s).sp),
     )
 }

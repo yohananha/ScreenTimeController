@@ -101,7 +101,7 @@ fun PairTvSection(
                         .align(Alignment.TopEnd)
                         .offset(x = 26.dp, y = (-26).dp)
                         .size(110.dp)
-                        .background(Sprout.colors.tvSurface.copy(alpha = 0.45f), CircleShape),
+                        .background(Sprout.colors.darkSurface.copy(alpha = 0.45f), CircleShape),
                 )
 
                 Column(
@@ -117,7 +117,7 @@ fun PairTvSection(
                         Box(
                             modifier = Modifier
                                 .size(48.dp)
-                                .background(Sprout.colors.tvSurface, RoundedCornerShape(14.dp)),
+                                .background(Sprout.colors.darkSurface, RoundedCornerShape(14.dp)),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
@@ -156,19 +156,19 @@ fun PairTvSection(
                         Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .background(Sprout.colors.tvSurface, RoundedCornerShape(14.dp))
+                                .background(Sprout.colors.darkSurface, RoundedCornerShape(14.dp))
                                 .padding(horizontal = 13.dp, vertical = 11.dp),
                         ) {
-                            Text("Today", style = Sprout.typography.caption, color = Sprout.colors.tvMutedText)
+                            Text("Today", style = Sprout.typography.caption, color = Sprout.colors.darkMutedText)
                             Text("0m", style = Sprout.typography.bodyStrong, color = Sprout.colors.surface)
                         }
                         Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .background(Sprout.colors.tvSurface, RoundedCornerShape(14.dp))
+                                .background(Sprout.colors.darkSurface, RoundedCornerShape(14.dp))
                                 .padding(horizontal = 13.dp, vertical = 11.dp),
                         ) {
-                            Text("Paired", style = Sprout.typography.caption, color = Sprout.colors.tvMutedText)
+                            Text("Paired", style = Sprout.typography.caption, color = Sprout.colors.darkMutedText)
                             Text("Active", style = Sprout.typography.bodyStrong, color = Sprout.colors.surface)
                         }
                     }

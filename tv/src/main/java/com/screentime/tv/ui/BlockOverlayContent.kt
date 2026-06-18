@@ -1,5 +1,6 @@
 package com.screentime.tv.ui
 
+import android.os.SystemClock
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -122,7 +123,7 @@ fun BlockOverlayContent(
     TvCanvas {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (lockout.locked) {
-                LockedView(lockout = lockout, onTick = onLockoutTick)
+                LockedView(lockout = lockout, onTimerExpired = onLockoutTick)
             } else {
                 when (view) {
                     OverlayView.Main -> when (blockReason) {
@@ -163,7 +164,10 @@ fun BlockOverlayContent(
                             ok
                         },
                     )
-                    OverlayView.Waiting -> WaitingView(onEnterCode = { view = OverlayView.NumPad })
+                    OverlayView.Waiting -> WaitingView(
+                        onEnterCode = { view = OverlayView.NumPad },
+                        onCancel = { view = OverlayView.Main },
+                    )
                     OverlayView.Approved -> ApprovedView(approvedMinutes = approvedMinutes, onBack = { view = OverlayView.Main })
                     OverlayView.Denied -> DeniedView(
                         onOkay = { view = OverlayView.Main },
@@ -420,7 +424,7 @@ private fun RequestCustomView(
         ) {
             Text(
                 "How many minutes?",
-                style = Sprout.typography.displayLarge.copy(fontSize = androidx.compose.ui.unit.TextUnit.Unspecified),
+                style = Sprout.typography.titleLarge,
                 color = Sprout.colors.tvCream,
             )
             Text(
@@ -480,12 +484,12 @@ private fun NumPadView(
 ) {
     var entered by remember { mutableStateOf("") }
     var errored by remember { mutableStateOf(false) }
-    var triesLeft by remember { mutableStateOf(3) }
+    var triesLeft by remember { mutableStateOf(LockoutSettings.MAX_ATTEMPTS) }
     var busy by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(entered) {
-        if (entered.length == 4 && !busy) {
+        if (entered.length == CODE_LENGTH && !busy) {
             busy = true
             val ok = onSubmit(entered)
             if (ok) {
@@ -512,7 +516,7 @@ private fun NumPadView(
         ) {
             Text(
                 "Enter the unlock code",
-                style = Sprout.typography.displayLarge.copy(fontSize = androidx.compose.ui.unit.TextUnit.Unspecified),
+                style = Sprout.typography.titleLarge,
                 color = Sprout.colors.tvCream,
             )
             Text(
@@ -534,7 +538,7 @@ private fun NumPadView(
             onKey = { key ->
                 if (busy) return@TvKeypad
                 when (key) {
-                    is KeypadKey.Digit -> if (entered.length < 4) entered += key.value.toString()
+                    is KeypadKey.Digit -> if (entered.length < CODE_LENGTH) entered += key.value.toString()
                     KeypadKey.Backspace -> if (entered.isNotEmpty()) entered = entered.dropLast(1)
                     KeypadKey.Clear -> entered = ""
                 }
@@ -543,9 +547,11 @@ private fun NumPadView(
     }
 }
 
+private const val CODE_LENGTH = 6
+
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-private fun WaitingView(onEnterCode: () -> Unit) {
+private fun WaitingView(onEnterCode: () -> Unit, onCancel: () -> Unit) {
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
 
@@ -600,6 +606,7 @@ private fun WaitingView(onEnterCode: () -> Unit) {
             modifier = Modifier.widthIn(max = 550.dp),
         )
         TvGhostButton(text = "Enter a code instead", onClick = onEnterCode, focusRequester = focus)
+        TvGhostButton(text = "Never mind", onClick = onCancel)
     }
 }
 
@@ -694,20 +701,39 @@ private fun DeniedView(onOkay: () -> Unit, onEnterCode: () -> Unit) {
             modifier = Modifier.widthIn(max = 550.dp),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            TvGhostButton(text = "Enter an unlock code", onClick = onEnterCode)
-            TvPrimaryButton(text = "Okay", onClick = onOkay, focusRequester = focus)
+            TvGhostButton(text = "Enter an unlock code", onClick = onEnterCode, focusRequester = focus)
+            TvPrimaryButton(text = "Okay", onClick = onOkay)
         }
     }
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-private fun LockedView(lockout: LockoutSettings, onTick: suspend () -> Unit) {
-    var now by remember { mutableStateOf(Instant.now()) }
-    LaunchedEffect(lockout) {
+private fun LockedView(lockout: LockoutSettings, onTimerExpired: suspend () -> Unit) {
+    // Use the monotonic clock so manipulating the device's wall clock can't
+    // shorten a lockout. We pin (startElapsedMs, totalRemainingMs) once when
+    // we first observe `lockedUntil` and count down from there. The server's
+    // `lockedUntil` is still the source of truth for the initial duration;
+    // we anchor to it once via Instant.now(), then tick on elapsedRealtime
+    // (which the user can't fast-forward by editing settings).
+    val lockedUntil = lockout.lockedUntil
+    val anchor = remember(lockedUntil) {
+        lockedUntil?.let {
+            val initialRemainingMs = Duration.between(Instant.now(), it)
+                .toMillis().coerceAtLeast(0)
+            LockoutAnchor(SystemClock.elapsedRealtime(), initialRemainingMs)
+        }
+    }
+    var nowElapsed by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
+    LaunchedEffect(anchor) {
+        var expiredFired = false
         while (true) {
-            now = Instant.now()
-            onTick()
+            nowElapsed = SystemClock.elapsedRealtime()
+            if (!expiredFired && anchor != null &&
+                nowElapsed - anchor.startElapsedMs >= anchor.totalRemainingMs) {
+                expiredFired = true
+                onTimerExpired()
+            }
             delay(1000)
         }
     }
@@ -718,28 +744,27 @@ private fun LockedView(lockout: LockoutSettings, onTick: suspend () -> Unit) {
     ) {
         TvStatusCircle(kind = StatusKind.Amber, size = 100)
         Text(
-            "Let's take a short break",
+            if (lockout.mode == LockoutMode.PARENT_UNLOCK) "Ask a parent to unlock" else "Let's take a short break",
             style = Sprout.typography.displayLarge,
             color = Sprout.colors.tvCream,
             textAlign = TextAlign.Center,
         )
         Text(
-            "That's a few wrong codes. The TV unlocks again on its own — grab a snack or stretch!",
+            if (lockout.mode == LockoutMode.PARENT_UNLOCK)
+                "That's a few wrong codes. A parent needs to unlock the TV from the mobile app."
+            else
+                "That's a few wrong codes. The TV unlocks again on its own — grab a snack or stretch!",
             style = Sprout.typography.bodyLarge,
             color = Sprout.colors.tvMutedText,
             textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(max = 550.dp),
         )
         when (lockout.mode) {
-            LockoutMode.PARENT_UNLOCK -> Text(
-                "Ask a parent to unlock from the mobile app.",
-                style = Sprout.typography.bodyMedium,
-                color = Sprout.colors.tvMutedText,
-                textAlign = TextAlign.Center,
-            )
+            LockoutMode.PARENT_UNLOCK -> {}
             LockoutMode.TIMER -> {
-                val remaining = lockout.lockedUntil?.let { until ->
-                    Duration.between(now, until).let { if (it.isNegative) Duration.ZERO else it }
+                val remaining = anchor?.let {
+                    val elapsed = nowElapsed - it.startElapsedMs
+                    Duration.ofMillis((it.totalRemainingMs - elapsed).coerceAtLeast(0))
                 } ?: Duration.ZERO
                 Text(
                     text = formatRemaining(remaining),
@@ -750,6 +775,8 @@ private fun LockedView(lockout: LockoutSettings, onTick: suspend () -> Unit) {
         }
     }
 }
+
+private data class LockoutAnchor(val startElapsedMs: Long, val totalRemainingMs: Long)
 
 private fun formatRemaining(duration: Duration): String {
     val totalSeconds = duration.seconds.coerceAtLeast(0)

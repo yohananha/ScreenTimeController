@@ -33,6 +33,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.screentime.mobile.ui.theme.rememberScreenPadding
+import com.screentime.mobile.ui.theme.appAccentFor
 import com.screentime.mobile.ui.components.ChipGroup
 import com.screentime.mobile.ui.components.SproutGhostButton
 import com.screentime.mobile.ui.components.SproutPrimaryButton
@@ -41,8 +42,8 @@ import com.screentime.mobile.ui.theme.Sprout
 import com.screentime.shared.model.TimeRequest
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 
@@ -223,14 +224,6 @@ private fun PendingCard(
             )
         }
     }
-}
-
-private fun appAccentFor(packageName: String): Color {
-    val appAccents = listOf(
-        Color(0xFFE5483A), Color(0xFF5B6B7B), Color(0xFF2A2730), Color(0xFF4FA98C),
-        Color(0xFF8E86D9), Color(0xFFF2A93B), Color(0xFFB9A8F0),
-    )
-    return appAccents[(packageName.hashCode().let { if (it < 0) -it else it }) % appAccents.size]
 }
 
 private fun formatRelativeTime(createdAt: java.time.Instant): String {

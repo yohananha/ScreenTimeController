@@ -63,7 +63,7 @@ fun TvCodeSlot(
 @Composable
 fun TvCodeSlotsRow(
     code: String,
-    slots: Int = 4,
+    slots: Int = 6,
     errored: Boolean = false,
     modifier: Modifier = Modifier,
 ) {

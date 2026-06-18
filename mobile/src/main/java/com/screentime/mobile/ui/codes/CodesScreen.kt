@@ -59,7 +59,7 @@ fun CodesScreen(viewModel: CodesViewModel = hiltViewModel()) {
                 Column(modifier = Modifier.padding(top = 4.dp, bottom = 6.dp)) {
                     Text("Unlock codes", style = Sprout.typography.display, color = Sprout.colors.ink)
                     Text(
-                        "Single-use codes the kid types on the TV.",
+                        "Single-use codes your child types on the TV.",
                         style = Sprout.typography.caption,
                         color = Sprout.colors.inkMuted,
                         modifier = Modifier.padding(top = 5.dp),
@@ -112,7 +112,7 @@ private fun ActiveCodeHero(code: String, extraMinutes: Int, expiresAt: Instant, 
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("UNLOCK CODE", style = Sprout.typography.label, color = Sprout.colors.tvMutedText)
+                Text("UNLOCK CODE", style = Sprout.typography.label, color = Sprout.colors.darkMutedText)
                 Box(
                     modifier = Modifier
                         .background(Sprout.colors.accent, Sprout.radius.pill)
@@ -129,7 +129,7 @@ private fun ActiveCodeHero(code: String, extraMinutes: Int, expiresAt: Instant, 
             )
             Row(
                 modifier = Modifier
-                    .background(Sprout.colors.tvSurface, Sprout.radius.pill)
+                    .background(Sprout.colors.darkSurface, Sprout.radius.pill)
                     .padding(horizontal = 13.dp, vertical = 7.dp),
                 horizontalArrangement = Arrangement.spacedBy(7.dp),
                 verticalAlignment = Alignment.CenterVertically,
