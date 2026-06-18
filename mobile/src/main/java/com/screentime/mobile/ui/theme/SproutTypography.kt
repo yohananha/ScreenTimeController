@@ -44,7 +44,7 @@ val SproutTypeScale = SproutTypography(
     bodyL = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 24.sp),
     body = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.Normal, fontSize = 15.sp, lineHeight = 22.sp),
     bodyStrong = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, lineHeight = 22.sp),
-    label = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.Bold, fontSize = 13.sp, lineHeight = 14.sp),
+    label = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.Bold, fontSize = 13.sp, lineHeight = 14.sp),
     caption = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, lineHeight = 16.sp),
 )
 
@@ -63,7 +63,7 @@ internal fun rememberSproutTypeScale(): SproutTypography {
         bodyL      = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold,  fontSize = (16 * s).sp, lineHeight = (24 * s).sp),
         body       = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.Normal,    fontSize = (15 * s).sp, lineHeight = (22 * s).sp),
         bodyStrong = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold,  fontSize = (15 * s).sp, lineHeight = (22 * s).sp),
-        label      = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.Bold,      fontSize = (13 * s).sp, lineHeight = (14 * s).sp),
+        label      = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.Bold,      fontSize = (13 * s).sp, lineHeight = (14 * s).sp),
         caption    = TextStyle(fontFamily = VarelaFont, fontWeight = FontWeight.SemiBold,  fontSize = (12 * s).sp, lineHeight = (16 * s).sp),
     )
 }
