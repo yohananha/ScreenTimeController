@@ -22,5 +22,7 @@ module.exports = {
     },
   },
   testTimeout: 30000,
-  setupFilesAfterEach: ["<rootDir>/src/__tests__/setup.ts"],
+  // setupFilesAfterEach doesn't exist in Jest — use setupFiles which DOES
+  // give the module access to globals like afterEach (registered globally).
+  setupFiles: ["<rootDir>/src/__tests__/setup.ts"],
 };
