@@ -239,9 +239,8 @@ export const createTvPairing = onCall(async (req) => {
 });
 
 /**
- * The family OWNER (main admin) claims a pairing code. Enforces a strict
- * one-to-one relationship: the TV must not already belong to another family,
- * and the family must not already have a TV paired.
+ * The family OWNER (main admin) claims a pairing code. A family may pair any
+ * number of TVs; each TV may only belong to one family at a time.
  */
 export const claimTvPairing = onCall(async (req) => {
   const uid = requireAuth(req);
@@ -277,14 +276,13 @@ export const claimTvPairing = onCall(async (req) => {
     const familySnap = await tx.get(familyRef);
     const devices = (familySnap.get("devices") as string[] | undefined) ?? [];
 
-    // One-to-one: this family already controls a (different) TV.
-    if (devices.length > 0 && !devices.includes(deviceId)) {
-      throw new HttpsError(
-        "failed-precondition",
-        "This family is already paired with a TV.",
-      );
+    // Idempotent: already paired to this same family — nothing to do.
+    if (devices.includes(deviceId)) {
+      tx.delete(pairingRef);
+      return;
     }
-    // One-to-one: this TV already belongs to another family.
+
+    // One TV ↔ one family: this TV already belongs to another family.
     const deviceRef = db.collection("devices").doc(deviceId);
     const deviceSnap = await tx.get(deviceRef);
     if (deviceSnap.exists && deviceSnap.get("familyId") !== familyId) {
