@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "0",
+    "firebase_url": "https://demo-screentime.firebaseio.com",
+    "project_id": "demo-screentime",
+    "storage_bucket": "demo-screentime.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:0:android:0000000000000000",
+        "android_client_info": { "package_name": "com.screentime.mobile" }
+      },
+      "oauth_client": [],
+      "api_key": [{ "current_key": "AIzaDummyKey" }],
+      "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:0:android:0000000000000001",
+        "android_client_info": { "package_name": "com.screentime.tv" }
+      },
+      "oauth_client": [],
+      "api_key": [{ "current_key": "AIzaDummyKey" }],
+      "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+    }
+  ],
+  "configuration_version": "1"
+}
