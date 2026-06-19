@@ -99,15 +99,38 @@ describe("claimTvPairing", () => {
     expect(after.exists).toBe(false);
   });
 
-  it("rejects when family already has a different TV paired", async () => {
+  it("allows pairing a second TV to the same family", async () => {
     await db()
       .collection("families")
       .doc(FAM)
       .set({ devices: ["older-tv"] }, { merge: true });
     await seedPairing("424242");
-    await expect(
-      claimTv({ data: { code: "424242", familyId: FAM }, auth: { uid: OWNER } }),
-    ).rejects.toMatchObject({ code: "failed-precondition" });
+    const result = (await claimTv({
+      data: { code: "424242", familyId: FAM },
+      auth: { uid: OWNER },
+    })) as { success: boolean };
+    expect(result.success).toBe(true);
+    const fam = await db().collection("families").doc(FAM).get();
+    expect(fam.get("devices")).toContain("older-tv");
+    expect(fam.get("devices")).toContain(TV);
+  });
+
+  it("is idempotent when the same TV re-pairs to the same family", async () => {
+    await db()
+      .collection("families")
+      .doc(FAM)
+      .set({ devices: [TV] }, { merge: true });
+    await db().collection("devices").doc(TV).set({ familyId: FAM });
+    await seedPairing("424242");
+    const result = (await claimTv({
+      data: { code: "424242", familyId: FAM },
+      auth: { uid: OWNER },
+    })) as { success: boolean };
+    expect(result.success).toBe(true);
+    const fam = await db().collection("families").doc(FAM).get();
+    expect((fam.get("devices") as string[]).filter((d: string) => d === TV)).toHaveLength(1);
+    const pairing = await db().collection("pairings").doc("424242").get();
+    expect(pairing.exists).toBe(false);
   });
 
   it("rejects when TV already belongs to another family", async () => {

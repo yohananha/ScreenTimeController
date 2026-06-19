@@ -268,6 +268,30 @@ describe("/families/{id}/settings/lockout", () => {
   });
 });
 
+describe("/families/{id}/<unknown-subcollection>", () => {
+  it("members can read unknown subcollections but cannot write them", async () => {
+    await env.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), "families", FAM, "unknown", "doc1"), { x: 1 });
+    });
+    await assertSucceeds(getDoc(doc(ctx(USER), "families", FAM, "unknown", "doc1")));
+    await assertFails(
+      setDoc(doc(ctx(USER), "families", FAM, "unknown", "doc2"), { x: 2 }),
+    );
+    await assertFails(
+      setDoc(doc(ctx(ADMIN2), "families", FAM, "unknown", "doc2"), { x: 2 }),
+    );
+  });
+  it("paired TV can read unknown subcollections but cannot write them", async () => {
+    await env.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), "families", FAM, "unknown", "doc1"), { x: 1 });
+    });
+    await assertSucceeds(getDoc(doc(ctx(TV), "families", FAM, "unknown", "doc1")));
+    await assertFails(
+      setDoc(doc(ctx(TV), "families", FAM, "unknown", "doc2"), { x: 2 }),
+    );
+  });
+});
+
 describe("/invites and /pairings", () => {
   it("client reads and writes are denied", async () => {
     await assertFails(getDoc(doc(ctx(USER), "invites", "123456")));
