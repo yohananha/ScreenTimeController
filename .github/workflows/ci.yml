@@ -23,6 +23,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
       - name: Provide dummy google-services.json
         run: |
           for d in mobile tv; do
@@ -97,6 +99,8 @@ jobs:
           distribution: temurin
           java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
       - name: Provide dummy google-services.json
         run: |
           for d in mobile tv; do

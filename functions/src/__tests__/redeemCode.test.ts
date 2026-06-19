@@ -1,5 +1,4 @@
 import { Timestamp } from "firebase-admin/firestore";
-import { HttpsError } from "firebase-functions/v2/https";
 import {
   initFFT,
   loadFunctions,
