@@ -7,6 +7,19 @@ An Android TV parental control system built with two apps that talk to each othe
 
 ---
 
+## Beta download
+
+> Debug builds — enable **Install unknown apps** on your device before installing.
+
+| App | Download |
+|---|---|
+| Mobile (parent phone) | [ScreenTime-Mobile-debug.apk](https://github.com/yohananha/ScreenTimeController/releases/download/v0.1.0-beta/mobile-debug.apk) |
+| TV | [ScreenTime-TV-debug.apk](https://github.com/yohananha/ScreenTimeController/releases/download/v0.1.0-beta/tv-debug.apk) |
+
+All releases: [github.com/yohananha/ScreenTimeController/releases](https://github.com/yohananha/ScreenTimeController/releases)
+
+---
+
 ## How it works
 
 ### First-time setup
@@ -39,7 +52,7 @@ Limits and approval decisions sync in real time (< 2 seconds) via Firestore.
 | Admin | Promoted by the owner | Set limits, approve requests, invite members, promote/remove other members |
 | Member | Anyone who joins with an invite | View limits and approve requests |
 
-The TV is bound one-to-one to the family; it cannot be paired with a second family, and a family cannot claim two TVs at the same time.
+Each TV can only belong to one family at a time, but a family can pair **multiple TVs**. Only the family owner can pair or unpair a TV.
 
 ---
 
@@ -121,7 +134,7 @@ The TV app asks for three permissions on first launch; all three are required fo
 | `createFamilyInvite` | Mobile (admin) | Generates a 6-digit, 48-hour invite code |
 | `joinFamilyWithInvite` | Mobile (new user) | Validates invite and adds the caller as a Member |
 | `createTvPairing` | TV | Generates a 6-digit, 10-minute pairing code |
-| `claimTvPairing` | Mobile (owner only) | Validates pairing code, binds TV to family (one-to-one) |
+| `claimTvPairing` | Mobile (owner only) | Validates pairing code, binds TV to family (a family may have many TVs; each TV belongs to one family) |
 | `redeemCode` | TV | Validates a 4-digit unlock code server-side; enforces lockout after 5 wrong attempts in 60 seconds |
 
 ---
