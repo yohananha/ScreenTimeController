@@ -260,13 +260,16 @@ export const claimTvPairing = onCall(async (req) => {
   }
 
   const pairingRef = db.collection("pairings").doc(code);
-  await db.runTransaction(async (tx) => {
+  // Returning true from the transaction means the code was expired; we throw
+  // AFTER the transaction so the cleanup delete actually commits (throwing
+  // inside a transaction callback aborts it and rolls back all writes).
+  const isExpired = await db.runTransaction(async (tx) => {
     const pairing = await tx.get(pairingRef);
     if (!pairing.exists) throw new HttpsError("not-found", "Invalid code.");
     const expiresAt = pairing.get("expiresAt") as Timestamp | undefined;
     if (expiresAt && expiresAt.toMillis() < Date.now()) {
       tx.delete(pairingRef);
-      throw new HttpsError("not-found", "This code has expired.");
+      return true;
     }
 
     const deviceId = pairing.get("deviceId") as string;
@@ -294,8 +297,10 @@ export const claimTvPairing = onCall(async (req) => {
     tx.set(deviceRef, { familyId, name: DEFAULT_DEVICE_NAME });
     tx.update(familyRef, { devices: FieldValue.arrayUnion(deviceId) });
     tx.delete(pairingRef);
+    return false;
   });
 
+  if (isExpired) throw new HttpsError("not-found", "This code has expired.");
   return { success: true };
 });
 

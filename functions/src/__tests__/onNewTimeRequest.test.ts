@@ -41,17 +41,20 @@ beforeEach(() => {
 
 const FAM = "fam-trigger";
 
-function makeEvent(data: Record<string, unknown>, requestId = "req-1") {
+// Writes the document to the emulator and returns a real DocumentSnapshot so
+// firebase-functions-test's encodeHelper doesn't encounter function-valued
+// properties (which it can't serialize to a Firestore Value).
+async function makeEvent(data: Record<string, unknown>, requestId = "req-1") {
+  const ref = db()
+    .collection("families")
+    .doc(FAM)
+    .collection("requests")
+    .doc(requestId);
+  await ref.set(data);
+  const snap = await ref.get();
   return {
     params: { familyId: FAM, requestId },
-    data: {
-      data: () => data,
-      ref: db()
-        .collection("families")
-        .doc(FAM)
-        .collection("requests")
-        .doc(requestId),
-    },
+    data: snap,
   };
 }
 
@@ -66,7 +69,7 @@ describe("onNewTimeRequest", () => {
     await seedUser("coparent", ["tok-coparent"]);
 
     await onNewTimeRequest(
-      makeEvent({ appPackage: "com.x", requestedMinutes: 15 }),
+      await makeEvent({ appPackage: "com.x", requestedMinutes: 15 }),
     );
 
     expect(messagingMock.__mock__.sendEachForMulticast).toHaveBeenCalledTimes(1);
@@ -86,7 +89,7 @@ describe("onNewTimeRequest", () => {
     });
 
     await onNewTimeRequest(
-      makeEvent({ appPackage: "com.x", requestedMinutes: 10 }),
+      await makeEvent({ appPackage: "com.x", requestedMinutes: 10 }),
     );
 
     const call = messagingMock.__mock__.sendEachForMulticast.mock.calls[0][0];
@@ -97,21 +100,15 @@ describe("onNewTimeRequest", () => {
     await seedFamily({ familyId: FAM, ownerUid: "parent" });
     await seedUser("parent", []);
     await onNewTimeRequest(
-      makeEvent({ appPackage: "com.x", requestedMinutes: 10 }),
+      await makeEvent({ appPackage: "com.x", requestedMinutes: 10 }),
     );
     expect(messagingMock.__mock__.sendEachForMulticast).not.toHaveBeenCalled();
   });
 
   it("denies and marks request when requestedMinutes is out of range (too high)", async () => {
     await seedFamily({ familyId: FAM, ownerUid: "parent" });
-    await db()
-      .collection("families")
-      .doc(FAM)
-      .collection("requests")
-      .doc("req-1")
-      .set({ appPackage: "com.x", requestedMinutes: 9999, status: "pending" });
     await onNewTimeRequest(
-      makeEvent({ appPackage: "com.x", requestedMinutes: 9999 }),
+      await makeEvent({ appPackage: "com.x", requestedMinutes: 9999 }),
     );
     const after = await db()
       .collection("families")
@@ -126,14 +123,8 @@ describe("onNewTimeRequest", () => {
 
   it("denies on non-numeric minutes", async () => {
     await seedFamily({ familyId: FAM, ownerUid: "parent" });
-    await db()
-      .collection("families")
-      .doc(FAM)
-      .collection("requests")
-      .doc("req-1")
-      .set({ appPackage: "com.x", requestedMinutes: "abc", status: "pending" });
     await onNewTimeRequest(
-      makeEvent({ appPackage: "com.x", requestedMinutes: "abc" as never }),
+      await makeEvent({ appPackage: "com.x", requestedMinutes: "abc" as never }),
     );
     const after = await db()
       .collection("families")
