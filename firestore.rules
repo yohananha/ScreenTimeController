@@ -143,10 +143,20 @@ service cloud.firestore {
         allow delete: if isMemberOf(familyDoc(familyId));
       }
 
-      // Any other subcollection: parents/devices read, parents write.
+      // Catch-all for any subcollection without an explicit rule above.
+      // Reads stay open to members/devices so new read-only features
+      // don't immediately break clients; WRITE is denied by default.
+      //
+      // Previously this granted blanket member-write, which (because
+      // Firestore takes the union of matching rules) overrode the
+      // narrower deny rules on /codes (`allow update: if false`) and
+      // weakened the family-doc update/delete guarantees. Every
+      // legitimate subcollection (usage, limits, tvApps, codes,
+      // requests, settings) has its own write rule above; new ones
+      // must add one explicitly.
       match /{document=**} {
         allow read: if canReadOf(familyDoc(familyId));
-        allow write: if isMemberOf(familyDoc(familyId));
+        allow write: if false;
       }
     }
 
@@ -167,7 +177,8 @@ service cloud.firestore {
     // ---- /devices/{deviceId} ----------------------------------------------
     // deviceId is the TV's anonymous-auth uid. Binding (create) happens only
     // inside claimTvPairing; the family pointer can never be changed by a
-    // client write (one TV ↔ one family); only the owner may unpair (delete).
+    // client write (one TV belongs to exactly one family; a family may have
+    // many TVs); only the owner may unpair (delete).
     match /devices/{deviceId} {
       allow get: if signedIn()
         && (request.auth.uid == deviceId || isMemberOf(familyDoc(resource.data.familyId)));

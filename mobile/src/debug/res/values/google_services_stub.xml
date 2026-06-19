@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug-build stub for the OAuth client id that the google-services
+  Gradle plugin normally generates from the real google-services.json's
+  oauth_client[].client_id. CI uses a checked-in dummy
+  google-services.json (see .github/workflows/google-services.stub.json)
+  with no oauth_client array, so the resource isn't auto-generated and
+  SignInScreen.kt fails to compile. Providing it here as a debug-only
+  override fixes the build without leaking a real client id.
+-->
+<resources>
+    <string name="default_web_client_id" translatable="false">0-stub.apps.googleusercontent.com</string>
+</resources>
