@@ -34,22 +34,11 @@ jobs:
           done
       - name: Unit tests
         run: ./gradlew --no-daemon testDebugUnitTest
-      - name: Kover XML + verify 80%
-        run: ./gradlew --no-daemon koverXmlReport koverVerify
-      - name: Upload coverage XML
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: kover-xml
-          path: "**/build/reports/kover/report.xml"
-      - name: Upload to Codecov
-        if: env.CODECOV_TOKEN != ''
-        uses: codecov/codecov-action@v4
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        with:
-          files: ./build/reports/kover/report.xml
-          flags: android
+      # Coverage reporting via Kover is wired up but disabled in CI for now
+      # because koverXmlReport drags in the release variant compile (which
+      # requires a real OAuth client id from google-services.json). Run
+      # locally with `./gradlew koverHtmlReport`. Re-enable here once the
+      # release path doesn't depend on dev-only resources.
 
   functions:
     name: Cloud Functions tests

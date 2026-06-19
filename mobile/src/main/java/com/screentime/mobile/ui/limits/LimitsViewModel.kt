@@ -92,6 +92,19 @@ open class LimitsViewModel @Inject constructor(
     fun lockInstantly() = write { repo.setInstantLock(true) }
     fun unlockInstantly() = write { repo.setInstantLock(false) }
 
+    fun selectInstantLock() = write {
+        repo.setAllowAllDay(null)
+        repo.setInstantLock(true)
+    }
+    fun selectAllowAllDay() = write {
+        repo.setInstantLock(false)
+        repo.setAllowAllDay(LocalDate.now().toString())
+    }
+    fun selectDefaultLimits() = write {
+        repo.setInstantLock(false)
+        repo.setAllowAllDay(null)
+    }
+
     private fun write(block: suspend () -> Unit) {
         viewModelScope.launch {
             runCatching { block() }

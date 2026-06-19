@@ -105,6 +105,24 @@ beforeAll(() => {
   process.env.FIREBASE_AUTH_EMULATOR_HOST ??= "127.0.0.1:9099";
 });
 
+afterEach(async () => {
+  // Clear Firestore and Auth between tests so each case starts from a
+  // clean emulator. Lives here (not in setup.ts) because Jest globals are
+  // only defined for files imported during test execution.
+  const projectId = process.env.GCLOUD_PROJECT ?? "demo-screentime";
+  const firestoreHost = process.env.FIRESTORE_EMULATOR_HOST ?? "127.0.0.1:8080";
+  const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST ?? "127.0.0.1:9099";
+  await Promise.allSettled([
+    fetch(
+      `http://${firestoreHost}/emulator/v1/projects/${projectId}/databases/(default)/documents`,
+      { method: "DELETE" },
+    ),
+    fetch(`http://${authHost}/emulator/v1/projects/${projectId}/accounts`, {
+      method: "DELETE",
+    }),
+  ]);
+});
+
 afterAll(() => {
   _fft?.cleanup();
 });

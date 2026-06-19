@@ -22,7 +22,7 @@ module.exports = {
     },
   },
   testTimeout: 30000,
-  // setupFilesAfterEach doesn't exist in Jest — use setupFiles which DOES
-  // give the module access to globals like afterEach (registered globally).
-  setupFiles: ["<rootDir>/src/__tests__/setup.ts"],
+  // No setupFiles — Jest globals (afterEach etc.) aren't defined in
+  // setupFiles scope. The per-test cleanup lives in src/__tests__/helpers.ts
+  // and is registered when each test imports it.
 };

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,10 +23,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -44,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -153,17 +152,19 @@ fun LimitsScreen(
                 }
             }
             item {
-                InstantLockCard(
-                    locked = state.instantLocked,
-                    onLock = viewModel::lockInstantly,
-                    onUnlock = viewModel::unlockInstantly,
-                )
-            }
-            item {
-                AllowAllDayCard(
-                    active = state.allowAllDayActive,
-                    onEnable = viewModel::allowAllDay,
-                    onDisable = viewModel::disallowAllDay,
+                LimitModeCard(
+                    mode = when {
+                        state.instantLocked -> LimitMode.Lock
+                        state.allowAllDayActive -> LimitMode.Allow
+                        else -> LimitMode.Default
+                    },
+                    onSelect = { selected ->
+                        when (selected) {
+                            LimitMode.Lock -> viewModel.selectInstantLock()
+                            LimitMode.Default -> viewModel.selectDefaultLimits()
+                            LimitMode.Allow -> viewModel.selectAllowAllDay()
+                        }
+                    },
                 )
             }
             item {
@@ -613,126 +614,156 @@ private fun EditLockoutDialog(
     )
 }
 
+private enum class LimitMode { Lock, Default, Allow }
+
 @Composable
-private fun InstantLockCard(
-    locked: Boolean,
-    onLock: () -> Unit,
-    onUnlock: () -> Unit,
+private fun LimitModeCard(
+    mode: LimitMode,
+    onSelect: (LimitMode) -> Unit,
 ) {
-    val bg = if (locked) Sprout.colors.overContainer else Sprout.colors.surface
-    val titleColor = if (locked) Sprout.colors.overText else Sprout.colors.ink
-    Row(
+    val (bg, titleColor, iconBg, iconTint, icon, title, caption) = when (mode) {
+        LimitMode.Lock -> LimitModeVisuals(
+            bg = Sprout.colors.overContainer,
+            titleColor = Sprout.colors.overText,
+            iconBg = Sprout.colors.overDisplay.copy(alpha = 0.15f),
+            iconTint = Sprout.colors.overDisplay,
+            icon = Icons.Filled.Lock,
+            title = "Instant lock",
+            caption = "TV is locked — tap Default to release",
+        )
+        LimitMode.Default -> LimitModeVisuals(
+            bg = Sprout.colors.surface,
+            titleColor = Sprout.colors.ink,
+            iconBg = Sprout.colors.surfaceSunken,
+            iconTint = Sprout.colors.inkMuted,
+            icon = Icons.Filled.Check,
+            title = "Limits active",
+            caption = "Today's schedule and app limits apply",
+        )
+        LimitMode.Allow -> LimitModeVisuals(
+            bg = Sprout.colors.positiveContainer,
+            titleColor = Sprout.colors.positiveText,
+            iconBg = Sprout.colors.positiveDisplay.copy(alpha = 0.15f),
+            iconTint = Sprout.colors.positiveDisplay,
+            icon = Icons.Filled.WbSunny,
+            title = "Allow all day",
+            caption = "All limits paused until midnight",
+        )
+    }
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(bg, Sprout.radius.card)
             .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Box(
                 modifier = Modifier
                     .size(36.dp)
-                    .background(
-                        if (locked) Sprout.colors.overDisplay.copy(alpha = 0.15f) else Sprout.colors.surfaceSunken,
-                        Sprout.radius.icon,
-                    ),
+                    .background(iconBg, Sprout.radius.icon),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    if (locked) Icons.Filled.Lock else Icons.Filled.LockOpen,
+                    icon,
                     contentDescription = null,
-                    tint = if (locked) Sprout.colors.overDisplay else Sprout.colors.inkMuted,
+                    tint = iconTint,
                     modifier = Modifier.size(18.dp),
                 )
             }
-            Column {
-                Text("Instant lock", style = Sprout.typography.headline, color = titleColor)
-                Text(
-                    if (locked) "TV is locked — tap to unlock" else "Lock TV immediately",
-                    style = Sprout.typography.caption,
-                    color = Sprout.colors.inkMuted,
-                )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, style = Sprout.typography.headline, color = titleColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(caption, style = Sprout.typography.caption, color = Sprout.colors.inkMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
-        Switch(
-            checked = locked,
-            onCheckedChange = { checked -> if (checked) onLock() else onUnlock() },
-            thumbContent = { Box(Modifier.size(24.dp)) },
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Sprout.colors.surface,
-                checkedTrackColor = Sprout.colors.overDisplay,
-                checkedBorderColor = Color.Transparent,
-                uncheckedThumbColor = Sprout.colors.surface,
-                uncheckedTrackColor = Color(0xFFC9BCD0),
-                uncheckedBorderColor = Color.Transparent,
-            ),
+        LimitModeSegmented(selected = mode, onSelect = onSelect)
+    }
+}
+
+private data class LimitModeVisuals(
+    val bg: Color,
+    val titleColor: Color,
+    val iconBg: Color,
+    val iconTint: Color,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val title: String,
+    val caption: String,
+)
+
+@Composable
+private fun LimitModeSegmented(
+    selected: LimitMode,
+    onSelect: (LimitMode) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Sprout.colors.surfaceSunken, Sprout.radius.pill)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        LimitModeSegment(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Filled.Lock,
+            label = "Lock",
+            selected = selected == LimitMode.Lock,
+            selectedBg = Sprout.colors.overDisplay,
+            selectedFg = Sprout.colors.surface,
+            onClick = { onSelect(LimitMode.Lock) },
+        )
+        LimitModeSegment(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Filled.Check,
+            label = "Default",
+            selected = selected == LimitMode.Default,
+            selectedBg = Sprout.colors.surface,
+            selectedFg = Sprout.colors.ink,
+            onClick = { onSelect(LimitMode.Default) },
+        )
+        LimitModeSegment(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Filled.WbSunny,
+            label = "Allow",
+            selected = selected == LimitMode.Allow,
+            selectedBg = Sprout.colors.positiveDisplay,
+            selectedFg = Sprout.colors.surface,
+            onClick = { onSelect(LimitMode.Allow) },
         )
     }
 }
 
 @Composable
-private fun AllowAllDayCard(
-    active: Boolean,
-    onEnable: () -> Unit,
-    onDisable: () -> Unit,
+private fun LimitModeSegment(
+    modifier: Modifier,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    selected: Boolean,
+    selectedBg: Color,
+    selectedFg: Color,
+    onClick: () -> Unit,
 ) {
-    val bg = if (active) Sprout.colors.positiveContainer else Sprout.colors.surface
-    val titleColor = if (active) Sprout.colors.positiveText else Sprout.colors.ink
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(bg, Sprout.radius.card)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+    val bg = if (selected) selectedBg else Color.Transparent
+    val fg = if (selected) selectedFg else Sprout.colors.inkMuted
+    Column(
+        modifier = modifier
+            .heightIn(min = 48.dp)
+            .background(bg, Sprout.radius.pill)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 4.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.weight(1f),
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .background(
-                        if (active) Sprout.colors.positiveDisplay.copy(alpha = 0.15f) else Sprout.colors.surfaceSunken,
-                        Sprout.radius.icon,
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.Filled.WbSunny,
-                    contentDescription = null,
-                    tint = if (active) Sprout.colors.positiveDisplay else Sprout.colors.inkMuted,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-            Column {
-                Text("Allow all day", style = Sprout.typography.headline, color = titleColor)
-                Text(
-                    if (active) "All limits paused until midnight" else "Overrides schedule and time limits",
-                    style = Sprout.typography.caption,
-                    color = Sprout.colors.inkMuted,
-                )
-            }
-        }
-        Switch(
-            checked = active,
-            onCheckedChange = { checked -> if (checked) onEnable() else onDisable() },
-            thumbContent = { Box(Modifier.size(24.dp)) },
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Sprout.colors.surface,
-                checkedTrackColor = Sprout.colors.positiveDisplay,
-                checkedBorderColor = Color.Transparent,
-                uncheckedThumbColor = Sprout.colors.surface,
-                uncheckedTrackColor = Color(0xFFC9BCD0),
-                uncheckedBorderColor = Color.Transparent,
-            ),
+        Icon(icon, contentDescription = label, tint = fg, modifier = Modifier.size(18.dp))
+        Text(
+            label,
+            style = Sprout.typography.caption,
+            color = fg,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
