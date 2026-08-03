@@ -14,7 +14,7 @@ A parental control system built from two clients that talk to each other through
 
 | App | Download |
 |---|---|
-| Web (parent, any device) | Deploy your own via `firebase deploy --only hosting` (see [Setting up from source](#setting-up-from-source)), or run locally with `cd web && npm run dev` |
+| Web (parent, any device) | **[screen-time-controller-a653e.web.app](https://screen-time-controller-a653e.web.app)** — sign in with Google |
 | Mobile (parent phone, legacy) | [ScreenTime-Mobile-debug.apk](https://github.com/yohananha/ScreenTimeController/releases/download/v0.1.0-beta/mobile-debug.apk) |
 | TV | [ScreenTime-TV-debug.apk](https://github.com/yohananha/ScreenTimeController/releases/download/v0.1.0-beta/tv-debug.apk) |
 
