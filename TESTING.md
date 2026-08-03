@@ -10,6 +10,7 @@ on GitHub Actions, while slower instrumented UI tests run on release tags.
 | --------------------------- | -------------------------------------- | -------------------- | --------------------------- |
 | JVM unit tests + Robolectric | JUnit4, MockK, Turbine, Truth         | Every PR             | `mobile`, `tv`, `shared`    |
 | Coverage gate (≥80%)        | Kotlinx Kover                          | Every PR             | aggregate                   |
+| Web unit/component          | Vitest + React Testing Library         | Every PR             | `web`                       |
 | Cloud Functions             | Jest + firebase-functions-test + Emulator | Every PR          | `functions`                 |
 | Firestore rules             | `@firebase/rules-unit-testing` + Emulator | Every PR          | `firestore.rules`           |
 | Android lint                | AGP                                    | Every PR             | `mobile`, `tv`              |
@@ -20,7 +21,7 @@ on GitHub Actions, while slower instrumented UI tests run on release tags.
 ### Prerequisites
 
 - JDK 17 (Temurin recommended)
-- Node 20 + `npm i -g firebase-tools` (for Functions and rules tests)
+- Node 20 + `npm i -g firebase-tools` (for the web app, Functions, and rules tests)
 - An Android SDK install for AndroidTest runs (optional unless you want UI)
 
 ### One-shot
@@ -35,6 +36,12 @@ on GitHub Actions, while slower instrumented UI tests run on release tags.
 # Android JVM tests + coverage check (the PR gate)
 ./gradlew testDebugUnitTest koverXmlReport koverVerify
 # HTML report: build/reports/kover/html/index.html
+
+# Web app (Vitest)
+cd web
+npm install
+npm test
+npm run typecheck
 
 # Cloud Functions (boots Firestore + Auth emulators, then runs Jest with coverage)
 cd functions
@@ -93,6 +100,32 @@ Existing tests in `mobile/src/androidTest`:
 `CodesScreenTest`, `LimitsScreenTest`, `ComponentsTest`, `ResponsiveLayoutTest`,
 `SproutThemeTest`. Extend the same pattern for new screens.
 
+### Web (`web/src`)
+Ports of the mobile test suite above, same cases/assertions translated to
+Vitest + React Testing Library:
+- `hooks/useCodes.test.ts` — generating, success, error, no-family-id
+  (asserts `firestoreRepository.createCode` is never called), dismiss.
+- `hooks/useRequests.test.ts` — approve default/override minutes, deny,
+  no-family-id no-op.
+- `models/TimeRequest.test.ts` — grant-window math (pending/approved/denied/
+  expired, `approvedMinutes` overriding `requestedMinutes`).
+- `models/LockoutSettings.test.ts` + `models/constants.test.ts` — defaults and
+  the cross-repo canary constants (`DEFAULT_LOCKOUT_DURATION_MINUTES=15`,
+  `MAX_LOCKOUT_ATTEMPTS=5`, `LOCKOUT_ATTEMPT_WINDOW_SECONDS=60`,
+  `MAX_REQUESTED_MINUTES=240`) that must stay numerically in sync with both
+  `functions/src/index.ts` and the Kotlin `LockoutSettingsTest.kt` — a future
+  backend constant change must now break two canaries, not one.
+- `models/TimeFrameSchedule.test.ts` — `isAllowedAt`/`nextAllowedMinute`
+  parity, plus the JS `Date.getDay()` → Kotlin `DayOfWeek` name mapping (the
+  riskiest part of the web port, no Kotlin precedent).
+- `models/Family.test.ts`, `models/UsageSnapshot.test.ts` — pure-logic parity.
+- `theme/colors.test.ts`, `theme/breakpoints.test.ts` — token-drift guard and
+  responsive-padding tiers (16/32/64px), same intent as `SproutThemeTest`/
+  `ResponsiveLayoutTest`.
+- `components/*.test.tsx`, `screens/**/*.test.tsx` — render assertions for
+  shared components and screens (`CodesScreen`, `LimitsScreen`), same intent
+  as `ComponentsTest`/`CodesScreenTest`/`LimitsScreenTest`.
+
 ## Coverage threshold
 
 The PR gate runs `./gradlew koverVerify` which fails when aggregated line
@@ -121,8 +154,10 @@ start build/reports/kover/html/index.html
 
 ## Adding a new test
 
-1. Pick the layer (JVM unit, Compose UI, Functions Jest, rules).
+1. Pick the layer (JVM unit, Compose UI, Web Vitest, Functions Jest, rules).
 2. Mirror an existing file as a starting point (same directory conventions).
 3. Run that single layer locally before pushing.
-4. If you add a new public branch to Cloud Functions / rules / a ViewModel,
-   add a test in the same PR — the coverage gate will refuse otherwise.
+4. If you add a new public branch to Cloud Functions / rules / a ViewModel /
+   web hook, add a test in the same PR — the coverage gate will refuse
+   otherwise for the Android/Functions layers (the web layer doesn't yet
+   enforce a coverage gate, but should still get a test per new branch).

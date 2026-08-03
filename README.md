@@ -1,19 +1,21 @@
 # Screen Time Controller
 
-An Android TV parental control system built with two apps that talk to each other through Firebase:
+A parental control system built from two clients that talk to each other through Firebase:
 
 - **TV app** — runs on the family's Android TV, tracks per-app usage, and blocks apps the moment their daily limit is hit.
-- **Mobile app** — runs on the parent's phone; sets limits, approves time requests, generates one-time unlock codes, and manages the family.
+- **Web app** (`web/`) — runs in any browser (including iOS/desktop); parents set limits, approve time requests, generate one-time unlock codes, and manage the family. Replaces the original Android-only mobile app so parents aren't tied to a particular phone platform.
+- **Mobile app** (`mobile/`, being phased out) — the original Android parent app. Kept alongside the web app until the web app reaches full feature parity; see [Repository layout](#repository-layout).
 
 ---
 
 ## Beta download
 
-> Debug builds — enable **Install unknown apps** on your device before installing.
+> Debug builds — enable **Install unknown apps** on your device before installing the TV APK.
 
 | App | Download |
 |---|---|
-| Mobile (parent phone) | [ScreenTime-Mobile-debug.apk](https://github.com/yohananha/ScreenTimeController/releases/download/v0.1.0-beta/mobile-debug.apk) |
+| Web (parent, any device) | Deploy your own via `firebase deploy --only hosting` (see [Setting up from source](#setting-up-from-source)), or run locally with `cd web && npm run dev` |
+| Mobile (parent phone, legacy) | [ScreenTime-Mobile-debug.apk](https://github.com/yohananha/ScreenTimeController/releases/download/v0.1.0-beta/mobile-debug.apk) |
 | TV | [ScreenTime-TV-debug.apk](https://github.com/yohananha/ScreenTimeController/releases/download/v0.1.0-beta/tv-debug.apk) |
 
 All releases: [github.com/yohananha/ScreenTimeController/releases](https://github.com/yohananha/ScreenTimeController/releases)
@@ -24,21 +26,21 @@ All releases: [github.com/yohananha/ScreenTimeController/releases](https://githu
 
 ### First-time setup
 
-1. **Parent A** signs up in the mobile app → taps **Create a new family**. They become the family owner (the only account that can pair or unpair the TV).
-2. **Pair the TV**: launch the TV app and grant the three permissions it needs (Usage access, Draw over other apps, Accessibility service). The TV shows a **6-digit pairing code**. On mobile, open the **Family** tab → *Pair a TV* → enter the code.
-3. **Invite a co-parent**: in the **Family** tab → *Generate code*. The second parent signs up on their phone, picks *Join with an invite code*, and enters the 6-digit code. They join as a Member by default; the owner can promote them to Admin from the same tab.
+1. **Parent A** signs in at the web app (or the legacy mobile app) → taps **Create a new family**. They become the family owner (the only account that can pair or unpair the TV).
+2. **Pair the TV**: launch the TV app and grant the three permissions it needs (Usage access, Draw over other apps, Accessibility service). The TV shows a **6-digit pairing code**. On the web app, open the **Family** tab → *Pair a TV* → enter the code.
+3. **Invite a co-parent**: in the **Family** tab → *Invite a parent*. The second parent signs in, picks *Join a family*, and enters the 6-digit code. They join as a co-parent by default; the owner can promote them to admin from the same tab.
 
 ### Daily flow
 
 | What happens | Where |
 |---|---|
-| Set a YouTube limit of 60 min/day | Mobile → Limits tab → + |
+| Set a YouTube limit of 60 min/day | Web app → Limits tab → + |
 | TV blocks YouTube once 60 min is reached | TV — automatically |
 | Child taps "Request more time" on the block screen | TV |
-| Parent gets a push notification | Mobile |
-| Parent taps Approve (or Deny) | Mobile → Requests tab |
+| Parent gets a push notification | Web app |
+| Parent taps Approve (or Deny) | Web app → Requests tab |
 | TV unblocks and adds the approved bonus time | TV — automatically |
-| Parent generates a 4-digit one-time code | Mobile → Codes tab |
+| Parent generates a 6-digit one-time code | Web app → Codes tab |
 | Child types the code on the TV block screen | TV |
 | TV unblocks for the extra minutes in the code | TV — automatically |
 
@@ -60,15 +62,18 @@ Each TV can only belong to one family at a time, but a family can pair **multipl
 
 ```
 ScreenTimeController/
-├── shared/          # Android library: Firestore, Room, models — no UI
-├── mobile/          # Parent phone app (Jetpack Compose + Material 3)
+├── shared/          # Android library: Firestore, Room, models — no UI (used by tv/)
+├── web/             # Parent web app (React + Vite + TypeScript) — replaces mobile/
+├── mobile/          # Parent phone app (Jetpack Compose + Material 3) — legacy, being phased out
 ├── tv/              # Android TV app (Jetpack Compose for TV)
 ├── functions/       # Firebase Cloud Functions (TypeScript/Node 20)
 ├── firestore.rules  # Firestore security rules
-└── firebase.json    # Firebase project config
+└── firebase.json    # Firebase project config (Firestore, Functions, Hosting)
 ```
 
-Both `:mobile` and `:tv` depend on `:shared`. All Firestore reads/writes go through `FirestoreRepository` in `:shared`. Privilege-escalating operations (invite redemption, TV pairing, code redemption) are callable Cloud Functions so the Firestore rules can stay fully locked.
+`:tv` and (for now) `:mobile` depend on `:shared`; `web/` is a standalone npm project, not a Gradle module. Both `web/` and `mobile/` talk to the exact same Firestore collections and Cloud Functions — `web/src/firebase/firestoreRepository.ts` is a line-for-line TypeScript port of `shared/src/main/java/com/screentime/shared/firestore/FirestoreRepository.kt`, so a normal signed-in Firebase Auth user gets identical read/write access regardless of which client they use. Privilege-escalating operations (invite redemption, TV pairing, code redemption) are callable Cloud Functions so the Firestore rules can stay fully locked.
+
+`mobile/` will be removed once `web/` has been verified at full feature parity end-to-end against a real Firebase project (see `TESTING.md`); `tv/`, `shared/`, `functions/`, and `firestore.rules` are unaffected by that migration either way.
 
 ---
 
@@ -76,25 +81,26 @@ Both `:mobile` and `:tv` depend on `:shared`. All Firestore reads/writes go thro
 
 ### Prerequisites
 
-- Android Studio Giraffe or newer
-- Node 22+ and `npm` (for Cloud Functions)
+- Android Studio Giraffe or newer (for `mobile/` and `tv/`)
+- Node 20+ and `npm` (for `web/` and Cloud Functions)
 - A Firebase project on the **Blaze** (pay-as-you-go) plan
 
 ### Firebase project
 
 1. In the [Firebase Console](https://console.firebase.google.com), create a project.
-2. Register two Android apps:
+2. Register a **Web app** → copy the `firebaseConfig` values into `web/.env.local` (copy `web/.env.example` first — see [Web app](#web-app) below).
+3. Register two Android apps:
    - Package `com.screentime.mobile` → download `google-services.json` → place at `mobile/google-services.json`
    - Package `com.screentime.tv` → download `google-services.json` → place at `tv/google-services.json`
 
-   > Both files are in `.gitignore`. The build will fail without them.
+   > All of `google-services.json` and `web/.env.local` are in `.gitignore`. The respective builds fail without them.
 
-3. Enable **Authentication** → Email/Password + Google sign-in.
-4. Enable **Cloud Firestore** in production mode.
-5. Enable **Cloud Messaging** (no extra console config needed).
-6. Deploy rules and functions (see below).
+4. Enable **Authentication** → Google sign-in.
+5. Enable **Cloud Firestore** in production mode.
+6. Enable **Cloud Messaging** → generate a **Web Push certificate** (VAPID key) for `web/.env.local`'s `VITE_FIREBASE_VAPID_KEY`.
+7. Deploy rules, functions, and hosting (see below).
 
-### Deploy rules and Cloud Functions
+### Deploy rules, Cloud Functions, and Hosting
 
 ```bash
 npm install -g firebase-tools
@@ -103,10 +109,20 @@ firebase use <your-project-id>
 
 # from repo root
 cd functions && npm install && npm run build && cd ..
-firebase deploy --only firestore:rules,functions
+cd web && npm install && npm run build && cd ..
+firebase deploy --only firestore:rules,functions,hosting
 ```
 
-### Run the apps
+### Web app
+
+```bash
+cd web
+npm install
+cp .env.example .env.local   # fill in from Firebase Console -> Project Settings -> General -> Your apps -> Web app
+npm run dev
+```
+
+### Run the Android apps
 
 Open the project in Android Studio. Select the `:mobile` or `:tv` run configuration and press Run. The `:tv` target requires an Android TV emulator or a physical Android TV device.
 
@@ -131,11 +147,11 @@ The TV app asks for three permissions on first launch; all three are required fo
 | Function | Caller | What it does |
 |---|---|---|
 | `onNewTimeRequest` | Firestore trigger | Sends FCM push to all family members when the TV creates a time request |
-| `createFamilyInvite` | Mobile (admin) | Generates a 6-digit, 48-hour invite code |
-| `joinFamilyWithInvite` | Mobile (new user) | Validates invite and adds the caller as a Member |
+| `createFamilyInvite` | Web/mobile (admin) | Generates a 6-digit, 48-hour invite code |
+| `joinFamilyWithInvite` | Web/mobile (new user) | Validates invite and adds the caller as a Member |
 | `createTvPairing` | TV | Generates a 6-digit, 10-minute pairing code |
-| `claimTvPairing` | Mobile (owner only) | Validates pairing code, binds TV to family (a family may have many TVs; each TV belongs to one family) |
-| `redeemCode` | TV | Validates a 4-digit unlock code server-side; enforces lockout after 5 wrong attempts in 60 seconds |
+| `claimTvPairing` | Web/mobile (owner only) | Validates pairing code, binds TV to family (a family may have many TVs; each TV belongs to one family) |
+| `redeemCode` | TV | Validates a 6-digit unlock code server-side; enforces lockout after 5 wrong attempts in 60 seconds |
 
 ---
 
@@ -143,12 +159,14 @@ The TV app asks for three permissions on first launch; all three are required fo
 
 | Concern | Choice |
 |---|---|
-| Language | Kotlin 2.x |
-| UI (mobile) | Jetpack Compose + Material 3 |
+| Language (Android) | Kotlin 2.x |
+| UI (web, parent) | React 18 + Vite + TypeScript |
+| Web testing | Vitest + React Testing Library |
+| UI (mobile, legacy) | Jetpack Compose + Material 3 |
 | UI (TV) | Jetpack Compose for TV (`androidx.tv`) |
-| DI | Hilt |
-| Local cache | Room |
-| Async | Kotlin Coroutines + Flow |
-| Backend | Firebase (Firestore, Auth, FCM, Cloud Functions) |
-| Crash reporting | Firebase Crashlytics |
+| DI (Android) | Hilt |
+| Local cache (TV) | Room |
+| Async (Android) | Kotlin Coroutines + Flow |
+| Backend | Firebase (Firestore, Auth, FCM, Cloud Functions, Hosting) |
+| Crash reporting (mobile, legacy) | Firebase Crashlytics |
 | Cloud Functions runtime | Node 20 / TypeScript |
