@@ -13,6 +13,7 @@ google-services.json
 **/google-services.json
 *.firebase-service-account.json
 .firebaserc
+.firebase/
 
 # Cloud Functions
 functions/node_modules/

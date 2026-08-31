@@ -1,0 +1,30 @@
+/** Verbatim port of mobile/.../ui/theme/SproutTokens.kt's SproutPalette. */
+export const colors = {
+  background: '#FCF6F0',
+  surface: '#FFFFFF',
+  surfaceSunken: '#FAF5EF',
+  ink: '#3A2A4D',
+  inkMuted: '#8A7C96',
+  inkFaint: '#B6ABBF',
+  primary: '#FF6B5E',
+  primaryPressed: '#F0584B',
+  onPrimary: '#3A2A4D',
+  accent: '#B9A8F0',
+  accentContainer: '#ECE5FB',
+  positiveDisplay: '#4FCFA1',
+  positiveText: '#15795A',
+  positiveContainer: '#DFF6EC',
+  warningDisplay: '#F2A93B',
+  warningText: '#9A6313',
+  warningContainer: '#FCEFD7',
+  overDisplay: '#E5483A',
+  overText: '#B5281C',
+  overContainer: '#FBE2DF',
+  outline: '#EADFD4',
+  outlineStrong: '#D9CABD',
+  darkBackground: '#2E2140',
+  darkSurface: '#52436A',
+  darkMutedText: '#C9BBD6',
+} as const;
+
+export type SproutColorToken = keyof typeof colors;

@@ -1,0 +1,73 @@
+@import '@fontsource-variable/fredoka';
+@import '@fontsource/nunito-sans/400.css';
+@import '@fontsource/nunito-sans/600.css';
+@import '@fontsource/nunito-sans/700.css';
+@import '@fontsource/nunito-sans/800.css';
+@import '@fontsource/nunito-sans/900.css';
+
+:root {
+  --sprout-color-background: #fcf6f0;
+  --sprout-color-surface: #ffffff;
+  --sprout-color-surface-sunken: #faf5ef;
+  --sprout-color-ink: #3a2a4d;
+  --sprout-color-ink-muted: #8a7c96;
+  --sprout-color-ink-faint: #b6abbf;
+  --sprout-color-primary: #ff6b5e;
+  --sprout-color-primary-pressed: #f0584b;
+  --sprout-color-on-primary: #3a2a4d;
+  --sprout-color-accent: #b9a8f0;
+  --sprout-color-accent-container: #ece5fb;
+  --sprout-color-positive-display: #4fcfa1;
+  --sprout-color-positive-text: #15795a;
+  --sprout-color-positive-container: #dff6ec;
+  --sprout-color-warning-display: #f2a93b;
+  --sprout-color-warning-text: #9a6313;
+  --sprout-color-warning-container: #fcefd7;
+  --sprout-color-over-display: #e5483a;
+  --sprout-color-over-text: #b5281c;
+  --sprout-color-over-container: #fbe2df;
+  --sprout-color-outline: #eadfd4;
+  --sprout-color-outline-strong: #d9cabd;
+  --sprout-color-dark-background: #2e2140;
+  --sprout-color-dark-surface: #52436a;
+  --sprout-color-dark-muted-text: #c9bbd6;
+
+  --sprout-radius-icon: 10px;
+  --sprout-radius-input: 18px;
+  --sprout-radius-card: 24px;
+  --sprout-radius-large: 28px;
+  --sprout-radius-pill: 999px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--sprout-color-background);
+  color: var(--sprout-color-ink);
+  font-family: 'Nunito Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+input,
+textarea {
+  font: inherit;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
