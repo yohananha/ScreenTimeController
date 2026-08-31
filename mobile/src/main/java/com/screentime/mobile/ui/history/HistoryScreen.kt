@@ -29,15 +29,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.screentime.mobile.R
 import com.screentime.mobile.ui.components.ProgressBar
 import com.screentime.mobile.ui.components.TopHeader
+import com.screentime.mobile.ui.theme.LocalFormats
 import com.screentime.mobile.ui.theme.Sprout
 import com.screentime.mobile.ui.theme.rememberScreenPadding
 import com.screentime.shared.model.UsageSnapshot
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -56,9 +59,9 @@ fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
             item { TopHeader(familyName = "Family", parentInitial = "P") }
             item {
                 Column(modifier = Modifier.padding(top = 4.dp, bottom = 6.dp)) {
-                    Text("Usage", style = Sprout.typography.display, color = Sprout.colors.ink)
+                    Text(stringResource(R.string.history_title), style = Sprout.typography.display, color = Sprout.colors.ink)
                     Text(
-                        "Last 7 days",
+                        stringResource(R.string.history_subtitle),
                         style = Sprout.typography.caption,
                         color = Sprout.colors.inkMuted,
                         modifier = Modifier.padding(top = 5.dp),
@@ -91,9 +94,9 @@ private fun EmptyState() {
         ) {
             Icon(Icons.Filled.Check, contentDescription = null, tint = Sprout.colors.positiveText, modifier = Modifier.size(40.dp))
         }
-        Text("No usage yet", style = Sprout.typography.title, color = Sprout.colors.ink)
+        Text(stringResource(R.string.history_empty_title), style = Sprout.typography.title, color = Sprout.colors.ink)
         Text(
-            "Your family hasn't watched anything today. Enjoy the quiet!",
+            stringResource(R.string.history_empty_subtitle),
             style = Sprout.typography.bodyStrong,
             color = Sprout.colors.inkMuted,
         )
@@ -117,7 +120,13 @@ private fun WeeklyBarChartCard(snapshots: List<UsageSnapshot>) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            snapshots.reversed().forEach { snapshot ->
+            // Sort oldest-to-newest explicitly rather than relying on
+            // .reversed() of whatever order the ViewModel happens to hand
+            // back: under RTL a Row already mirrors left-to-right into
+            // right-to-left, so reversing here on top of that would double-
+            // flip and read newest-to-oldest backwards. Ascending order lets
+            // the layout direction do the (correct) visual flip on its own.
+            snapshots.sortedBy { it.date }.forEach { snapshot ->
                 val date = LocalDate.parse(snapshot.date)
                 val isToday = date == today
                 val mins = snapshot.totalMinutes()
@@ -152,9 +161,9 @@ private fun WeeklyBarChartCard(snapshots: List<UsageSnapshot>) {
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            LegendDot(Sprout.colors.positiveDisplay, "On track")
-            LegendDot(Sprout.colors.warningDisplay, "Almost up")
-            LegendDot(Sprout.colors.overDisplay, "Over limit")
+            LegendDot(Sprout.colors.positiveDisplay, stringResource(R.string.status_on_track))
+            LegendDot(Sprout.colors.warningDisplay, stringResource(R.string.status_almost_up))
+            LegendDot(Sprout.colors.overDisplay, stringResource(R.string.history_legend_over_limit))
         }
     }
 }
@@ -178,11 +187,11 @@ private fun DayCard(snapshot: UsageSnapshot) {
     val date = LocalDate.parse(snapshot.date)
     val today = LocalDate.now()
     val dayLabel = when (date) {
-        today -> "Today"
-        today.minusDays(1) -> "Yesterday"
+        today -> stringResource(R.string.history_today)
+        today.minusDays(1) -> stringResource(R.string.history_yesterday)
         else -> date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
     }
-    val dateLabel = date.format(DateTimeFormatter.ofPattern("MMM d"))
+    val dateLabel = LocalFormats.current.clock.dayAndDate(date)
     val totalMinutes = snapshot.totalMinutes()
     val topApps = snapshot.perAppMillis.entries.sortedByDescending { it.value }.take(5)
 
@@ -202,7 +211,11 @@ private fun DayCard(snapshot: UsageSnapshot) {
                 Text(dayLabel, style = Sprout.typography.headline, color = Sprout.colors.ink)
                 Text(dateLabel, style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
             }
-            Text("${totalMinutes}m", style = Sprout.typography.headline, color = Sprout.colors.ink)
+            Text(
+                LocalFormats.current.duration.minutes(LocalContext.current.resources, totalMinutes),
+                style = Sprout.typography.headline,
+                color = Sprout.colors.ink,
+            )
         }
         topApps.forEach { (pkg, millis) ->
             AppUsageRow(
@@ -219,7 +232,11 @@ private fun AppUsageRow(appName: String, minutes: Int, fraction: Float) {
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(appName, style = Sprout.typography.body, color = Sprout.colors.ink)
-            Text("${minutes}m", style = Sprout.typography.bodyStrong, color = Sprout.colors.inkMuted)
+            Text(
+                LocalFormats.current.duration.minutes(LocalContext.current.resources, minutes),
+                style = Sprout.typography.bodyStrong,
+                color = Sprout.colors.inkMuted,
+            )
         }
         ProgressBar(
             progress = fraction.coerceIn(0f, 1f),

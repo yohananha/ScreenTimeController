@@ -317,6 +317,68 @@ class FirestoreRepository @Inject constructor(
             .await()
     }
 
+    /**
+     * Watches /families/{id}/settings/language — what the TV shows. Distinct
+     * from [userLanguageFlow]: this is the family-wide value a paired TV
+     * reads, not any one parent's personal preference. Null = not set (the
+     * TV falls back to its own device locale).
+     */
+    fun languageFlow(familyId: String): Flow<String?> = callbackFlow {
+        val ref = db.collection("families").document(familyId)
+            .collection("settings").document("language")
+        val registration = ref.addSnapshotListener { snap, error ->
+            if (error != null) {
+                Log.e(TAG, "languageFlow($familyId) listener failed", error)
+                trySend(null)
+                return@addSnapshotListener
+            }
+            trySend(snap?.getString(FIELD_LANGUAGE_CODE))
+        }
+        awaitClose { registration.remove() }
+    }
+
+    /** [code] is a BCP-47 language tag (e.g. "en", "he"); null clears it. */
+    suspend fun setLanguage(familyId: String, code: String?) {
+        val ref = db.collection("families").document(familyId)
+            .collection("settings").document("language")
+        if (code == null) {
+            ref.set(mapOf(FIELD_LANGUAGE_CODE to FieldValue.delete()), SetOptions.merge()).await()
+        } else {
+            ref.set(mapOf(FIELD_LANGUAGE_CODE to code)).await()
+        }
+    }
+
+    /**
+     * Watches /users/{uid}.language — the signed-in person's own language
+     * preference, portable across every device they sign into. Null = follow
+     * the device's own locale.
+     */
+    fun userLanguageFlow(uid: String): Flow<String?> = callbackFlow {
+        val ref = db.collection("users").document(uid)
+        val registration = ref.addSnapshotListener { snap, error ->
+            if (error != null) {
+                Log.e(TAG, "userLanguageFlow($uid) listener failed", error)
+                trySend(null)
+                return@addSnapshotListener
+            }
+            trySend(snap?.getString(FIELD_USER_LANGUAGE))
+        }
+        awaitClose { registration.remove() }
+    }
+
+    /**
+     * Merge-write only: /users/{uid} also holds familyId and fcmTokens, so
+     * this must never overwrite the whole document.
+     */
+    suspend fun setUserLanguage(uid: String, code: String?) {
+        val ref = db.collection("users").document(uid)
+        if (code == null) {
+            ref.set(mapOf(FIELD_USER_LANGUAGE to FieldValue.delete()), SetOptions.merge()).await()
+        } else {
+            ref.set(mapOf(FIELD_USER_LANGUAGE to code), SetOptions.merge()).await()
+        }
+    }
+
     fun usageFlow(familyId: String, date: LocalDate): Flow<UsageSnapshot> = callbackFlow {
         val ref = db.collection("families").document(familyId)
             .collection("usage").document(date.toString())
@@ -688,5 +750,7 @@ class FirestoreRepository @Inject constructor(
         const val FIELD_TF_END = "end"
         const val FIELD_ALLDAY_DATE = "date"
         const val FIELD_INSTANT_LOCKED = "locked"
+        const val FIELD_LANGUAGE_CODE = "code"
+        const val FIELD_USER_LANGUAGE = "language"
     }
 }

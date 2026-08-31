@@ -23,10 +23,15 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.focusable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
+import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
+import com.screentime.tv.R
 import com.screentime.tv.ui.theme.Sprout
 
 sealed class KeypadKey {
@@ -86,11 +91,6 @@ private fun KeypadButton(
         key is KeypadKey.Digit -> Sprout.colors.tvCream
         else -> Sprout.colors.accent
     }
-    val label = when (key) {
-        is KeypadKey.Digit -> key.value.toString()
-        KeypadKey.Clear -> "C"
-        KeypadKey.Backspace -> "⌫"
-    }
     Box(
         modifier = Modifier
             .size(size.dp)
@@ -103,6 +103,21 @@ private fun KeypadButton(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Text(label, style = Sprout.typography.keypadDigit, color = textColor)
+        if (key == KeypadKey.Backspace) {
+            // AutoMirrored: in RTL a backspace visually points the other way.
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Backspace,
+                contentDescription = null,
+                tint = textColor,
+                modifier = Modifier.size((size * 0.4).dp),
+            )
+        } else {
+            val label = when (key) {
+                is KeypadKey.Digit -> key.value.toString()
+                KeypadKey.Clear -> stringResource(R.string.keypad_clear)
+                KeypadKey.Backspace -> "" // unreachable, handled above
+            }
+            Text(label, style = Sprout.typography.keypadDigit, color = textColor)
+        }
     }
 }

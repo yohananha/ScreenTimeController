@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mirrors SproutPalette.background (ui/theme/SproutTokens.kt) so the
+         AppCompat theme's window background matches Compose's before the
+         first frame draws — otherwise there's a white flash on launch. -->
+    <color name="sprout_background">#FCF6F0</color>
+</resources>

@@ -29,10 +29,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.screentime.mobile.R
 import com.screentime.mobile.ui.components.CodeSlotInput
 import com.screentime.mobile.ui.components.SproutPrimaryButton
+import com.screentime.mobile.ui.components.mirrorInRtl
 import com.screentime.mobile.ui.theme.Sprout
 import com.screentime.mobile.ui.theme.rememberScreenPadding
 
@@ -78,9 +81,9 @@ fun FamilyOnboardingScreen(viewModel: FamilyViewModel = hiltViewModel()) {
 
         Spacer(Modifier.height(24.dp))
 
-        Text("Set up your family", style = Sprout.typography.display, color = Sprout.colors.ink)
+        Text(stringResource(R.string.family_onboarding_title), style = Sprout.typography.display, color = Sprout.colors.ink)
         Text(
-            "Create a new family or join one a co-parent set up.",
+            stringResource(R.string.family_onboarding_subtitle),
             style = Sprout.typography.bodyStrong,
             color = Sprout.colors.inkMuted,
             modifier = Modifier.padding(top = 7.dp),
@@ -94,8 +97,8 @@ fun FamilyOnboardingScreen(viewModel: FamilyViewModel = hiltViewModel()) {
             iconContent = {
                 Icon(Icons.Filled.Add, contentDescription = null, tint = Color5B4D8C, modifier = Modifier.size(24.dp))
             },
-            title = "Create a family",
-            subtitle = "Start fresh. You'll be the owner.",
+            title = stringResource(R.string.family_onboarding_create_title),
+            subtitle = stringResource(R.string.family_onboarding_create_subtitle),
             onClick = { viewModel.createFamily() },
         )
 
@@ -123,9 +126,9 @@ fun FamilyOnboardingScreen(viewModel: FamilyViewModel = hiltViewModel()) {
                     Icon(Icons.Filled.Key, contentDescription = null, tint = Sprout.colors.ink, modifier = Modifier.size(24.dp))
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Join a family", style = Sprout.typography.headline, color = Sprout.colors.ink)
+                    Text(stringResource(R.string.family_onboarding_join_title), style = Sprout.typography.headline, color = Sprout.colors.ink)
                     Text(
-                        "Use the invite code from your co-parent.",
+                        stringResource(R.string.family_onboarding_join_subtitle),
                         style = Sprout.typography.body,
                         color = Sprout.colors.inkMuted,
                     )
@@ -134,13 +137,13 @@ fun FamilyOnboardingScreen(viewModel: FamilyViewModel = hiltViewModel()) {
                     Icons.Filled.ChevronRight,
                     contentDescription = null,
                     tint = Sprout.colors.primary,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(22.dp).mirrorInRtl(),
                 )
             }
             if (joinExpanded) {
                 Spacer(Modifier.height(18.dp))
                 Text(
-                    "ENTER THE 6-DIGIT INVITE CODE",
+                    stringResource(R.string.family_onboarding_invite_code_label),
                     style = Sprout.typography.label,
                     color = Sprout.colors.inkFaint,
                 )
@@ -148,7 +151,7 @@ fun FamilyOnboardingScreen(viewModel: FamilyViewModel = hiltViewModel()) {
                 CodeSlotInput(value = code, onValueChange = { code = it })
                 Spacer(Modifier.height(14.dp))
                 SproutPrimaryButton(
-                    text = if (state.joining) "Joining…" else "Continue",
+                    text = if (state.joining) stringResource(R.string.family_onboarding_joining) else stringResource(R.string.action_continue),
                     onClick = { viewModel.joinByCode(code) },
                     enabled = code.length == 6 && !state.joining,
                     modifier = Modifier.fillMaxWidth(),
@@ -158,7 +161,7 @@ fun FamilyOnboardingScreen(viewModel: FamilyViewModel = hiltViewModel()) {
 
         state.error?.let {
             Spacer(Modifier.height(12.dp))
-            Text(it, color = Sprout.colors.overText, style = Sprout.typography.bodyStrong)
+            Text(stringResource(it), color = Sprout.colors.overText, style = Sprout.typography.bodyStrong)
         }
         }
     }
@@ -195,7 +198,7 @@ private fun Card(
             Icons.Filled.ChevronRight,
             contentDescription = null,
             tint = Sprout.colors.primary,
-            modifier = Modifier.size(22.dp),
+            modifier = Modifier.size(22.dp).mirrorInRtl(),
         )
     }
 }

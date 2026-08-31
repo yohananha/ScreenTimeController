@@ -30,6 +30,23 @@ android {
             isReturnDefaultValues = true
         }
     }
+
+    lint {
+        // MissingTranslation/ExtraTranslation are ERROR by default already —
+        // this pins that intent explicitly against a future change, and adds
+        // the checks that catch the most common real translation bug: a
+        // values-he entry with the wrong number or type of %n$s placeholder.
+        error += setOf(
+            "MissingTranslation",
+            "ExtraTranslation",
+            "StringFormatInvalid",
+            "StringFormatMatches",
+            "StringFormatCount",
+            "ImpliedQuantity",
+            "PluralsCandidate",
+        )
+        abortOnError = true
+    }
 }
 
 dependencies {

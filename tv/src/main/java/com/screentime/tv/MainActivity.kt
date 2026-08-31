@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -23,6 +24,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,6 +37,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
 import com.screentime.shared.auth.FamilyIdProvider
+import com.screentime.tv.locale.TvLocaleController
 import com.screentime.tv.ui.components.StatusKind
 import com.screentime.tv.ui.components.TvCanvas
 import com.screentime.tv.ui.components.TvGhostButton
@@ -44,6 +48,7 @@ import com.screentime.tv.ui.pairing.PairingScreen
 import com.screentime.tv.ui.theme.ScreenTimeTvTheme
 import com.screentime.tv.ui.theme.Sprout
 import com.screentime.tv.usage.InstalledAppsReporter
+import com.screentime.tv.R
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -55,12 +60,31 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @Inject lateinit var localeController: TvLocaleController
+
     @OptIn(ExperimentalTvMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            ScreenTimeTvTheme {
-                RootScreen()
+            // The locale arrives asynchronously from Firestore, so this
+            // shadows LocalContext/LocalLayoutDirection live instead of
+            // migrating to AppCompatActivity + attachBaseContext (which
+            // would need a recreate loop to react to a value that isn't
+            // known at process start).
+            //
+            // Caveat: LocalContext.current below is now a config-wrapped
+            // ContextImpl, not this Activity — startActivity on it requires
+            // FLAG_ACTIVITY_NEW_TASK (every startActivity call in this file
+            // already sets it).
+            val locale by localeController.locale.collectAsState()
+            val localizedContext = remember(locale) { localeController.wrap(this) }
+            CompositionLocalProvider(
+                LocalContext provides localizedContext,
+                LocalLayoutDirection provides localeController.layoutDirection(),
+            ) {
+                ScreenTimeTvTheme {
+                    RootScreen()
+                }
             }
         }
     }
@@ -93,9 +117,9 @@ private fun RootScreen(familyVm: FamilyIdViewModel = hiltViewModel()) {
             !permissions.usageAccess -> PermissionWall(
                 stepCurrent = 1,
                 stepTotal = 3,
-                headline = "One quick setup",
-                body = "ScreenTime needs Usage Access so it can see which app is open and step in only when limits are hit.",
-                primary = "Open Android settings",
+                headline = stringResource(R.string.permission_usage_headline),
+                body = stringResource(R.string.permission_usage_body),
+                primary = stringResource(R.string.permission_open_settings),
                 onPrimary = {
                     context.startActivity(
                         Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
@@ -106,9 +130,9 @@ private fun RootScreen(familyVm: FamilyIdViewModel = hiltViewModel()) {
             !permissions.overlay -> PermissionWall(
                 stepCurrent = 2,
                 stepTotal = 3,
-                headline = "One more setting",
-                body = "ScreenTime needs \"Display over other apps\" so it can show the gentle reminder when time's up.",
-                primary = "Open Android settings",
+                headline = stringResource(R.string.permission_overlay_headline),
+                body = stringResource(R.string.permission_overlay_body),
+                primary = stringResource(R.string.permission_open_settings),
                 onPrimary = {
                     val uri = Uri.parse("package:${context.packageName}")
                     context.startActivity(
@@ -120,9 +144,9 @@ private fun RootScreen(familyVm: FamilyIdViewModel = hiltViewModel()) {
             !permissions.accessibility -> PermissionWall(
                 stepCurrent = 3,
                 stepTotal = 3,
-                headline = "Almost there!",
-                body = "Turn on the ScreenTime accessibility service so it can tell which app is open and step in only when needed.",
-                primary = "Open Android settings",
+                headline = stringResource(R.string.permission_accessibility_headline),
+                body = stringResource(R.string.permission_accessibility_body),
+                primary = stringResource(R.string.permission_open_settings),
                 onPrimary = {
                     context.startActivity(
                         Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
@@ -166,13 +190,13 @@ private fun OperationalScreen(@Suppress("UNUSED_PARAMETER") viewModel: Operation
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Text(
-                    "You're all set!",
+                    stringResource(R.string.operational_title),
                     style = Sprout.typography.displayHero,
                     color = Sprout.colors.tvCream,
                     textAlign = TextAlign.Center,
                 )
                 Text(
-                    "ScreenTime is running in the background. We'll only show up when a limit hits — promise.",
+                    stringResource(R.string.operational_body),
                     style = Sprout.typography.bodyLarge,
                     color = Sprout.colors.tvMutedText,
                     textAlign = TextAlign.Center,
@@ -233,6 +257,6 @@ private fun Row(stepCurrent: Int, primary: String, onPrimary: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         TvPrimaryButton(text = primary, onClick = onPrimary)
-        TvGhostButton(text = "Why do you need this?", onClick = { /* expandable info — TODO */ })
+        TvGhostButton(text = stringResource(R.string.permission_why_needed), onClick = { /* expandable info — TODO */ })
     }
 }

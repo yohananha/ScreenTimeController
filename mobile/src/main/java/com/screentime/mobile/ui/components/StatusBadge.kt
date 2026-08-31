@@ -11,7 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.screentime.mobile.R
 import com.screentime.mobile.ui.theme.Sprout
 import com.screentime.mobile.ui.theme.SproutRadius
 
@@ -21,10 +23,10 @@ enum class Status { OnTrack, AlmostUp, TimesUp, Paused }
 fun StatusBadge(status: Status, modifier: Modifier = Modifier) {
     val (bg, fg, dot, label) = with(Sprout.colors) {
         when (status) {
-            Status.OnTrack -> Quad(positiveContainer, positiveText, positiveDisplay, "On track")
-            Status.AlmostUp -> Quad(warningContainer, warningText, warningDisplay, "Almost up")
-            Status.TimesUp -> Quad(overContainer, overText, overDisplay, "Time's up")
-            Status.Paused -> Quad(accentContainer, ink, accent, "Paused")
+            Status.OnTrack -> Quad(positiveContainer, positiveText, positiveDisplay, stringResource(R.string.status_on_track))
+            Status.AlmostUp -> Quad(warningContainer, warningText, warningDisplay, stringResource(R.string.status_almost_up))
+            Status.TimesUp -> Quad(overContainer, overText, overDisplay, stringResource(R.string.status_times_up))
+            Status.Paused -> Quad(accentContainer, ink, accent, stringResource(R.string.status_paused))
         }
     }
     Row(

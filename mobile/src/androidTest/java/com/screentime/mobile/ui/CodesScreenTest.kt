@@ -14,6 +14,8 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.screentime.mobile.R
 import com.screentime.mobile.ui.components.CodeTilesRow
 import com.screentime.mobile.ui.components.HeroCard
 import com.screentime.mobile.ui.theme.ScreenTimeTheme
@@ -42,6 +44,7 @@ class CodesScreenTest {
 
     private val fakeState = MutableStateFlow(CodesUiState())
     private val mockViewModel = mock<CodesViewModel>()
+    private val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
 
     @Before
     fun setUp() {
@@ -102,7 +105,7 @@ class CodesScreenTest {
                 CodesScreen(viewModel = mockViewModel)
             }
         }
-        composeRule.onNodeWithText("Generate a code below.").assertIsDisplayed()
+        composeRule.onNodeWithText(targetContext.getString(R.string.codes_generate_below)).assertIsDisplayed()
         composeRule.onAllNodesWithText("-").assertCountEquals(6)
     }
 

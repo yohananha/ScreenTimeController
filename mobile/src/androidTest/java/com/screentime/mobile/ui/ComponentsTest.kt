@@ -9,6 +9,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.screentime.mobile.R
 import com.screentime.mobile.ui.components.ChipGroup
 import com.screentime.mobile.ui.components.SproutGhostButton
 import com.screentime.mobile.ui.components.SproutPrimaryButton
@@ -26,12 +28,14 @@ class ComponentsTest {
     @get:Rule
     val composeRule = createComposeRule()
 
+    private val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
+
     @Test
     fun statusBadgeOnTrackIsDisplayed() {
         composeRule.setContent {
             ScreenTimeTheme { StatusBadge(status = Status.OnTrack) }
         }
-        composeRule.onNodeWithText("On track").assertIsDisplayed()
+        composeRule.onNodeWithText(targetContext.getString(R.string.status_on_track)).assertIsDisplayed()
     }
 
     @Test
@@ -39,7 +43,7 @@ class ComponentsTest {
         composeRule.setContent {
             ScreenTimeTheme { StatusBadge(status = Status.AlmostUp) }
         }
-        composeRule.onNodeWithText("Almost up").assertIsDisplayed()
+        composeRule.onNodeWithText(targetContext.getString(R.string.status_almost_up)).assertIsDisplayed()
     }
 
     @Test
@@ -47,7 +51,7 @@ class ComponentsTest {
         composeRule.setContent {
             ScreenTimeTheme { StatusBadge(status = Status.TimesUp) }
         }
-        composeRule.onNodeWithText("Time's up").assertIsDisplayed()
+        composeRule.onNodeWithText(targetContext.getString(R.string.status_times_up)).assertIsDisplayed()
     }
 
     @Test
@@ -55,7 +59,7 @@ class ComponentsTest {
         composeRule.setContent {
             ScreenTimeTheme { StatusBadge(status = Status.Paused) }
         }
-        composeRule.onNodeWithText("Paused").assertIsDisplayed()
+        composeRule.onNodeWithText(targetContext.getString(R.string.status_paused)).assertIsDisplayed()
     }
 
     @Test

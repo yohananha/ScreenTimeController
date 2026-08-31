@@ -14,6 +14,8 @@ import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.sp
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.screentime.mobile.R
 import com.screentime.mobile.ui.theme.ScreenTimeTheme
 import com.screentime.mobile.ui.limits.LimitsScreen
 import com.screentime.mobile.ui.limits.LimitsViewModel
@@ -34,8 +36,12 @@ class LimitsScreenTest {
     val composeRule = createComposeRule()
 
     private val fakeState = MutableStateFlow(LimitsUiState())
-    private val fakeWriteError = MutableStateFlow<String?>(null)
+    private val fakeWriteError = MutableStateFlow<Int?>(null)
     private val mockViewModel = mock<LimitsViewModel>()
+    // Resources aren't locale-swapped in this test target, so resolving the
+    // strings here and resolving them inside the composable under test will
+    // always agree — this just avoids re-hardcoding the English literal.
+    private val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
 
     @Before
     fun setUp() {
@@ -50,7 +56,7 @@ class LimitsScreenTest {
                 LimitsScreen(viewModel = mockViewModel)
             }
         }
-        composeRule.onNodeWithText("Limits").assertIsDisplayed()
+        composeRule.onNodeWithText(targetContext.getString(R.string.limits_title)).assertIsDisplayed()
     }
 
     @Test
@@ -60,7 +66,7 @@ class LimitsScreenTest {
                 LimitsScreen(viewModel = mockViewModel)
             }
         }
-        composeRule.onNodeWithText("TODAY'S SCREEN TIME").assertIsDisplayed()
+        composeRule.onNodeWithText(targetContext.getString(R.string.hero_todays_screen_time)).assertIsDisplayed()
     }
 
     @Test
@@ -70,18 +76,19 @@ class LimitsScreenTest {
                 LimitsScreen(viewModel = mockViewModel)
             }
         }
-        composeRule.onNodeWithText("+ Add limit").assertIsDisplayed()
+        composeRule.onNodeWithText(targetContext.getString(R.string.limits_add_limit_fab)).assertIsDisplayed()
     }
 
     @Test
     fun appLimitsSectionHeaderIsDisplayed() {
+        val header = targetContext.getString(R.string.limits_app_section_title)
         composeRule.setContent {
             ScreenTimeTheme {
                 LimitsScreen(viewModel = mockViewModel)
             }
         }
-        composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("App limits"))
-        composeRule.onNodeWithText("App limits").assertIsDisplayed()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(hasText(header))
+        composeRule.onNodeWithText(header).assertIsDisplayed()
     }
 
     @Test
@@ -102,7 +109,7 @@ class LimitsScreenTest {
             }
         }
         val textLayoutResults = mutableListOf<TextLayoutResult>()
-        composeRule.onNodeWithText("Limits")
+        composeRule.onNodeWithText(targetContext.getString(R.string.limits_title))
             .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(textLayoutResults) }
         val layoutResult = textLayoutResults.first()
         assertEquals(30.sp, layoutResult.layoutInput.style.fontSize)

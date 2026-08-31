@@ -103,3 +103,5 @@ jobs:
         with:
           name: lint-reports
           path: "**/build/reports/lint-results-*.html"
+      - name: Hardcoded-string regression guard
+        run: bash scripts/check-hardcoded-strings.sh

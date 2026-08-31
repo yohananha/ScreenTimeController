@@ -1,9 +1,9 @@
 package com.screentime.mobile
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,18 +28,23 @@ import com.screentime.mobile.ui.codes.CodesScreen
 import com.screentime.mobile.ui.components.NavTab
 import com.screentime.mobile.ui.components.SproutBottomNavBar
 import com.screentime.mobile.ui.family.FamilyOnboardingScreen
-import com.screentime.mobile.ui.family.InviteScreen
 import com.screentime.mobile.ui.history.HistoryScreen
 import com.screentime.mobile.ui.limits.LimitsScreen
 import com.screentime.mobile.ui.limits.TimeFrameScreen
 import com.screentime.mobile.ui.requests.RequestsBadgeViewModel
 import com.screentime.mobile.ui.requests.RequestsScreen
+import com.screentime.mobile.ui.settings.SettingsScreen
 import com.screentime.mobile.ui.theme.ScreenTimeTheme
 import com.screentime.mobile.ui.theme.Sprout
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
+    // AppCompatActivity (not ComponentActivity) so
+    // AppCompatDelegate.setApplicationLocales() actually recreates this
+    // Activity with the new locale on API < 33. Requires
+    // Theme.ScreenTimeMobile to be AppCompat-derived (see themes.xml) —
+    // otherwise onCreate() throws IllegalStateException immediately.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -104,7 +109,7 @@ private fun AppShell(familyId: String, badgeViewModel: RequestsBadgeViewModel = 
             }
             composable(NavTab.Requests.route) { RequestsScreen() }
             composable(NavTab.Codes.route) { CodesScreen() }
-            composable(NavTab.Family.route) { InviteScreen(familyId = familyId) }
+            composable(NavTab.Settings.route) { SettingsScreen(familyId = familyId) }
             composable("history") { HistoryScreen() }
         }
     }

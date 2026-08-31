@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.ScreenTimeMobile" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Must be an AppCompat theme (or descendant): MainActivity is now an
+         AppCompatActivity so AppCompatDelegate.setApplicationLocales() can
+         apply a per-app language on API 26-32 (the platform LocaleManager
+         API alone only covers 33+). AppCompatActivity throws at onCreate()
+         if the theme isn't AppCompat-derived, so this change and the
+         MainActivity superclass change must land together.
+         Not a DayNight variant — the app is light-only. -->
+    <style name="Theme.ScreenTimeMobile" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/sprout_background</item>
+    </style>
 </resources>

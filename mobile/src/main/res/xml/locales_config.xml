@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Hand-written rather than AGP's generateLocaleConfig: that feature needs
+    defaultConfig.localeFilters configured and its interaction with
+    isShrinkResources=true (already on in the release build type) isn't
+    worth debugging for a two-locale list.
+
+    Referenced from AndroidManifest.xml via android:localeConfig, and read by
+    AppCompatDelegate to build the "Use device language" / "English" /
+    "עברית" per-app language picker (Settings > Language).
+-->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="he" />
+</locale-config>

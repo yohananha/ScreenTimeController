@@ -79,7 +79,7 @@ fun AppLimitRow(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 StatusBadge(status = if (paused) Status.Paused else status)
-                Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = Sprout.colors.inkFaint, modifier = Modifier.size(20.dp))
+                Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = Sprout.colors.inkFaint, modifier = Modifier.size(20.dp).mirrorInRtl())
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.screentime.mobile.ui.family
+package com.screentime.mobile.ui.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -6,17 +6,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -35,85 +30,62 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.screentime.mobile.R
 import com.screentime.mobile.ui.components.SproutDangerButton
 import com.screentime.mobile.ui.components.SproutGhostButton
 import com.screentime.mobile.ui.components.SproutPrimaryButton
-import com.screentime.mobile.ui.components.TopHeader
+import com.screentime.mobile.ui.family.FamilyViewModel
 import com.screentime.mobile.ui.theme.Sprout
 import com.screentime.mobile.ui.theme.SproutRadius
-import com.screentime.mobile.ui.theme.rememberScreenPadding
+import com.screentime.shared.R as SharedR
 import com.screentime.shared.model.Family
 import com.screentime.shared.model.FamilyRole
 
+/**
+ * Self-contained: owns its FamilyViewModel and observes it directly, so
+ * SettingsScreen only has to call `FamilyMembersSection(familyId)` — moved
+ * out of the old InviteScreen.kt (now deleted) with its content unchanged,
+ * just relocated under Settings and given its own file.
+ */
 @Composable
-fun InviteScreen(familyId: String, viewModel: FamilyViewModel = hiltViewModel()) {
+fun FamilyMembersSection(
+    familyId: String,
+    viewModel: FamilyViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsState()
-
     LaunchedEffect(familyId) { viewModel.observeFamily(familyId) }
 
-    val hPad = rememberScreenPadding()
-    Box(modifier = Modifier.fillMaxSize().background(Sprout.colors.background), contentAlignment = Alignment.TopCenter) {
-        LazyColumn(
-            contentPadding = PaddingValues(start = hPad, end = hPad, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth().widthIn(max = 600.dp),
-        ) {
-            item { TopHeader(familyName = "Family", parentInitial = "P") }
-            item {
-                Column(modifier = Modifier.padding(top = 4.dp, bottom = 6.dp)) {
-                    Text(
-                        "Family & devices",
-                        style = Sprout.typography.display.copy(
-                            fontSize = with(Sprout.typography.display) { fontSize * (30f / 34f) }
-                        ),
-                        color = Sprout.colors.ink,
-                    )
-                    Text(
-                        "Co-parents and your paired TV.",
-                        style = Sprout.typography.caption,
-                        color = Sprout.colors.inkMuted,
-                        modifier = Modifier.padding(top = 5.dp),
-                    )
-                }
-            }
+    val family = state.family
+    val currentUid = state.currentUid
+    if (family != null && currentUid != null) {
+        MembersSection(
+            family = family,
+            currentUid = currentUid,
+            onSetRole = { uid, role -> viewModel.setMemberRole(familyId, uid, role) },
+            onRemove = { uid -> viewModel.removeMember(familyId, uid) },
+            onGenerateInvite = { viewModel.generateInvite(familyId) },
+            inviteCode = state.inviteCode,
+        )
+    }
 
-            val family = state.family
-            val currentUid = state.currentUid
-            if (family != null && currentUid != null) {
-                item {
-                    MembersSection(
-                        family = family,
-                        currentUid = currentUid,
-                        onSetRole = { uid, role -> viewModel.setMemberRole(familyId, uid, role) },
-                        onRemove = { uid -> viewModel.removeMember(familyId, uid) },
-                        onGenerateInvite = { viewModel.generateInvite(familyId) },
-                        inviteCode = state.inviteCode,
-                    )
-                }
-            }
-
-            item { PairTvSection(familyId = familyId) }
-
-            state.error?.let { err ->
-                item {
-                    Text(
-                        err,
-                        color = Sprout.colors.overText,
-                        style = Sprout.typography.caption,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Sprout.colors.overContainer, SproutRadius.input)
-                            .padding(horizontal = 14.dp, vertical = 10.dp),
-                    )
-                }
-            }
-        }
+    state.error?.let { err ->
+        Text(
+            stringResource(err),
+            color = Sprout.colors.overText,
+            style = Sprout.typography.caption,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+                .background(Sprout.colors.overContainer, SproutRadius.input)
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+        )
     }
 }
 
@@ -143,9 +115,9 @@ private fun MembersSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Parents", style = Sprout.typography.headline, color = Sprout.colors.ink)
+            Text(stringResource(R.string.family_parents_title), style = Sprout.typography.headline, color = Sprout.colors.ink)
             Text(
-                "${family.members.size} ${if (family.members.size == 1) "member" else "members"}",
+                pluralStringResource(R.plurals.family_members, family.members.size, family.members.size),
                 style = Sprout.typography.caption,
                 color = Sprout.colors.inkMuted,
             )
@@ -169,7 +141,7 @@ private fun MembersSection(
                 }
                 MemberRow(
                     initial = if (uid == currentUid) "P" else "C",
-                    displayName = if (uid == currentUid) "You" else "Co-parent",
+                    displayName = if (uid == currentUid) stringResource(R.string.family_you) else stringResource(R.string.family_role_co_parent),
                     isOwner = family.isOwner(uid),
                     isSelf = uid == currentUid,
                     role = role,
@@ -216,9 +188,9 @@ private fun MembersSection(
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text("Invite a parent", style = Sprout.typography.headline, color = Sprout.colors.ink)
+                Text(stringResource(R.string.family_invite_title), style = Sprout.typography.headline, color = Sprout.colors.ink)
                 Text(
-                    "They join as a co-parent",
+                    stringResource(R.string.family_invite_subtitle),
                     style = Sprout.typography.caption,
                     color = Sprout.colors.inkMuted,
                 )
@@ -251,15 +223,15 @@ private fun MemberRow(
     if (showConfirm) {
         AlertDialog(
             onDismissRequest = { showConfirm = false },
-            title = { Text("Remove co-parent?", style = Sprout.typography.headline, color = Sprout.colors.ink) },
-            text = { Text("They will lose access to this family immediately.", style = Sprout.typography.body, color = Sprout.colors.inkMuted) },
+            title = { Text(stringResource(R.string.family_remove_confirm_title), style = Sprout.typography.headline, color = Sprout.colors.ink) },
+            text = { Text(stringResource(R.string.family_remove_confirm_body), style = Sprout.typography.body, color = Sprout.colors.inkMuted) },
             confirmButton = {
                 TextButton(onClick = { onRemove(); showConfirm = false }) {
-                    Text("Remove", color = Sprout.colors.overText)
+                    Text(stringResource(SharedR.string.action_remove), color = Sprout.colors.overText)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showConfirm = false }) { Text("Cancel") }
+                TextButton(onClick = { showConfirm = false }) { Text(stringResource(SharedR.string.action_cancel)) }
             },
         )
     }
@@ -288,9 +260,9 @@ private fun MemberRow(
 
             // Role badge
             val (badgeBg, badgeFg, badgeLabel) = when {
-                isOwner && isSelf -> Triple(Sprout.colors.accent, Sprout.colors.ink, "Owner · you")
-                isOwner -> Triple(Sprout.colors.accent, Sprout.colors.ink, "Owner")
-                else -> Triple(Sprout.colors.accentContainer, Color(0xFF5B4D69), "Co-parent")
+                isOwner && isSelf -> Triple(Sprout.colors.accent, Sprout.colors.ink, stringResource(R.string.family_role_owner_you))
+                isOwner -> Triple(Sprout.colors.accent, Sprout.colors.ink, stringResource(R.string.family_role_owner))
+                else -> Triple(Sprout.colors.accentContainer, Color(0xFF5B4D69), stringResource(R.string.family_role_co_parent))
             }
             Box(
                 modifier = Modifier
@@ -314,7 +286,7 @@ private fun MemberRow(
                         .clickable { expanded = !expanded },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = "Options", tint = Sprout.colors.inkMuted, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.family_options), tint = Sprout.colors.inkMuted, modifier = Modifier.size(18.dp))
                 }
             }
         }
@@ -327,12 +299,12 @@ private fun MemberRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 SproutDangerButton(
-                    text = "Remove from family",
+                    text = stringResource(R.string.family_remove_from_family),
                     onClick = { showConfirm = true; expanded = false },
                     modifier = Modifier.weight(1f),
                 )
                 SproutGhostButton(
-                    text = "Cancel",
+                    text = stringResource(SharedR.string.action_cancel),
                     onClick = { expanded = false },
                     modifier = Modifier.weight(1f),
                 )
@@ -354,7 +326,7 @@ private fun InvitePanel(inviteCode: String?, onRefresh: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
-            "Share this code with the parent you're inviting. It expires in 24 hours.",
+            stringResource(R.string.family_invite_share_hint),
             style = Sprout.typography.caption,
             color = Sprout.colors.inkMuted,
         )
@@ -377,7 +349,7 @@ private fun InvitePanel(inviteCode: String?, onRefresh: () -> Unit) {
                     )
                 }
                 SproutPrimaryButton(
-                    text = if (copied) "Copied!" else "Copy",
+                    text = if (copied) stringResource(R.string.family_invite_copied) else stringResource(R.string.family_invite_copy),
                     onClick = {
                         clipboard.setText(AnnotatedString(inviteCode))
                         copied = true
@@ -385,10 +357,10 @@ private fun InvitePanel(inviteCode: String?, onRefresh: () -> Unit) {
                 )
             }
         } else {
-            Text("Generating code…", style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
+            Text(stringResource(R.string.family_invite_generating), style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
         }
         SproutGhostButton(
-            text = "Generate a new code",
+            text = stringResource(R.string.family_invite_generate_new),
             onClick = onRefresh,
             modifier = Modifier.fillMaxWidth(),
         )

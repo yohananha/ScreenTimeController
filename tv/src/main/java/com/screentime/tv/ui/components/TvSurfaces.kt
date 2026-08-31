@@ -24,10 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
+import com.screentime.shared.format.bidiWrap
+import com.screentime.tv.R
 import com.screentime.tv.ui.theme.Sprout
 
 /** Full-bleed deep-plum canvas with the two ambient radial gradients used on every TV screen. */
@@ -87,7 +90,7 @@ fun TvBrandChip(modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun TvRemoteHint(modifier: Modifier = Modifier, text: String = "◀ ▶ ▲ ▼  +  OK") {
+fun TvRemoteHint(modifier: Modifier = Modifier, text: String = stringResource(R.string.tv_remote_hint).bidiWrap()) {
     Text(
         text,
         modifier = modifier,

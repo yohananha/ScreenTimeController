@@ -23,6 +23,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            // en-XA (accented/lengthened) and ar-XB (RTL-mirrored) show up as
+            // selectable "languages" on a debug build without writing a
+            // single translation — the cheapest way to audit string
+            // extraction and RTL layout as they're built out (see the
+            // Hebrew-localization plan for how these are used per stage).
+            isPseudoLocalesEnabled = true
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -53,12 +61,32 @@ android {
             isReturnDefaultValues = true
         }
     }
+
+    lint {
+        // MissingTranslation/ExtraTranslation are ERROR by default already —
+        // this pins that intent explicitly against a future change, and adds
+        // the checks that catch the most common real translation bug: a
+        // values-he entry with the wrong number or type of %n$s placeholder.
+        error += setOf(
+            "MissingTranslation",
+            "ExtraTranslation",
+            "StringFormatInvalid",
+            "StringFormatMatches",
+            "StringFormatCount",
+            "ImpliedQuantity",
+            "PluralsCandidate",
+        )
+        abortOnError = true
+    }
 }
 
 dependencies {
     implementation(project(":shared"))
 
     implementation(libs.androidx.core.ktx)
+    // Per-app language (AppCompatDelegate.setApplicationLocales), backported
+    // to API 26 — the platform LocaleManager API alone only covers 33+.
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

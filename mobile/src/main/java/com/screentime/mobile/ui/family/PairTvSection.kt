@@ -42,10 +42,14 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.screentime.mobile.R
+import com.screentime.shared.R as SharedR
 import com.screentime.mobile.ui.components.CodeSlotInput
 import com.screentime.mobile.ui.components.SproutGhostButton
 import com.screentime.mobile.ui.components.SproutPrimaryButton
@@ -82,9 +86,9 @@ fun PairTvSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("TVs", style = Sprout.typography.headline, color = Sprout.colors.ink)
+            Text(stringResource(R.string.pairtv_section_title), style = Sprout.typography.headline, color = Sprout.colors.ink)
             Text(
-                text = if (devices.isEmpty()) "None paired" else "${devices.size} paired",
+                text = if (devices.isEmpty()) stringResource(R.string.pairtv_none_paired) else pluralStringResource(R.plurals.pairtv_count_paired, devices.size, devices.size),
                 style = Sprout.typography.caption,
                 color = Sprout.colors.inkMuted,
             )
@@ -122,9 +126,9 @@ fun PairTvSection(
                         modifier = Modifier.size(34.dp),
                     )
                 }
-                Text("No TV paired", style = Sprout.typography.title, color = Sprout.colors.ink)
+                Text(stringResource(R.string.pairtv_empty_title), style = Sprout.typography.title, color = Sprout.colors.ink)
                 Text(
-                    "Open ScreenTime on your Android TV and enter the 6-digit code it shows.",
+                    stringResource(R.string.pairtv_empty_subtitle),
                     style = Sprout.typography.body,
                     color = Sprout.colors.inkMuted,
                     textAlign = TextAlign.Center,
@@ -133,7 +137,7 @@ fun PairTvSection(
                         .padding(horizontal = 10.dp),
                 )
                 SproutPrimaryButton(
-                    text = "Pair a TV",
+                    text = stringResource(R.string.pairtv_action_pair),
                     onClick = { showForm = true },
                 )
             }
@@ -184,9 +188,9 @@ fun PairTvSection(
                         .padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    Text("Pair a TV", style = Sprout.typography.headline, color = Sprout.colors.ink)
+                    Text(stringResource(R.string.pairtv_action_pair), style = Sprout.typography.headline, color = Sprout.colors.ink)
                     Text(
-                        "Enter the 6-digit code shown on the TV's pairing screen.",
+                        stringResource(R.string.pairtv_form_subtitle),
                         style = Sprout.typography.body,
                         color = Sprout.colors.inkMuted,
                     )
@@ -196,13 +200,13 @@ fun PairTvSection(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         SproutPrimaryButton(
-                            text = if (state.busy) "Pairing…" else "Pair",
+                            text = if (state.busy) stringResource(R.string.pairtv_pairing) else stringResource(R.string.pairtv_pair),
                             onClick = { viewModel.claim(code, familyId) },
                             enabled = code.length == 6 && !state.busy,
                             modifier = Modifier.weight(1f),
                         )
                         SproutGhostButton(
-                            text = "Cancel",
+                            text = stringResource(SharedR.string.action_cancel),
                             onClick = {
                                 showForm = false
                                 code = ""
@@ -213,7 +217,7 @@ fun PairTvSection(
                     }
                     state.message?.let {
                         Text(
-                            it,
+                            stringResource(it),
                             style = Sprout.typography.caption,
                             color = if (state.success) Sprout.colors.positiveText else Sprout.colors.overText,
                         )
@@ -221,7 +225,7 @@ fun PairTvSection(
                 }
             } else {
                 SproutGhostButton(
-                    text = "+ Pair another TV",
+                    text = stringResource(R.string.pairtv_add_another),
                     onClick = { showForm = true },
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -297,7 +301,7 @@ private fun DeviceListRow(
                             .background(Sprout.colors.positiveDisplay, CircleShape),
                     )
                     Text(
-                        "Online · 0m today",
+                        stringResource(R.string.pairtv_online_status, "0m"),
                         style = Sprout.typography.caption,
                         color = Color(0xFF9FE9CE),
                     )
@@ -306,7 +310,7 @@ private fun DeviceListRow(
 
             Icon(
                 if (isExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                contentDescription = if (isExpanded) "Collapse" else "Expand",
+                contentDescription = if (isExpanded) stringResource(R.string.pairtv_collapse) else stringResource(R.string.pairtv_expand),
                 tint = Color.White.copy(alpha = 0.35f),
                 modifier = Modifier.size(18.dp),
             )
@@ -329,8 +333,8 @@ private fun DeviceListRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    StatChip("Today", "0m", Modifier.weight(1f))
-                    StatChip("Paired", "Active", Modifier.weight(1f))
+                    StatChip(stringResource(R.string.pairtv_stat_today_label), "0m", Modifier.weight(1f))
+                    StatChip(stringResource(R.string.pairtv_stat_paired_label), stringResource(R.string.pairtv_stat_paired_value), Modifier.weight(1f))
                 }
 
                 if (isConfirmingUnpair) {
@@ -343,7 +347,7 @@ private fun DeviceListRow(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         Text(
-                            "Unpair this TV? Limits stop applying until you pair it again.",
+                            stringResource(R.string.pairtv_unpair_confirm),
                             style = Sprout.typography.caption.copy(fontWeight = FontWeight.Bold),
                             color = Color(0xFFFFD9D4),
                         )
@@ -359,7 +363,7 @@ private fun DeviceListRow(
                                     .padding(vertical = 10.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Text("Unpair", style = Sprout.typography.label, color = Color.White)
+                                Text(stringResource(R.string.pairtv_action_unpair), style = Sprout.typography.label, color = Color.White)
                             }
                             Box(
                                 modifier = Modifier
@@ -368,7 +372,7 @@ private fun DeviceListRow(
                                     .padding(horizontal = 18.dp, vertical = 10.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Text("Cancel", style = Sprout.typography.label, color = Sprout.colors.background)
+                                Text(stringResource(SharedR.string.action_cancel), style = Sprout.typography.label, color = Sprout.colors.background)
                             }
                         }
                     }
@@ -385,7 +389,7 @@ private fun DeviceListRow(
                                 .padding(vertical = 8.dp),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text("Rename", style = Sprout.typography.label, color = Sprout.colors.background)
+                            Text(stringResource(R.string.pairtv_action_rename), style = Sprout.typography.label, color = Sprout.colors.background)
                         }
                         Box(
                             modifier = Modifier
@@ -395,7 +399,7 @@ private fun DeviceListRow(
                                 .padding(vertical = 8.dp),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text("Unpair TV", style = Sprout.typography.label, color = Color(0xFFFFB7AF))
+                            Text(stringResource(R.string.pairtv_action_unpair_tv), style = Sprout.typography.label, color = Color(0xFFFFB7AF))
                         }
                     }
                 }
@@ -426,7 +430,7 @@ private fun RenameDeviceDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Sprout.colors.surface,
-        title = { Text("Rename TV", style = Sprout.typography.headline, color = Sprout.colors.ink) },
+        title = { Text(stringResource(R.string.pairtv_rename_title), style = Sprout.typography.headline, color = Sprout.colors.ink) },
         text = {
             OutlinedTextField(
                 value = name,
@@ -443,12 +447,12 @@ private fun RenameDeviceDialog(
         },
         confirmButton = {
             TextButton(onClick = { onSave(name.trim().ifBlank { device.name }) }) {
-                Text("Save", style = Sprout.typography.label, color = Sprout.colors.primary)
+                Text(stringResource(SharedR.string.action_save), style = Sprout.typography.label, color = Sprout.colors.primary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", style = Sprout.typography.label, color = Sprout.colors.inkMuted)
+                Text(stringResource(SharedR.string.action_cancel), style = Sprout.typography.label, color = Sprout.colors.inkMuted)
             }
         },
     )

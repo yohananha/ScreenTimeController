@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,11 +31,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
+import com.screentime.tv.R
 import com.screentime.tv.ui.components.TvCanvas
 import com.screentime.tv.ui.components.TvGhostButton
 import com.screentime.tv.ui.theme.Sprout
@@ -52,13 +57,13 @@ fun PairingScreen(viewModel: PairingViewModel = hiltViewModel()) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                "Pair with a parent's phone",
+                stringResource(R.string.pairing_headline),
                 style = Sprout.typography.displayLarge,
                 color = Sprout.colors.tvCream,
                 textAlign = TextAlign.Center,
             )
             Text(
-                "In the ScreenTime app, open Family & devices → Pair a TV and enter this code.",
+                stringResource(R.string.pairing_instructions),
                 style = Sprout.typography.bodyLarge,
                 color = Sprout.colors.tvMutedText,
                 textAlign = TextAlign.Center,
@@ -77,20 +82,24 @@ fun PairingScreen(viewModel: PairingViewModel = hiltViewModel()) {
                     val slotWidth = ((maxWidth - slotGap * (code.length - 1)) / code.length)
                         .coerceAtMost(59.dp)
                     val slotHeight = (slotWidth.value * 1.254f).dp
-                    Row(horizontalArrangement = Arrangement.spacedBy(slotGap)) {
-                        code.forEach { ch ->
-                            Box(
-                                modifier = Modifier
-                                    .width(slotWidth)
-                                    .height(slotHeight)
-                                    .background(Sprout.colors.tvCream, RoundedCornerShape(12.dp)),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = ch.toString(),
-                                    style = Sprout.typography.displayHero,
-                                    color = Sprout.colors.ink,
-                                )
+                    // Forced LTR — a Row honors layout direction, so under
+                    // RTL the pairing code's digits would render reversed.
+                    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(slotGap)) {
+                            code.forEach { ch ->
+                                Box(
+                                    modifier = Modifier
+                                        .width(slotWidth)
+                                        .height(slotHeight)
+                                        .background(Sprout.colors.tvCream, RoundedCornerShape(12.dp)),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        text = ch.toString(),
+                                        style = Sprout.typography.displayHero,
+                                        color = Sprout.colors.ink,
+                                    )
+                                }
                             }
                         }
                     }
@@ -98,7 +107,7 @@ fun PairingScreen(viewModel: PairingViewModel = hiltViewModel()) {
             } else {
                 Box(modifier = Modifier.padding(top = 28.dp)) {
                     Text(
-                        "Generating your code…",
+                        stringResource(R.string.pairing_generating_code),
                         style = Sprout.typography.bodyLarge,
                         color = Sprout.colors.tvMutedText,
                     )
@@ -125,7 +134,7 @@ fun PairingScreen(viewModel: PairingViewModel = hiltViewModel()) {
                         .background(Sprout.colors.positiveDisplay, CircleShape),
                 )
                 Text(
-                    "Waiting for the phone…",
+                    stringResource(R.string.pairing_waiting),
                     style = Sprout.typography.bodyMedium,
                     color = Sprout.colors.positiveDisplay,
                 )
@@ -142,19 +151,19 @@ fun PairingScreen(viewModel: PairingViewModel = hiltViewModel()) {
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 TvGhostButton(
-                    text = "Get a new code",
+                    text = stringResource(R.string.pairing_get_new_code),
                     onClick = { viewModel.ensureCode() },
                     focusRequester = focusRequester
                 )
                 TvGhostButton(
-                    text = "How to pair",
+                    text = stringResource(R.string.pairing_how_to_pair),
                     onClick = {}
                 )
             }
 
             state.error?.let {
                 Text(
-                    it,
+                    stringResource(it),
                     color = Sprout.colors.overDisplay,
                     modifier = Modifier.padding(top = 6.dp),
                     style = Sprout.typography.bodyMedium,

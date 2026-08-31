@@ -3,6 +3,8 @@ package com.screentime.mobile.ui.codes
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.screentime.mobile.MainCoroutineRule
+import com.screentime.mobile.R
+import com.screentime.shared.R as SharedR
 import com.screentime.shared.auth.FamilyIdProvider
 import com.screentime.shared.firestore.FirestoreRepository
 import com.screentime.shared.model.OneTimeCode
@@ -44,12 +46,16 @@ class CodesViewModelTest {
         }
     }
 
-    @Test fun `generate exposes error message on failure`() = runTest(main.dispatcher) {
+    @Test fun `generate exposes a generic error resource on failure`() = runTest(main.dispatcher) {
+        // A plain RuntimeException isn't a FirebaseFunctionsException, so
+        // toErrorRes() can't read a `details.reason` off it — it falls back
+        // to the generic error string rather than showing "boom" (an
+        // internal exception message) to the user.
         coEvery { firestore.createCode(any(), any()) } throws RuntimeException("boom")
         val vm = CodesViewModel(firestore, familyIdProvider)
         vm.generate(15)
         advanceUntilIdle()
-        assertThat(vm.state.value.error).isEqualTo("boom")
+        assertThat(vm.state.value.error).isEqualTo(SharedR.string.error_generic)
         assertThat(vm.state.value.active).isNull()
     }
 
@@ -58,7 +64,7 @@ class CodesViewModelTest {
         val vm = CodesViewModel(firestore, familyIdProvider)
         vm.generate(15)
         advanceUntilIdle()
-        assertThat(vm.state.value.error).contains("No family")
+        assertThat(vm.state.value.error).isEqualTo(R.string.error_no_family_linked)
     }
 
     @Test fun `dismiss resets the state`() = runTest(main.dispatcher) {

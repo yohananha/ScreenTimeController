@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,18 +22,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.clickable
 import com.screentime.mobile.ui.theme.Sprout
 
-/** Phone-side 6-digit invite-code entry. Hidden text field accepts input; visible slots render code. */
+/**
+ * Phone-side 6-digit invite/pair-code entry. Hidden text field accepts
+ * input; visible slots render the code.
+ *
+ * The visible slot `Row` is forced LTR — see [CodeTilesRow] for why: without
+ * it, a partially-typed code renders its digits in reverse order under RTL.
+ */
 @Composable
 fun CodeSlotInput(
     value: String,
@@ -43,6 +52,7 @@ fun CodeSlotInput(
     val focusRequester = remember { FocusRequester() }
     var tfv by remember { mutableStateOf(TextFieldValue(value)) }
     Box(modifier = modifier.fillMaxWidth()) {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -78,6 +88,7 @@ fun CodeSlotInput(
                     )
                 }
             }
+        }
         }
         BasicTextField(
             value = tfv,

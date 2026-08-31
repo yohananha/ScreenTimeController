@@ -40,12 +40,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.screentime.mobile.R
+import com.screentime.shared.R as SharedR
+import com.screentime.mobile.ui.theme.LocalFormats
 import com.screentime.mobile.ui.theme.rememberScreenPadding
 import com.screentime.mobile.ui.theme.appAccentFor
 import com.screentime.mobile.ui.components.AppLimitRow
@@ -54,17 +60,16 @@ import com.screentime.mobile.ui.components.SproutDangerButton
 import com.screentime.mobile.ui.components.SproutGhostButton
 import com.screentime.mobile.ui.components.SproutPrimaryButton
 import com.screentime.mobile.ui.components.Status
+import com.screentime.mobile.ui.components.mirrorInRtl
 import com.screentime.mobile.ui.components.TopHeader
 import com.screentime.mobile.ui.theme.Sprout
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.screentime.shared.model.AppLimit
 import com.screentime.shared.model.InstalledApp
 import com.screentime.shared.model.Limits
-import com.screentime.shared.model.LockoutMode
-import com.screentime.shared.model.LockoutSettings
 import com.screentime.shared.model.TimeFrameSchedule
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 
 @Composable
 fun LimitsScreen(
@@ -77,7 +82,6 @@ fun LimitsScreen(
     var editing by remember { mutableStateOf<EditTarget?>(null) }
     var picking by remember { mutableStateOf(false) }
     var editingOverall by remember { mutableStateOf(false) }
-    var editingLockout by remember { mutableStateOf(false) }
     val hPad = rememberScreenPadding()
 
     Box(modifier = Modifier.fillMaxSize().background(Sprout.colors.background), contentAlignment = Alignment.TopCenter) {
@@ -102,7 +106,7 @@ fun LimitsScreen(
                         ) {
                             Icon(
                                 Icons.Filled.AccessTime,
-                                contentDescription = "History",
+                                contentDescription = stringResource(R.string.limits_history_action),
                                 tint = Sprout.colors.ink,
                                 modifier = Modifier.size(20.dp),
                             )
@@ -113,12 +117,12 @@ fun LimitsScreen(
             item {
                 Column(modifier = Modifier.padding(top = 4.dp, bottom = 6.dp)) {
                     Text(
-                        "Limits",
+                        stringResource(R.string.limits_title),
                         style = Sprout.typography.display.copy(fontSize = 30.sp),
                         color = Sprout.colors.ink,
                     )
                     Text(
-                        text = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, MMM d")),
+                        text = LocalFormats.current.clock.dayAndDate(LocalDate.now()),
                         style = Sprout.typography.caption,
                         color = Sprout.colors.inkMuted,
                         modifier = Modifier.padding(top = 5.dp),
@@ -137,14 +141,14 @@ fun LimitsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            err,
+                            stringResource(err),
                             color = Sprout.colors.overText,
                             style = Sprout.typography.caption,
                             modifier = Modifier.weight(1f),
                         )
                         Icon(
                             Icons.Filled.Close,
-                            contentDescription = "Dismiss",
+                            contentDescription = stringResource(R.string.limits_dismiss),
                             tint = Sprout.colors.overText,
                             modifier = Modifier.size(16.dp).padding(start = 8.dp),
                         )
@@ -180,10 +184,10 @@ fun LimitsScreen(
                 val leftMin = (state.overallDailyMinutes - usedMin).coerceAtLeast(0)
                 DailyTotalHero(
                     usedLabel = formatLimitLabel(usedMin),
-                    ofLabel = "of ${formatLimitLabel(state.overallDailyMinutes)} daily",
+                    ofLabel = stringResource(R.string.limits_hero_of_daily, formatLimitLabel(state.overallDailyMinutes)),
                     progress = overallProgress,
-                    timeLeft = "${formatLimitLabel(leftMin)} left",
-                    resetLabel = "Resets at midnight",
+                    timeLeft = stringResource(R.string.limits_hero_left, formatLimitLabel(leftMin)),
+                    resetLabel = stringResource(R.string.limits_hero_reset),
                     status = overallStatus,
                     modifier = Modifier.clickable { editingOverall = true },
                 )
@@ -194,22 +198,16 @@ fun LimitsScreen(
                     onClick = onOpenTimeFrame,
                 )
             }
-            item {
-                LockoutCard(
-                    lockout = state.lockout,
-                    onClick = { editingLockout = true },
-                    onUnlockNow = viewModel::unlockNow,
-                )
-            }
+            // Code lockout moved to Settings (see ui/settings/LockoutSection.kt).
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 4.dp, start = 2.dp, end = 2.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("App limits", style = Sprout.typography.title, color = Sprout.colors.ink)
+                    Text(stringResource(R.string.limits_app_section_title), style = Sprout.typography.title, color = Sprout.colors.ink)
                     Text(
-                        text = "${state.limits.size} ${if (state.limits.size == 1) "app" else "apps"}",
+                        text = pluralStringResource(SharedR.plurals.apps, state.limits.size, state.limits.size),
                         style = Sprout.typography.caption,
                         color = Sprout.colors.inkMuted,
                     )
@@ -226,12 +224,12 @@ fun LimitsScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Text(
-                            "No app limits yet",
+                            stringResource(R.string.limits_empty_title),
                             style = Sprout.typography.headline,
                             color = Sprout.colors.ink,
                         )
                         Text(
-                            "Tap the + to add one.",
+                            stringResource(R.string.limits_empty_subtitle),
                             style = Sprout.typography.body,
                             color = Sprout.colors.inkMuted,
                         )
@@ -271,7 +269,7 @@ fun LimitsScreen(
         }
         // FAB
         SproutPrimaryButton(
-            text = "+ Add limit",
+            text = stringResource(R.string.limits_add_limit_fab),
             onClick = { picking = true },
             shape = Sprout.radius.large,
             shadow = true,
@@ -321,67 +319,9 @@ fun LimitsScreen(
         )
     }
 
-    if (editingLockout) {
-        EditLockoutDialog(
-            current = state.lockout,
-            onDismiss = { editingLockout = false },
-            onSave = { minutes, mode ->
-                viewModel.setLockoutConfig(minutes, mode)
-                editingLockout = false
-            },
-        )
-    }
 }
 
 private data class EditTarget(val packageName: String, val displayName: String, val defaultMinutes: Int)
-
-@Composable
-private fun LockoutCard(
-    lockout: LockoutSettings,
-    onClick: () -> Unit,
-    onUnlockNow: () -> Unit,
-) {
-    val statusText = when (lockout.mode) {
-        LockoutMode.TIMER -> "${lockout.durationMinutes} min lock"
-        LockoutMode.PARENT_UNLOCK -> "Parent unlock"
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Sprout.colors.surface, Sprout.radius.card)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 15.dp, vertical = 14.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Column {
-                Text("Code lockout", style = Sprout.typography.headline, color = Sprout.colors.ink)
-                Text(
-                    "After 5 wrong codes in 1 minute",
-                    style = Sprout.typography.caption,
-                    color = Sprout.colors.inkMuted,
-                )
-            }
-            Text(statusText, style = Sprout.typography.bodyStrong, color = Sprout.colors.ink)
-        }
-        if (lockout.locked) {
-            Text(
-                "TV code entry is currently locked.",
-                color = Sprout.colors.overText,
-                style = Sprout.typography.caption,
-                modifier = Modifier.padding(top = 6.dp),
-            )
-            if (lockout.mode == LockoutMode.PARENT_UNLOCK) {
-                Row(modifier = Modifier.padding(top = 8.dp)) {
-                    SproutPrimaryButton(text = "Unlock now", onClick = onUnlockNow)
-                }
-            }
-        }
-    }
-}
 
 @Composable
 private fun PickAppDialog(
@@ -393,14 +333,14 @@ private fun PickAppDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Sprout.colors.surface,
-        title = { Text("Add app limit", style = Sprout.typography.headline) },
+        title = { Text(stringResource(R.string.limits_pick_app_title), style = Sprout.typography.headline) },
         text = {
             if (available.isEmpty()) {
                 Text(
                     if (tvHasNoApps) {
-                        "No apps found on the TV yet. Make sure the TV is paired and online."
+                        stringResource(R.string.limits_pick_app_no_apps)
                     } else {
-                        "All apps already have limits."
+                        stringResource(R.string.limits_pick_app_all_have_limits)
                     },
                 )
             } else {
@@ -417,7 +357,7 @@ private fun PickAppDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(SharedR.string.action_cancel)) }
         },
     )
 }
@@ -436,12 +376,12 @@ private fun EditLimitDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Sprout.colors.surface,
-        title = { Text("Edit limit", style = Sprout.typography.headline) },
+        title = { Text(stringResource(R.string.limits_edit_title), style = Sprout.typography.headline) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(target.displayName, style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
                 Text(
-                    if (unlimited) "Always allowed" else formatLimitLabel(minutes),
+                    if (unlimited) stringResource(R.string.limits_always_allowed) else formatLimitLabel(minutes),
                     style = Sprout.typography.title,
                     color = Sprout.colors.ink,
                 )
@@ -462,31 +402,31 @@ private fun EditLimitDialog(
                             minutesText = digits
                             digits.toIntOrNull()?.let { minutes = it }
                         },
-                        label = { Text("Minutes") },
+                        label = { Text(stringResource(R.string.limits_minutes_field_label)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SproutGhostButton(text = "Block", onClick = {
+                    SproutGhostButton(text = stringResource(R.string.limits_action_block), onClick = {
                         unlimited = false
                         minutes = 0
                         minutesText = "0"
                     })
-                    SproutGhostButton(text = "Always allow", onClick = { unlimited = true })
+                    SproutGhostButton(text = stringResource(R.string.limits_action_always_allow), onClick = { unlimited = true })
                 }
             }
         },
         confirmButton = {
             SproutPrimaryButton(
-                text = "Save",
+                text = stringResource(SharedR.string.action_save),
                 onClick = { onSave(if (unlimited) Limits.UNLIMITED else minutes) },
             )
         },
         dismissButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SproutDangerButton(text = "Remove", onClick = onRemove)
-                SproutGhostButton(text = "Cancel", onClick = onDismiss)
+                SproutDangerButton(text = stringResource(SharedR.string.action_remove), onClick = onRemove)
+                SproutGhostButton(text = stringResource(SharedR.string.action_cancel), onClick = onDismiss)
             }
         },
     )
@@ -505,16 +445,16 @@ private fun EditOverallLimitDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Sprout.colors.surface,
-        title = { Text("Overall daily limit", style = Sprout.typography.headline) },
+        title = { Text(stringResource(R.string.limits_overall_title), style = Sprout.typography.headline) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "Once today's total usage across all apps reaches this, the TV blocks no matter which app is open.",
+                    stringResource(R.string.limits_overall_subtitle),
                     style = Sprout.typography.caption,
                     color = Sprout.colors.inkMuted,
                 )
                 Text(
-                    if (unlimited) "No overall limit" else formatLimitLabel(minutes),
+                    if (unlimited) stringResource(R.string.limits_overall_no_limit) else formatLimitLabel(minutes),
                     style = Sprout.typography.title,
                     color = Sprout.colors.ink,
                     fontWeight = FontWeight.SemiBold,
@@ -536,80 +476,29 @@ private fun EditOverallLimitDialog(
                             minutesText = digits
                             digits.toIntOrNull()?.let { minutes = it }
                         },
-                        label = { Text("Minutes") },
+                        label = { Text(stringResource(R.string.limits_minutes_field_label)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SproutGhostButton(text = "Block all", onClick = {
+                    SproutGhostButton(text = stringResource(R.string.limits_action_block_all), onClick = {
                         unlimited = false
                         minutes = 0
                         minutesText = "0"
                     })
-                    SproutGhostButton(text = "No limit", onClick = { unlimited = true })
+                    SproutGhostButton(text = stringResource(R.string.limits_action_no_limit), onClick = { unlimited = true })
                 }
             }
         },
         confirmButton = {
             SproutPrimaryButton(
-                text = "Save",
+                text = stringResource(SharedR.string.action_save),
                 onClick = { onSave(if (unlimited) Limits.UNLIMITED else minutes) },
             )
         },
         dismissButton = {
-            SproutGhostButton(text = "Cancel", onClick = onDismiss)
-        },
-    )
-}
-
-@Composable
-private fun EditLockoutDialog(
-    current: LockoutSettings,
-    onDismiss: () -> Unit,
-    onSave: (Int, LockoutMode) -> Unit,
-) {
-    var minutes by remember(current) { mutableStateOf(current.durationMinutes.toFloat()) }
-    var mode by remember(current) { mutableStateOf(current.mode) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Sprout.colors.surface,
-        title = { Text("Code lockout", style = Sprout.typography.headline) },
-        text = {
-            Column {
-                Text(
-                    "After 5 incorrect codes within 1 minute, the TV's code entry will:",
-                    style = Sprout.typography.caption,
-                    color = Sprout.colors.inkMuted,
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected = mode == LockoutMode.TIMER, onClick = { mode = LockoutMode.TIMER })
-                    Text("Lock for a set time")
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected = mode == LockoutMode.PARENT_UNLOCK, onClick = { mode = LockoutMode.PARENT_UNLOCK })
-                    Text("Require a parent to unlock")
-                }
-                if (mode == LockoutMode.TIMER) {
-                    Text(
-                        formatDurationLabel(minutes.toInt()),
-                        style = Sprout.typography.title,
-                        color = Sprout.colors.ink,
-                    )
-                    Slider(
-                        value = minutes,
-                        onValueChange = { minutes = it },
-                        valueRange = 5f..60f,
-                        steps = 10,
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            SproutPrimaryButton(text = "Save", onClick = { onSave(minutes.toInt(), mode) })
-        },
-        dismissButton = {
-            SproutGhostButton(text = "Cancel", onClick = onDismiss)
+            SproutGhostButton(text = stringResource(SharedR.string.action_cancel), onClick = onDismiss)
         },
     )
 }
@@ -628,8 +517,8 @@ private fun LimitModeCard(
             iconBg = Sprout.colors.overDisplay.copy(alpha = 0.15f),
             iconTint = Sprout.colors.overDisplay,
             icon = Icons.Filled.Lock,
-            title = "Instant lock",
-            caption = "TV is locked — tap Default to release",
+            title = stringResource(R.string.limits_mode_lock_title),
+            caption = stringResource(R.string.limits_mode_lock_caption),
         )
         LimitMode.Default -> LimitModeVisuals(
             bg = Sprout.colors.surface,
@@ -637,8 +526,8 @@ private fun LimitModeCard(
             iconBg = Sprout.colors.surfaceSunken,
             iconTint = Sprout.colors.inkMuted,
             icon = Icons.Filled.Check,
-            title = "Limits active",
-            caption = "Today's schedule and app limits apply",
+            title = stringResource(R.string.limits_mode_default_title),
+            caption = stringResource(R.string.limits_mode_default_caption),
         )
         LimitMode.Allow -> LimitModeVisuals(
             bg = Sprout.colors.positiveContainer,
@@ -646,8 +535,8 @@ private fun LimitModeCard(
             iconBg = Sprout.colors.positiveDisplay.copy(alpha = 0.15f),
             iconTint = Sprout.colors.positiveDisplay,
             icon = Icons.Filled.WbSunny,
-            title = "Allow all day",
-            caption = "All limits paused until midnight",
+            title = stringResource(R.string.limits_mode_allow_title),
+            caption = stringResource(R.string.limits_mode_allow_caption),
         )
     }
     Column(
@@ -709,7 +598,7 @@ private fun LimitModeSegmented(
         LimitModeSegment(
             modifier = Modifier.weight(1f),
             icon = Icons.Filled.Lock,
-            label = "Lock",
+            label = stringResource(R.string.limits_mode_segment_lock),
             selected = selected == LimitMode.Lock,
             selectedBg = Sprout.colors.overDisplay,
             selectedFg = Sprout.colors.surface,
@@ -718,7 +607,7 @@ private fun LimitModeSegmented(
         LimitModeSegment(
             modifier = Modifier.weight(1f),
             icon = Icons.Filled.Check,
-            label = "Default",
+            label = stringResource(R.string.limits_mode_segment_default),
             selected = selected == LimitMode.Default,
             selectedBg = Sprout.colors.surface,
             selectedFg = Sprout.colors.ink,
@@ -727,7 +616,7 @@ private fun LimitModeSegmented(
         LimitModeSegment(
             modifier = Modifier.weight(1f),
             icon = Icons.Filled.WbSunny,
-            label = "Allow",
+            label = stringResource(R.string.limits_mode_segment_allow),
             selected = selected == LimitMode.Allow,
             selectedBg = Sprout.colors.positiveDisplay,
             selectedFg = Sprout.colors.surface,
@@ -798,7 +687,7 @@ private fun AllowedHoursRow(schedule: TimeFrameSchedule, onClick: () -> Unit) {
                 )
             }
             Column {
-                Text("Allowed hours", style = Sprout.typography.headline, color = Sprout.colors.ink)
+                Text(stringResource(R.string.limits_allowed_hours_title), style = Sprout.typography.headline, color = Sprout.colors.ink)
                 Text(subtitle, style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
             }
         }
@@ -806,53 +695,45 @@ private fun AllowedHoursRow(schedule: TimeFrameSchedule, onClick: () -> Unit) {
             Icons.Filled.ChevronRight,
             contentDescription = null,
             tint = Sprout.colors.inkMuted,
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier.size(20.dp).mirrorInRtl(),
         )
     }
 }
 
-private fun formatDurationLabel(minutes: Int): String {
-    val hours = minutes / 60
-    val mins = minutes % 60
-    return when {
-        hours == 0 -> "${mins}m"
-        mins == 0 -> "${hours}h"
-        else -> "${hours}h ${mins}m"
-    }
-}
+// Delegates to the shared, locale-aware DurationFormat (see
+// com.screentime.shared.format) rather than re-implementing duration
+// formatting locally. Kept as a @Composable function with its original name
+// so the call sites throughout this file didn't need to change.
+@Composable
+private fun formatLimitLabel(minutes: Int): String =
+    LocalFormats.current.duration.minutes(LocalContext.current.resources, minutes)
 
-private fun formatLimitLabel(minutes: Int): String = when {
-    minutes == Limits.UNLIMITED -> "No limit"
-    minutes <= 0 -> "0m"
-    else -> formatDurationLabel(minutes)
-}
+@Composable
+private fun minutesToAmPm(minute: Int): String =
+    LocalFormats.current.clock.timeOfDay(minute)
 
-private fun minutesToAmPm(minute: Int): String {
-    val h = minute / 60
-    val m = minute % 60
-    val period = if (h < 12) "AM" else "PM"
-    val displayHour = when {
-        h == 0 -> 12
-        h <= 12 -> h
-        else -> h - 12
-    }
-    return if (m == 0) "$displayHour $period" else "$displayHour:${m.toString().padStart(2, '0')} $period"
-}
-
+@Composable
 private fun summarizeSchedule(schedule: TimeFrameSchedule): String {
-    if (!schedule.enabled) return "No schedule set"
+    if (!schedule.enabled) return stringResource(R.string.limits_schedule_none)
     val sorted = schedule.windowsByDay.entries
         .sortedBy { it.key.value }
         .filter { it.value.isNotEmpty() }
-    if (sorted.isEmpty()) return "Schedule on — no windows set"
+    if (sorted.isEmpty()) return stringResource(R.string.limits_schedule_on_no_windows)
+    val clock = LocalFormats.current.clock
+    val resources = LocalContext.current.resources
     val first = sorted.first().value.first()
-    val windowStr = "${minutesToAmPm(first.startMinute)}–${minutesToAmPm(first.endMinute)}"
+    val windowStr = clock.range(resources, minutesToAmPm(first.startMinute), minutesToAmPm(first.endMinute))
     val allSame = sorted.all { it.value.size == 1 && it.value.first() == first }
     return if (allSame) {
-        val days = sorted.map { it.key.name.take(1) + it.key.name.drop(1).lowercase().take(2) }
-        "${days.first()}–${days.last()}, $windowStr"
+        val firstDay = clock.dayName(sorted.first().key, TextStyle.SHORT)
+        val lastDay = clock.dayName(sorted.last().key, TextStyle.SHORT)
+        "${clock.range(resources, firstDay, lastDay)}, $windowStr"
     } else {
-        val dayShort = sorted.first().key.name.take(1) + sorted.first().key.name.drop(1).lowercase().take(2)
+        // The "$more more days" pluralization here is a Stage 2 concern
+        // (externalizing to <plurals>), not part of the formatter dedup —
+        // left as-is for now, only the day name and time-range lookups are
+        // routed through the shared, locale-aware ClockFormat.
+        val dayShort = clock.dayName(sorted.first().key, TextStyle.SHORT)
         val more = sorted.size - 1
         "$dayShort: $windowStr" + if (more > 0) " · $more more ${if (more == 1) "day" else "days"}" else ""
     }

@@ -27,11 +27,14 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.screentime.mobile.R
+import com.screentime.mobile.ui.theme.LocalFormats
 import com.screentime.mobile.ui.theme.rememberScreenPadding
 import com.screentime.mobile.ui.theme.appAccentFor
 import com.screentime.mobile.ui.components.ChipGroup
@@ -41,7 +44,6 @@ import com.screentime.mobile.ui.components.TopHeader
 import com.screentime.mobile.ui.theme.Sprout
 import com.screentime.shared.model.TimeRequest
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
@@ -62,9 +64,9 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
             item { TopHeader(familyName = "Family", parentInitial = "P") }
             item {
                 Column(modifier = Modifier.padding(top = 4.dp, bottom = 6.dp)) {
-                    Text("Requests", style = Sprout.typography.display, color = Sprout.colors.ink)
+                    Text(stringResource(R.string.requests_title), style = Sprout.typography.display, color = Sprout.colors.ink)
                     Text(
-                        text = "Approve or deny extra time the TV asks for.",
+                        text = stringResource(R.string.requests_subtitle),
                         style = Sprout.typography.caption,
                         color = Sprout.colors.inkMuted,
                         modifier = Modifier.padding(top = 5.dp),
@@ -90,7 +92,7 @@ fun RequestsScreen(viewModel: RequestsViewModel = hiltViewModel()) {
                 if (state.active.isNotEmpty()) {
                     item {
                         Text(
-                            "Active",
+                            stringResource(R.string.requests_active_section),
                             style = Sprout.typography.title,
                             color = Sprout.colors.ink,
                             modifier = Modifier.padding(top = 12.dp, start = 2.dp),
@@ -119,9 +121,9 @@ private fun EmptyState() {
         ) {
             Icon(Icons.Filled.Check, contentDescription = null, tint = Sprout.colors.positiveText, modifier = Modifier.size(40.dp))
         }
-        Text("You're all caught up", style = Sprout.typography.title, color = Sprout.colors.ink)
+        Text(stringResource(R.string.requests_empty_title), style = Sprout.typography.title, color = Sprout.colors.ink)
         Text(
-            "No pending requests right now.",
+            stringResource(R.string.requests_empty_subtitle),
             style = Sprout.typography.bodyStrong,
             color = Sprout.colors.inkMuted,
         )
@@ -163,8 +165,13 @@ private fun PendingCard(
                 Icon(Icons.Filled.Tv, contentDescription = null, tint = Sprout.colors.background, modifier = Modifier.size(22.dp))
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text("Living Room TV", style = Sprout.typography.headline, color = Sprout.colors.ink)
-                val relativeTime = formatRelativeTime(request.createdAt)
+                Text(stringResource(R.string.requests_device_name), style = Sprout.typography.headline, color = Sprout.colors.ink)
+                val relativeTime = formatRelativeTime(
+                    request.createdAt,
+                    justNow = stringResource(R.string.requests_just_now),
+                    minutesAgo = stringResource(R.string.requests_minutes_ago),
+                    hoursAgo = stringResource(R.string.requests_hours_ago),
+                )
                 Text(relativeTime, style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
             }
             // App pill on the right
@@ -201,24 +208,25 @@ private fun PendingCard(
         )
 
         Text(
-            "GRANT HOW LONG?",
+            stringResource(R.string.requests_grant_how_long),
             style = Sprout.typography.label,
             color = Sprout.colors.inkFaint,
         )
+        val chipMinutesLabel = stringResource(R.string.requests_chip_minutes)
         ChipGroup(
             options = listOf(15, 30, 60),
             selected = selectedAmount.coerceIn(15, 60),
             onSelect = onAmountChange,
-            label = { "${it}m" },
+            label = { chipMinutesLabel.format(it) },
         )
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
             SproutPrimaryButton(
-                text = "Approve ${selectedAmount}m",
+                text = stringResource(R.string.requests_action_approve, chipMinutesLabel.format(selectedAmount)),
                 onClick = onApprove,
                 modifier = Modifier.weight(1f),
             )
             SproutGhostButton(
-                text = "Deny",
+                text = stringResource(R.string.requests_action_deny),
                 onClick = onDeny,
                 modifier = Modifier.weight(1f),
             )
@@ -226,26 +234,43 @@ private fun PendingCard(
     }
 }
 
-private fun formatRelativeTime(createdAt: java.time.Instant): String {
+private fun formatRelativeTime(
+    createdAt: java.time.Instant,
+    justNow: String,
+    minutesAgo: String,
+    hoursAgo: String,
+): String {
     val duration = java.time.Duration.between(createdAt, java.time.Instant.now())
     val seconds = duration.seconds
     return when {
-        seconds < 60 -> "just now"
-        seconds < 3600 -> "${seconds / 60}m ago"
-        else -> "${seconds / 3600}h ago"
+        seconds < 60 -> justNow
+        seconds < 3600 -> minutesAgo.format(seconds / 60)
+        else -> hoursAgo.format(seconds / 3600)
     }
 }
 
 @Composable
 private fun buildAnnotatedAsk(minutes: Int) = buildAnnotatedString {
-    append("Wants ")
-    withStyle(SpanStyle(color = Sprout.colors.overDisplay)) {
-        append("${minutes}m")
+    // "Wants %1$s more" with the amount styled, built via a sentinel
+    // round-trip rather than three literal appends: a translated word
+    // order (e.g. Hebrew word-for-word "wants more %1$s") would not
+    // survive a fixed prefix/styled/suffix split otherwise. The sentinel
+    // (NUL, not a space -- the template already has spaces adjacent to
+    // %1$s) marks where the formatted argument landed so the template can
+    // be split there.
+    val sentinel = Char(0)
+    val amount = stringResource(R.string.requests_chip_minutes).format(minutes)
+    val template = stringResource(R.string.requests_pending_ask, sentinel.toString())
+    val at = template.indexOf(sentinel)
+    if (at >= 0) {
+        append(template.substring(0, at))
+        withStyle(SpanStyle(color = Sprout.colors.overDisplay)) { append(amount) }
+        append(template.substring(at + 1))
+    } else {
+        append(template)
+        withStyle(SpanStyle(color = Sprout.colors.overDisplay)) { append(amount) }
     }
-    append(" more")
 }
-
-private val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
 
 @Composable
 private fun ActiveGrantRow(request: TimeRequest) {
@@ -275,11 +300,19 @@ private fun ActiveGrantRow(request: TimeRequest) {
                     request.appPackage.substringAfterLast('.').replaceFirstChar { it.uppercase() }
                 }
             }
-            Text("Approved ${granted}m on $appLabel", style = Sprout.typography.bodyStrong, color = Sprout.colors.ink)
+            Text(
+                stringResource(
+                    R.string.requests_approved_on,
+                    stringResource(R.string.requests_chip_minutes).format(granted),
+                    appLabel,
+                ),
+                style = Sprout.typography.bodyStrong,
+                color = Sprout.colors.ink,
+            )
             request.grantExpiresAt()?.let { expiry ->
-                val until = timeFormatter.withZone(ZoneId.systemDefault()).format(expiry)
+                val until = LocalFormats.current.clock.timeOfDay(expiry.atZone(ZoneId.systemDefault()).toLocalTime())
                 Text(
-                    "Active until $until",
+                    stringResource(R.string.requests_active_until, until),
                     style = Sprout.typography.caption,
                     color = Sprout.colors.inkMuted,
                 )

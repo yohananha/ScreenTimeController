@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
@@ -37,17 +37,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.screentime.mobile.R
+import com.screentime.shared.R as SharedR
 import com.screentime.mobile.ui.components.SproutGhostButton
 import com.screentime.mobile.ui.components.SproutPrimaryButton
+import com.screentime.mobile.ui.theme.LocalFormats
 import com.screentime.mobile.ui.theme.Sprout
 import com.screentime.mobile.ui.theme.rememberScreenPadding
 import com.screentime.shared.model.TimeFrameSchedule
 import com.screentime.shared.model.TimeFrameWindow
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.format.TextStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,16 +85,16 @@ fun TimeFrameScreen(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            Icons.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.timeframe_back),
                             tint = Sprout.colors.ink,
                             modifier = Modifier.size(20.dp),
                         )
                     }
                     Column {
-                        Text("Allowed hours", style = Sprout.typography.title, color = Sprout.colors.ink)
+                        Text(stringResource(R.string.timeframe_title), style = Sprout.typography.title, color = Sprout.colors.ink)
                         Text(
-                            "When the TV is allowed to be on",
+                            stringResource(R.string.timeframe_subtitle),
                             style = Sprout.typography.caption,
                             color = Sprout.colors.inkMuted,
                         )
@@ -109,7 +115,7 @@ fun TimeFrameScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Text("Enforce a schedule", style = Sprout.typography.headline, color = Sprout.colors.ink)
+                        Text(stringResource(R.string.timeframe_enforce_schedule), style = Sprout.typography.headline, color = Sprout.colors.ink)
                         Switch(
                             checked = state.schedule.enabled,
                             onCheckedChange = viewModel::setEnabled,
@@ -126,7 +132,7 @@ fun TimeFrameScreen(
                     }
                     if (state.schedule.enabled) {
                         Text(
-                            "Outside these hours the TV is blocked. Bonus codes still work.",
+                            stringResource(R.string.timeframe_enforce_hint),
                             style = Sprout.typography.caption,
                             color = Sprout.colors.inkMuted,
                         )
@@ -166,12 +172,12 @@ fun TimeFrameScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             SproutGhostButton(
-                                text = "Copy Mon to weekdays",
+                                text = stringResource(R.string.timeframe_copy_weekdays),
                                 onClick = { viewModel.copyToWeekdays(DayOfWeek.MONDAY) },
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                             )
                             SproutGhostButton(
-                                text = "Copy Sat to weekend",
+                                text = stringResource(R.string.timeframe_copy_weekend),
                                 onClick = { viewModel.copyToWeekend(DayOfWeek.SATURDAY) },
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                             )
@@ -183,7 +189,7 @@ fun TimeFrameScreen(
 
         if (state.pendingChanges) {
             SproutPrimaryButton(
-                text = if (state.saving) "Saving…" else "Save schedule",
+                text = if (state.saving) stringResource(R.string.timeframe_saving) else stringResource(R.string.timeframe_save_schedule),
                 onClick = viewModel::save,
                 enabled = !state.saving,
                 modifier = Modifier
@@ -229,7 +235,7 @@ private fun DayRow(
             Text(day.displayName, style = Sprout.typography.headline, color = Sprout.colors.ink)
             if (isToday) {
                 Text(
-                    "Today",
+                    stringResource(R.string.timeframe_today_badge),
                     style = Sprout.typography.caption,
                     color = Sprout.colors.ink,
                     modifier = Modifier
@@ -290,7 +296,7 @@ private fun DayEditSheet(
                 ) {
                     Icon(
                         Icons.Filled.Close,
-                        contentDescription = "Close",
+                        contentDescription = stringResource(R.string.timeframe_close),
                         tint = Sprout.colors.inkMuted,
                         modifier = Modifier.size(18.dp),
                     )
@@ -310,13 +316,13 @@ private fun DayEditSheet(
                         modifier = Modifier.size(40.dp),
                     )
                     Text(
-                        "Blocked all day on ${day.displayName}s",
+                        stringResource(R.string.timeframe_blocked_all_day_on, day.displayName),
                         style = Sprout.typography.headline,
                         color = Sprout.colors.ink,
                         textAlign = TextAlign.Center,
                     )
                     Text(
-                        "Add a window to allow some screen time.",
+                        stringResource(R.string.timeframe_add_window_hint),
                         style = Sprout.typography.caption,
                         color = Sprout.colors.inkMuted,
                         textAlign = TextAlign.Center,
@@ -334,13 +340,13 @@ private fun DayEditSheet(
             }
 
             SproutGhostButton(
-                text = "+ Add window",
+                text = stringResource(R.string.timeframe_add_window_action),
                 onClick = { addingWindow = true },
                 modifier = Modifier.fillMaxWidth(),
             )
 
             SproutPrimaryButton(
-                text = "Done",
+                text = stringResource(SharedR.string.action_done),
                 onClick = { onSave(localWindows) },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -382,7 +388,7 @@ private fun WindowRow(
                 modifier = Modifier.size(18.dp),
             )
             Text(
-                "${window.startMinute.toTimeLabel()} — ${window.endMinute.toTimeLabel()}",
+                LocalFormats.current.clock.range(LocalContext.current.resources, window.startMinute.toTimeLabel(), window.endMinute.toTimeLabel()),
                 style = Sprout.typography.bodyStrong,
                 color = Sprout.colors.ink,
             )
@@ -396,7 +402,7 @@ private fun WindowRow(
         ) {
             Icon(
                 Icons.Filled.Delete,
-                contentDescription = "Remove",
+                contentDescription = stringResource(SharedR.string.action_remove),
                 tint = Sprout.colors.overText,
                 modifier = Modifier.size(16.dp),
             )
@@ -411,8 +417,11 @@ private fun AddWindowDialog(
     onAdd: (TimeFrameWindow) -> Unit,
 ) {
     var pickingEnd by remember { mutableStateOf(false) }
-    val startState = rememberTimePickerState(initialHour = 16, initialMinute = 0, is24Hour = false)
-    val endState = rememberTimePickerState(initialHour = 20, initialMinute = 0, is24Hour = false)
+    // Respect the device's 12h/24h setting rather than hardcoding 12h — most
+    // Hebrew-locale (and many English-locale) users expect 24-hour.
+    val is24Hour = android.text.format.DateFormat.is24HourFormat(LocalContext.current)
+    val startState = rememberTimePickerState(initialHour = 16, initialMinute = 0, is24Hour = is24Hour)
+    val endState = rememberTimePickerState(initialHour = 20, initialMinute = 0, is24Hour = is24Hour)
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
@@ -420,7 +429,7 @@ private fun AddWindowDialog(
         containerColor = Sprout.colors.surface,
         title = {
             Text(
-                if (pickingEnd) "End time" else "Start time",
+                if (pickingEnd) stringResource(R.string.timeframe_end_time) else stringResource(R.string.timeframe_start_time),
                 style = Sprout.typography.headline,
             )
         },
@@ -433,8 +442,9 @@ private fun AddWindowDialog(
             }
         },
         confirmButton = {
+            val endAfterStartError = stringResource(R.string.timeframe_end_after_start)
             SproutPrimaryButton(
-                text = if (pickingEnd) "Add" else "Next",
+                text = if (pickingEnd) stringResource(R.string.timeframe_action_add) else stringResource(R.string.timeframe_action_next),
                 onClick = {
                     if (!pickingEnd) {
                         pickingEnd = true
@@ -443,7 +453,7 @@ private fun AddWindowDialog(
                         val startMin = startState.hour * 60 + startState.minute
                         val endMin = endState.hour * 60 + endState.minute
                         if (endMin <= startMin) {
-                            errorMessage = "End must be after start"
+                            errorMessage = endAfterStartError
                         } else {
                             onAdd(TimeFrameWindow(startMin, endMin))
                         }
@@ -453,7 +463,7 @@ private fun AddWindowDialog(
         },
         dismissButton = {
             SproutGhostButton(
-                text = if (pickingEnd) "Back" else "Cancel",
+                text = if (pickingEnd) stringResource(SharedR.string.action_back) else stringResource(SharedR.string.action_cancel),
                 onClick = {
                     if (pickingEnd) { pickingEnd = false; errorMessage = null } else onDismiss()
                 },
@@ -463,26 +473,33 @@ private fun AddWindowDialog(
 }
 
 // ── helpers ─────────────────────────────────────────────────────────────────
+// displayName/toTimeLabel/windowsSummary now delegate to the shared,
+// locale-aware ClockFormat (see com.screentime.shared.format) instead of the
+// English-only `name.lowercase().replaceFirstChar { ... }` and hardcoded
+// "AM"/"PM" that used to live here. The surrounding sentence strings
+// ("Blocked all day", the literal "s" suffix at the DayEditSheet empty
+// state, etc.) are a Stage 2 concern (externalizing to string resources).
 
 private val DayOfWeek.displayName: String
-    get() = name.lowercase().replaceFirstChar { it.uppercase() }
+    @Composable get() = LocalFormats.current.clock.dayName(this, TextStyle.FULL)
 
-private fun Int.toTimeLabel(): String {
-    val h = this / 60
-    val m = this % 60
-    val amPm = if (h < 12) "AM" else "PM"
-    val hour12 = when {
-        h == 0 -> 12
-        h <= 12 -> h
-        else -> h - 12
+@Composable
+private fun Int.toTimeLabel(): String = LocalFormats.current.clock.timeOfDay(this)
+
+@Composable
+private fun List<TimeFrameWindow>.windowsSummary(): String {
+    val clock = LocalFormats.current.clock
+    val resources = LocalContext.current.resources
+    return when {
+        isEmpty() -> stringResource(R.string.timeframe_blocked_all_day)
+        isAllDay() -> stringResource(R.string.timeframe_all_day)
+        // joinToString() itself isn't inline, so its transform lambda can't
+        // contain @Composable calls (toTimeLabel() is @Composable) — build
+        // the list first with the inline map(), which is Compose-call-safe,
+        // then join the resulting plain strings.
+        else -> map { clock.range(resources, it.startMinute.toTimeLabel(), it.endMinute.toTimeLabel()) }
+            .joinToString(" · ")
     }
-    return "%d:%02d %s".format(hour12, m, amPm)
-}
-
-private fun List<TimeFrameWindow>.windowsSummary(): String = when {
-    isEmpty() -> "Blocked all day"
-    isAllDay() -> "All day"
-    else -> joinToString(" · ") { "${it.startMinute.toTimeLabel()}–${it.endMinute.toTimeLabel()}" }
 }
 
 private fun List<TimeFrameWindow>.isAllDay(): Boolean =

@@ -22,6 +22,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Lets en-XA / ar-XB show up as selectable "languages" on a debug
+            // build with no translations written yet — used to audit string
+            // extraction and RTL layout on the block-overlay states.
+            isPseudoLocalesEnabled = true
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -54,6 +60,23 @@ android {
             isIncludeAndroidResources = true
             isReturnDefaultValues = true
         }
+    }
+
+    lint {
+        // MissingTranslation/ExtraTranslation are ERROR by default already —
+        // this pins that intent explicitly against a future change, and adds
+        // the checks that catch the most common real translation bug: a
+        // values-he entry with the wrong number or type of %n$s placeholder.
+        error += setOf(
+            "MissingTranslation",
+            "ExtraTranslation",
+            "StringFormatInvalid",
+            "StringFormatMatches",
+            "StringFormatCount",
+            "ImpliedQuantity",
+            "PluralsCandidate",
+        )
+        abortOnError = true
     }
 }
 

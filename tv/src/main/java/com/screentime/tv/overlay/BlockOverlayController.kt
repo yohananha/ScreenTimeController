@@ -10,10 +10,12 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
@@ -23,9 +25,11 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.screentime.tv.locale.TvLocaleController
 import com.screentime.tv.service.BlockReason
 import com.screentime.tv.ui.BackPressHandler
 import com.screentime.tv.ui.BlockOverlayContent
+import com.screentime.tv.ui.theme.ScreenTimeTvTheme
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,6 +39,10 @@ import com.screentime.shared.model.Limits
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.util.Locale
 
 @Singleton
 class BlockOverlayController @Inject constructor(
@@ -43,6 +51,7 @@ class BlockOverlayController @Inject constructor(
     private val requestController: RequestController,
     private val limitsProvider: LimitsProvider,
     private val usage: UsageRepository,
+    private val localeController: TvLocaleController,
 ) {
     private val windowManager: WindowManager =
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -53,6 +62,34 @@ class BlockOverlayController @Inject constructor(
     private val currentBlockReason = mutableStateOf(BlockReason.DailyLimitReached)
     private val nextWindowAt = mutableStateOf<String?>(null)
     private val backPressHandler = BackPressHandler()
+    private var appliedLocale: Locale? = null
+
+    init {
+        // Rebuilds the hosted view (not just recomposes it) when the
+        // family's language changes, since the ComposeView's Context — and
+        // therefore every stringResource() lookup inside it — is fixed at
+        // construction time via localeController.wrap() in show().
+        CoroutineScope(Dispatchers.Main.immediate).launch {
+            localeController.locale.collect { newLocale ->
+                if (newLocale == appliedLocale) return@collect
+                appliedLocale = newLocale
+                if (hostedView != null) {
+                    // Snapshot before removeView(): hide()'s pattern nulls
+                    // currentPackage, and show()'s `if (hostedView == null)`
+                    // guard means hostedView must be nulled explicitly here
+                    // too, before calling show() again.
+                    val pkg = currentPackage.value
+                    val reason = currentBlockReason.value
+                    val nextWindow = nextWindowAt.value
+                    mainHandler.post {
+                        hostedView?.let { windowManager.removeView(it) }
+                        hostedView = null
+                        if (pkg != null) show(pkg, reason, nextWindow)
+                    }
+                }
+            }
+        }
+    }
 
     // WindowManager + the Compose lifecycle/SavedState registries must be
     // touched from the main thread, but evaluate() runs on Dispatchers.Default.
@@ -62,37 +99,55 @@ class BlockOverlayController @Inject constructor(
             currentBlockReason.value = reason
             nextWindowAt.value = nextWindow
             if (hostedView == null) {
-                val composeView = ComposeView(context).apply {
+                val localizedContext = localeController.wrap(context)
+                val composeView = ComposeView(localizedContext).apply {
                     setContent {
-                        val lockout by codeRedeemer.lockout.collectAsState()
-                        val requestStatus by requestController.requestStatus.collectAsState()
-                        val approvedMinutes by requestController.approvedMinutes.collectAsState()
-                        val limits by limitsProvider.limits().collectAsState(initial = Limits())
-                        
-                        var usedMillis by remember(currentPackage.value) { mutableStateOf(0L) }
-                        LaunchedEffect(currentPackage.value, limits) {
-                            currentPackage.value?.let { pkg ->
-                                usedMillis = usage.millisForToday(pkg)
+                        // ScreenTimeTvTheme also provides LocalFormats (the
+                        // shared duration/clock formatters) — without it
+                        // BlockOverlayContent would fall back to whatever
+                        // static composition-local defaults happen to exist,
+                        // which is fragile for the single most safety-critical
+                        // screen in the app.
+                        //
+                        // LocalLayoutDirection is provided explicitly rather
+                        // than relying on the View hierarchy to resolve it:
+                        // this ComposeView's root has no parent to inherit
+                        // direction from (it's added straight to the
+                        // WindowManager), so leaving it implicit is the
+                        // least-documented corner of this whole design.
+                        CompositionLocalProvider(LocalLayoutDirection provides localeController.layoutDirection()) {
+                            ScreenTimeTvTheme {
+                                val lockout by codeRedeemer.lockout.collectAsState()
+                                val requestStatus by requestController.requestStatus.collectAsState()
+                                val approvedMinutes by requestController.approvedMinutes.collectAsState()
+                                val limits by limitsProvider.limits().collectAsState(initial = Limits())
+
+                                var usedMillis by remember(currentPackage.value) { mutableStateOf(0L) }
+                                LaunchedEffect(currentPackage.value, limits) {
+                                    currentPackage.value?.let { pkg ->
+                                        usedMillis = usage.millisForToday(pkg)
+                                    }
+                                }
+
+                                BlockOverlayContent(
+                                    blockedPackage = currentPackage.value ?: "",
+                                    blockReason = currentBlockReason.value,
+                                    nextWindowAt = nextWindowAt.value,
+                                    lockout = lockout,
+                                    requestStatus = requestStatus,
+                                    approvedMinutes = approvedMinutes,
+                                    limits = limits,
+                                    usedMillis = usedMillis,
+                                    backPressHandler = backPressHandler,
+                                    onSubmitCode = { entered -> codeRedeemer.redeem(entered, currentPackage.value) },
+                                    onSubmitRequest = { minutes ->
+                                        val pkg = currentPackage.value
+                                        pkg != null && requestController.submit(pkg, minutes) != null
+                                    },
+                                    onLockoutTick = { codeRedeemer.clearExpiredLockout() },
+                                )
                             }
                         }
-
-                        BlockOverlayContent(
-                            blockedPackage = currentPackage.value ?: "",
-                            blockReason = currentBlockReason.value,
-                            nextWindowAt = nextWindowAt.value,
-                            lockout = lockout,
-                            requestStatus = requestStatus,
-                            approvedMinutes = approvedMinutes,
-                            limits = limits,
-                            usedMillis = usedMillis,
-                            backPressHandler = backPressHandler,
-                            onSubmitCode = { entered -> codeRedeemer.redeem(entered, currentPackage.value) },
-                            onSubmitRequest = { minutes ->
-                                val pkg = currentPackage.value
-                                pkg != null && requestController.submit(pkg, minutes) != null
-                            },
-                            onLockoutTick = { codeRedeemer.clearExpiredLockout() },
-                        )
                     }
                 }
                 // Wrap in a FrameLayout to intercept the hardware Back key before
@@ -100,7 +155,11 @@ class BlockOverlayController @Inject constructor(
                 // SavedState owners must be set on this root view, since
                 // getWindowRecomposer() resolves them from the view added to
                 // the WindowManager, not from the ComposeView child.
-                val container = BackInterceptingContainer(context, backPressHandler).apply {
+                val container = BackInterceptingContainer(localizedContext, backPressHandler).apply {
+                    // Belt & braces alongside the explicit LocalLayoutDirection
+                    // above: keeps any non-Compose measurement on this root
+                    // consistent with the same locale.
+                    layoutDirection = View.LAYOUT_DIRECTION_LOCALE
                     val owner = OverlayLifecycleOwner()
                     owner.start()
                     setViewTreeLifecycleOwner(owner)

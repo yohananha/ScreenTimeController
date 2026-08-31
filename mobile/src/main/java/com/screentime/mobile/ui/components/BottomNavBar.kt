@@ -12,11 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Dialpad
 import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,8 +25,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.screentime.mobile.R
 import com.screentime.mobile.ui.theme.Sprout
 import com.screentime.mobile.ui.theme.SproutRadius
 
@@ -33,11 +36,16 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.ui.unit.sp
 
-enum class NavTab(val route: String, val label: String, val icon: ImageVector) {
-    Limits("limits", "Limits", Icons.Filled.AccessTime),
-    Requests("requests", "Requests", Icons.Filled.NotificationsActive),
-    Codes("codes", "Codes", Icons.Filled.Dialpad),
-    Family("family", "Family", Icons.Filled.People),
+// The Settings tab replaces the old Family tab: it now also hosts the
+// language picker, code lockout (moved out of Limits), and About — see
+// ui/settings/SettingsScreen.kt. @StringRes rather than a plain String
+// because the enum constructor isn't a @Composable context, so the label
+// can't be resolved with stringResource() until a composable reads it.
+enum class NavTab(val route: String, @StringRes val labelRes: Int, val icon: ImageVector) {
+    Limits("limits", R.string.tab_limits, Icons.Filled.AccessTime),
+    Requests("requests", R.string.tab_requests, Icons.Filled.NotificationsActive),
+    Codes("codes", R.string.tab_codes, Icons.Filled.Dialpad),
+    Settings("settings", R.string.settings_title, Icons.Filled.Settings),
 }
 
 @Composable
@@ -78,6 +86,7 @@ fun SproutBottomNavBar(
 
 @Composable
 private fun NavItem(tab: NavTab, selected: Boolean, pendingCount: Int, onClick: () -> Unit) {
+    val label = stringResource(tab.labelRes)
     Column(
         modifier = Modifier
             .width(72.dp)
@@ -97,7 +106,7 @@ private fun NavItem(tab: NavTab, selected: Boolean, pendingCount: Int, onClick: 
             Box(modifier = pillModifier, contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = tab.icon,
-                    contentDescription = tab.label,
+                    contentDescription = label,
                     tint = if (selected) Sprout.colors.ink else Sprout.colors.inkMuted,
                     modifier = Modifier.size(22.dp),
                 )
@@ -121,7 +130,7 @@ private fun NavItem(tab: NavTab, selected: Boolean, pendingCount: Int, onClick: 
             }
         }
         Text(
-            tab.label,
+            label,
             style = Sprout.typography.caption.copy(
                 fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Bold,
             ),

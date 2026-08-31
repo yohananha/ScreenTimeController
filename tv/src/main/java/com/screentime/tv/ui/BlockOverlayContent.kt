@@ -29,6 +29,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
@@ -37,6 +39,7 @@ import com.screentime.shared.model.LockoutMode
 import com.screentime.shared.model.LockoutSettings
 import com.screentime.shared.model.TimeRequest
 import com.screentime.shared.model.Limits
+import com.screentime.tv.R
 import com.screentime.tv.service.BlockReason
 import com.screentime.tv.ui.components.KeypadKey
 import com.screentime.tv.ui.components.StatusKind
@@ -46,6 +49,7 @@ import com.screentime.tv.ui.components.TvGhostButton
 import com.screentime.tv.ui.components.TvKeypad
 import com.screentime.tv.ui.components.TvPrimaryButton
 import com.screentime.tv.ui.components.TvStatusCircle
+import com.screentime.tv.ui.theme.LocalFormats
 import com.screentime.tv.ui.theme.Sprout
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -190,13 +194,13 @@ private fun InstantLockedView() {
     ) {
         TvStatusCircle(kind = StatusKind.Amber, size = 100)
         Text(
-            "TV is locked",
+            stringResource(R.string.overlay_instant_locked_title),
             style = Sprout.typography.displayHero,
             color = Sprout.colors.tvCream,
             textAlign = TextAlign.Center,
         )
         Text(
-            "A parent locked the TV from the Sprout app. Ask them to unlock it when you're ready.",
+            stringResource(R.string.overlay_instant_locked_body),
             style = Sprout.typography.bodyLarge,
             color = Sprout.colors.tvMutedText,
             textAlign = TextAlign.Center,
@@ -221,16 +225,16 @@ private fun OutsideHoursView(
     ) {
         TvStatusCircle(kind = StatusKind.Amber, size = 100)
         Text(
-            "TV time is paused right now",
+            stringResource(R.string.overlay_outside_hours_title),
             style = Sprout.typography.displayHero,
             color = Sprout.colors.tvCream,
             textAlign = TextAlign.Center,
         )
         Text(
             if (nextWindowAt != null) {
-                "Screen time opens again at $nextWindowAt — hang tight!"
+                stringResource(R.string.overlay_opens_again_at, nextWindowAt)
             } else {
-                "No more screen time scheduled for today — see you tomorrow!"
+                stringResource(R.string.overlay_no_more_today)
             },
             style = Sprout.typography.bodyLarge,
             color = Sprout.colors.tvMutedText,
@@ -238,8 +242,8 @@ private fun OutsideHoursView(
             modifier = Modifier.widthIn(max = 590.dp),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            TvPrimaryButton(text = "Ask a parent for more time", onClick = onRequestMore, focusRequester = focus)
-            TvGhostButton(text = "Enter an unlock code", onClick = onEnterCode)
+            TvPrimaryButton(text = stringResource(R.string.overlay_ask_parent_more_time), onClick = onRequestMore, focusRequester = focus)
+            TvGhostButton(text = stringResource(R.string.overlay_enter_unlock_code), onClick = onEnterCode)
         }
     }
 }
@@ -257,14 +261,14 @@ private fun MainView(
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
 
+    val durationFormat = LocalFormats.current.duration
+    val resources = LocalContext.current.resources
     var timeRemainingStr by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
         while (true) {
             val nowTime = LocalTime.now()
             val secondsToMidnight = ChronoUnit.SECONDS.between(nowTime, LocalTime.MAX) + 1
-            val hours = secondsToMidnight / 3600
-            val minutes = (secondsToMidnight % 3600) / 60
-            timeRemainingStr = if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
+            timeRemainingStr = durationFormat.minutes(resources, (secondsToMidnight / 60).toInt())
             delay(1000)
         }
     }
@@ -298,24 +302,24 @@ private fun MainView(
                 }
                 val usedMinutes = (usedMillis / 60000).toInt()
                 Text(
-                    text = "$appLabel · ${formatDuration(usedMinutes)} watched today",
+                    text = stringResource(R.string.overlay_watched_today, appLabel, durationFormat.minutes(resources, usedMinutes)),
                     style = Sprout.typography.label,
                     color = Color(0xFFEFE7F3),
                 )
             }
         }
-        
+
         TvStatusCircle(kind = StatusKind.Mint, size = 105)
-        
+
         Text(
-            "That's a wrap for today!",
+            stringResource(R.string.overlay_main_title),
             style = Sprout.typography.displayHero,
             color = Sprout.colors.tvCream,
             textAlign = TextAlign.Center,
         )
-        
+
         Text(
-            "Nice watching. You've used all your $appLabel time — see you tomorrow, or ask for a little more.",
+            stringResource(R.string.overlay_used_all_time, appLabel),
             style = Sprout.typography.bodyLarge,
             color = Sprout.colors.tvMutedText,
             textAlign = TextAlign.Center,
@@ -336,15 +340,15 @@ private fun MainView(
                 modifier = Modifier.size(22.dp),
             )
             Text(
-                text = "Resets at midnight · $timeRemainingStr",
+                text = stringResource(R.string.overlay_resets_midnight, timeRemainingStr),
                 style = Sprout.typography.bodyMedium,
                 color = Color(0xFF9785AC),
             )
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            TvPrimaryButton(text = "Ask a parent for more time", onClick = onRequestMore, focusRequester = focus)
-            TvGhostButton(text = "Enter an unlock code", onClick = onEnterCode)
+            TvPrimaryButton(text = stringResource(R.string.overlay_ask_parent_more_time), onClick = onRequestMore, focusRequester = focus)
+            TvGhostButton(text = stringResource(R.string.overlay_enter_unlock_code), onClick = onEnterCode)
         }
     }
 }
@@ -366,20 +370,20 @@ private fun RequestTimeView(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Text(
-            "How much more?",
+            stringResource(R.string.overlay_request_time_title),
             style = Sprout.typography.displayLarge,
             color = Sprout.colors.tvCream,
             textAlign = TextAlign.Center,
         )
         Text(
-            "We'll send a quick request to a parent's phone.",
+            stringResource(R.string.overlay_request_time_body),
             style = Sprout.typography.bodyLarge,
             color = Sprout.colors.tvMutedText,
             textAlign = TextAlign.Center,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             TvPrimaryButton(
-                text = "15 more minutes",
+                text = stringResource(R.string.overlay_request_15),
                 onClick = {
                     if (busy) return@TvPrimaryButton
                     busy = true
@@ -388,16 +392,16 @@ private fun RequestTimeView(
                 focusRequester = focus,
             )
             TvPrimaryButton(
-                text = "30 more minutes",
+                text = stringResource(R.string.overlay_request_30),
                 onClick = {
                     if (busy) return@TvPrimaryButton
                     busy = true
                     scope.launch { onSubmit(30); busy = false }
                 },
             )
-            TvGhostButton(text = "Other amount", onClick = onOther)
+            TvGhostButton(text = stringResource(R.string.overlay_request_other_amount), onClick = onOther)
         }
-        TvGhostButton(text = "Maybe later", onClick = onCancel)
+        TvGhostButton(text = stringResource(R.string.overlay_maybe_later), onClick = onCancel)
     }
 }
 
@@ -423,12 +427,12 @@ private fun RequestCustomView(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                "How many minutes?",
+                stringResource(R.string.overlay_request_custom_title),
                 style = Sprout.typography.titleLarge,
                 color = Sprout.colors.tvCream,
             )
             Text(
-                "Anywhere from 1 to 240 minutes. We'll send the request to a parent's phone.",
+                stringResource(R.string.overlay_request_custom_body),
                 style = Sprout.typography.bodyLarge,
                 color = Sprout.colors.tvMutedText,
             )
@@ -439,28 +443,28 @@ private fun RequestCustomView(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = if (entered.isEmpty()) "—" else entered,
+                    text = if (entered.isEmpty()) stringResource(R.string.overlay_request_custom_placeholder) else entered,
                     style = Sprout.typography.displayHero,
                     color = if (entered.isEmpty()) Sprout.colors.tvMutedText else Sprout.colors.ink,
                 )
             }
             if (entered.isNotEmpty() && !valid) {
                 Text(
-                    "Pick a number between 1 and 240",
+                    stringResource(R.string.overlay_pick_number_range),
                     color = Sprout.colors.overDisplay,
                     style = Sprout.typography.label,
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 TvPrimaryButton(
-                    text = "Send to parent",
+                    text = stringResource(R.string.overlay_send_to_parent),
                     onClick = {
                         if (!valid || busy) return@TvPrimaryButton
                         busy = true
                         scope.launch { onSubmit(minutes); busy = false }
                     },
                 )
-                TvGhostButton(text = "Cancel", onClick = onCancel)
+                TvGhostButton(text = stringResource(R.string.overlay_cancel), onClick = onCancel)
             }
         }
         TvKeypad(
@@ -515,24 +519,26 @@ private fun NumPadView(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                "Enter the unlock code",
+                stringResource(R.string.overlay_numpad_title),
                 style = Sprout.typography.titleLarge,
                 color = Sprout.colors.tvCream,
             )
             Text(
-                "Ask a parent to read it to you, or check their phone.",
+                stringResource(R.string.overlay_numpad_body),
                 style = Sprout.typography.bodyLarge,
                 color = Sprout.colors.tvMutedText,
             )
             TvCodeSlotsRow(code = entered, errored = errored)
             if (errored) {
+                // Real CLDR plural rules — the original English literal had
+                // no singular form at all ("1 tries left"), a free bug fix.
                 Text(
-                    "That code didn't work — $triesLeft tries left",
+                    pluralStringResource(R.plurals.overlay_code_wrong, triesLeft, triesLeft),
                     color = Sprout.colors.overDisplay,
                     style = Sprout.typography.label,
                 )
             }
-            TvGhostButton(text = "Cancel", onClick = onCancel)
+            TvGhostButton(text = stringResource(R.string.overlay_cancel), onClick = onCancel)
         }
         TvKeypad(
             onKey = { key ->
@@ -593,20 +599,20 @@ private fun WaitingView(onEnterCode: () -> Unit, onCancel: () -> Unit) {
             }
         )
         Text(
-            "Asked your parent!",
+            stringResource(R.string.overlay_waiting_title),
             style = Sprout.typography.displayLarge,
             color = Sprout.colors.tvCream,
             textAlign = TextAlign.Center,
         )
         Text(
-            "They just got a notification. Hang tight — or punch in an unlock code if they gave you one.",
+            stringResource(R.string.overlay_waiting_body),
             style = Sprout.typography.bodyLarge,
             color = Sprout.colors.tvMutedText,
             textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(max = 550.dp),
         )
-        TvGhostButton(text = "Enter a code instead", onClick = onEnterCode, focusRequester = focus)
-        TvGhostButton(text = "Never mind", onClick = onCancel)
+        TvGhostButton(text = stringResource(R.string.overlay_enter_code_instead), onClick = onEnterCode, focusRequester = focus)
+        TvGhostButton(text = stringResource(R.string.overlay_never_mind), onClick = onCancel)
     }
 }
 
@@ -620,9 +626,9 @@ private fun ApprovedView(
     LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
 
     val headlineText = if (approvedMinutes != null) {
-        "You got $approvedMinutes more!"
+        stringResource(R.string.overlay_approved_headline, approvedMinutes)
     } else {
-        "You got more time!"
+        stringResource(R.string.overlay_approved_headline_unknown)
     }
 
     Column(
@@ -638,12 +644,12 @@ private fun ApprovedView(
             textAlign = TextAlign.Center,
         )
         Text(
-            "Make it count — your timer's running again.",
+            stringResource(R.string.overlay_approved_body),
             style = Sprout.typography.bodyLarge,
             color = Sprout.colors.tvMutedText,
             textAlign = TextAlign.Center,
         )
-        TvPrimaryButton(text = "Keep watching", onClick = onBack, focusRequester = focus)
+        TvPrimaryButton(text = stringResource(R.string.overlay_keep_watching), onClick = onBack, focusRequester = focus)
     }
 }
 
@@ -660,18 +666,18 @@ private fun UnlockedView(onBack: () -> Unit) {
     ) {
         TvStatusCircle(kind = StatusKind.Mint, icon = Icons.Filled.LockOpen)
         Text(
-            "Code worked!",
+            stringResource(R.string.overlay_unlocked_title),
             style = Sprout.typography.displayLarge,
             color = Sprout.colors.tvCream,
             textAlign = TextAlign.Center,
         )
         Text(
-            "Limit's paused for a bit. Enjoy!",
+            stringResource(R.string.overlay_unlocked_body),
             style = Sprout.typography.bodyLarge,
             color = Sprout.colors.tvMutedText,
             textAlign = TextAlign.Center,
         )
-        TvPrimaryButton(text = "Keep watching", onClick = onBack, focusRequester = focus)
+        TvPrimaryButton(text = stringResource(R.string.overlay_keep_watching), onClick = onBack, focusRequester = focus)
     }
 }
 
@@ -688,21 +694,21 @@ private fun DeniedView(onOkay: () -> Unit, onEnterCode: () -> Unit) {
     ) {
         TvStatusCircle(kind = StatusKind.Lilac, size = 100)
         Text(
-            "Not right now",
+            stringResource(R.string.overlay_denied_title),
             style = Sprout.typography.displayLarge,
             color = Sprout.colors.tvCream,
             textAlign = TextAlign.Center,
         )
         Text(
-            "Your parent said maybe later — and that's okay. There's always tomorrow.",
+            stringResource(R.string.overlay_denied_body),
             style = Sprout.typography.bodyLarge,
             color = Sprout.colors.tvMutedText,
             textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(max = 550.dp),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            TvGhostButton(text = "Enter an unlock code", onClick = onEnterCode, focusRequester = focus)
-            TvPrimaryButton(text = "Okay", onClick = onOkay)
+            TvGhostButton(text = stringResource(R.string.overlay_enter_unlock_code), onClick = onEnterCode, focusRequester = focus)
+            TvPrimaryButton(text = stringResource(R.string.overlay_okay), onClick = onOkay)
         }
     }
 }
@@ -744,16 +750,16 @@ private fun LockedView(lockout: LockoutSettings, onTimerExpired: suspend () -> U
     ) {
         TvStatusCircle(kind = StatusKind.Amber, size = 100)
         Text(
-            if (lockout.mode == LockoutMode.PARENT_UNLOCK) "Ask a parent to unlock" else "Let's take a short break",
+            if (lockout.mode == LockoutMode.PARENT_UNLOCK) stringResource(R.string.overlay_locked_parent_title) else stringResource(R.string.overlay_locked_timer_title),
             style = Sprout.typography.displayLarge,
             color = Sprout.colors.tvCream,
             textAlign = TextAlign.Center,
         )
         Text(
             if (lockout.mode == LockoutMode.PARENT_UNLOCK)
-                "That's a few wrong codes. A parent needs to unlock the TV from the mobile app."
+                stringResource(R.string.overlay_locked_parent_body)
             else
-                "That's a few wrong codes. The TV unlocks again on its own — grab a snack or stretch!",
+                stringResource(R.string.overlay_locked_timer_body),
             style = Sprout.typography.bodyLarge,
             color = Sprout.colors.tvMutedText,
             textAlign = TextAlign.Center,
@@ -767,7 +773,7 @@ private fun LockedView(lockout: LockoutSettings, onTimerExpired: suspend () -> U
                     Duration.ofMillis((it.totalRemainingMs - elapsed).coerceAtLeast(0))
                 } ?: Duration.ZERO
                 Text(
-                    text = formatRemaining(remaining),
+                    text = LocalFormats.current.duration.countdown(LocalContext.current.resources, remaining.seconds),
                     style = Sprout.typography.displayHero,
                     color = Color(0xFFF2C879),
                 )
@@ -778,13 +784,6 @@ private fun LockedView(lockout: LockoutSettings, onTimerExpired: suspend () -> U
 
 private data class LockoutAnchor(val startElapsedMs: Long, val totalRemainingMs: Long)
 
-private fun formatRemaining(duration: Duration): String {
-    val totalSeconds = duration.seconds.coerceAtLeast(0)
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return "%d:%02d".format(minutes, seconds)
-}
-
 private val appAccents = listOf(
     Color(0xFFE5483A), Color(0xFF5B6B7B), Color(0xFF2A2730), Color(0xFF4FA98C),
     Color(0xFF8E86D9), Color(0xFFF2A93B), Color(0xFFB9A8F0),
@@ -792,13 +791,3 @@ private val appAccents = listOf(
 
 private fun appAccentFor(packageName: String): Color =
     appAccents[(packageName.hashCode().let { if (it < 0) -it else it }) % appAccents.size]
-
-private fun formatDuration(minutes: Int): String {
-    val hours = minutes / 60
-    val mins = minutes % 60
-    return when {
-        hours == 0 -> "${mins}m"
-        mins == 0 -> "${hours}h"
-        else -> "${hours}h ${mins}m"
-    }
-}

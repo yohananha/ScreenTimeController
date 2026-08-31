@@ -10,9 +10,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
@@ -59,6 +62,7 @@ fun TvCodeSlot(
     }
 }
 
+/** Forced LTR — see CodeTilesRow (mobile) for why: digits must not reverse under RTL. */
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvCodeSlotsRow(
@@ -67,15 +71,17 @@ fun TvCodeSlotsRow(
     errored: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-        repeat(slots) { i ->
-            val state = when {
-                errored -> TvCodeSlotState.Error
-                i < code.length -> TvCodeSlotState.Filled
-                i == code.length -> TvCodeSlotState.Active
-                else -> TvCodeSlotState.Empty
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+            repeat(slots) { i ->
+                val state = when {
+                    errored -> TvCodeSlotState.Error
+                    i < code.length -> TvCodeSlotState.Filled
+                    i == code.length -> TvCodeSlotState.Active
+                    else -> TvCodeSlotState.Empty
+                }
+                TvCodeSlot(digit = code.getOrNull(i), state = state)
             }
-            TvCodeSlot(digit = code.getOrNull(i), state = state)
         }
     }
 }

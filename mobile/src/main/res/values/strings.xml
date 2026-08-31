@@ -1,16 +1,240 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Screen Time</string>
+
+    <!-- components/StatusBadge.kt -->
+    <string name="status_on_track">On track</string>
+    <string name="status_almost_up">Almost up</string>
+    <string name="status_times_up">Time\'s up</string>
+    <string name="status_paused">Paused</string>
+
+    <!-- components/HeroCard.kt -->
+    <string name="hero_todays_screen_time">TODAY\'S SCREEN TIME</string>
+
+    <!-- components/RequestBanner.kt (currently unreferenced, kept for parity) -->
+    <string name="requests_action_review">Review</string>
+
+    <!-- auth/SignInScreen.kt -->
+    <string name="auth_welcome_title">Welcome to ScreenTime</string>
+    <string name="auth_welcome_subtitle">Sign in to manage your family\'s screen time</string>
+    <string name="auth_continue_google">Continue with Google</string>
+    <string name="auth_sign_in_email">Sign in with email</string>
+    <string name="auth_legal_notice">By continuing you agree to our Privacy Policy and Terms of Service</string>
+    <string name="error_unexpected_credential">Unexpected credential type</string>
+    <string name="error_google_sign_in_failed">Google sign-in failed</string>
+
+    <!-- family/FamilyOnboardingScreen.kt -->
+    <string name="family_onboarding_title">Set up your family</string>
+    <string name="family_onboarding_subtitle">Create a new family or join one a co-parent set up.</string>
+    <string name="family_onboarding_create_title">Create a family</string>
+    <string name="family_onboarding_create_subtitle">Start fresh. You\'ll be the owner.</string>
+    <string name="family_onboarding_join_title">Join a family</string>
+    <string name="family_onboarding_join_subtitle">Use the invite code from your co-parent.</string>
+    <string name="family_onboarding_invite_code_label">ENTER THE 6-DIGIT INVITE CODE</string>
+    <string name="family_onboarding_joining">Joining…</string>
+    <string name="action_continue">Continue</string>
+
+    <!-- history/HistoryScreen.kt -->
+    <string name="history_title">Usage</string>
+    <string name="history_subtitle">Last 7 days</string>
+    <string name="history_empty_title">No usage yet</string>
+    <string name="history_empty_subtitle">Your family hasn\'t watched anything today. Enjoy the quiet!</string>
+    <!-- "On track" / "Almost up" reuse status_on_track / status_almost_up above; "Over limit" is distinct wording from status_times_up. -->
+    <string name="history_legend_over_limit">Over limit</string>
+    <string name="history_today">Today</string>
+    <string name="history_yesterday">Yesterday</string>
+
+    <!-- codes/CodesScreen.kt -->
+    <string name="codes_title">Unlock codes</string>
+    <string name="codes_subtitle">Single-use codes your child types on the TV.</string>
+    <string name="codes_hero_label">UNLOCK CODE</string>
+    <string name="codes_hero_single_use">Single-use</string>
+    <string name="codes_unlocks_for">Unlocks everything for %1$s</string>
+    <string name="codes_expires_in">Expires in %1$s</string>
+    <string name="codes_expired">Expired</string>
+    <!-- "Done" reuses shared action_done (com.screentime.shared.R.string.action_done). -->
+    <string name="codes_generate_below">Generate a code below.</string>
+    <string name="codes_what_it_unlocks">What it unlocks</string>
+    <string name="codes_how_much_time">HOW MUCH TIME</string>
+    <string name="codes_rest_of_day">Rest of day</string>
+    <string name="codes_chip_minutes">%1$d min</string>
+    <string name="codes_generating">Generating…</string>
+    <string name="codes_generate_action">Generate code</string>
+
+    <!-- requests/RequestsScreen.kt -->
+    <string name="requests_title">Requests</string>
+    <string name="requests_subtitle">Approve or deny extra time the TV asks for.</string>
+    <string name="requests_empty_title">You\'re all caught up</string>
+    <string name="requests_empty_subtitle">No pending requests right now.</string>
+    <string name="requests_active_section">Active</string>
+    <string name="requests_device_name">Living Room TV</string>
+    <string name="requests_pending_ask">Wants %1$s more</string>
+    <string name="requests_grant_how_long">GRANT HOW LONG?</string>
+    <!-- Deliberately "%1$dm" rather than the shared duration formatter: the
+         chip options are always exactly 15/30/60 and the original English
+         copy always showed "60m", never "1h" — kept as-is to avoid a
+         silent design change while just translating. -->
+    <string name="requests_chip_minutes">%1$dm</string>
+    <string name="requests_action_approve">Approve %1$s</string>
+    <string name="requests_action_deny">Deny</string>
+    <string name="requests_just_now">just now</string>
+    <string name="requests_minutes_ago">%1$dm ago</string>
+    <string name="requests_hours_ago">%1$dh ago</string>
+    <string name="requests_approved_on">Approved %1$s on %2$s</string>
+    <string name="requests_active_until">Active until %1$s</string>
+
+    <!-- limits/TimeFrameScreen.kt -->
+    <string name="timeframe_back">Back</string>
+    <string name="timeframe_title">Allowed hours</string>
+    <string name="timeframe_subtitle">When the TV is allowed to be on</string>
+    <string name="timeframe_enforce_schedule">Enforce a schedule</string>
+    <string name="timeframe_enforce_hint">Outside these hours the TV is blocked. Bonus codes still work.</string>
+    <string name="timeframe_copy_weekdays">Copy Mon to weekdays</string>
+    <string name="timeframe_copy_weekend">Copy Sat to weekend</string>
+    <string name="timeframe_saving">Saving…</string>
+    <string name="timeframe_save_schedule">Save schedule</string>
+    <string name="timeframe_today_badge">Today</string>
+    <string name="timeframe_close">Close</string>
+    <!-- Deliberately "on %1$s" (day name, singular) rather than the original
+         "on ${day}s" — the literal English plural "s" suffix on a day name
+         cannot survive translation (see plan notes on TimeFrameScreen.kt). -->
+    <string name="timeframe_blocked_all_day_on">Blocked all day on %1$s</string>
+    <string name="timeframe_add_window_hint">Add a window to allow some screen time.</string>
+    <string name="timeframe_add_window_action">+ Add window</string>
+    <string name="timeframe_window_remove">Remove</string>
+    <string name="timeframe_end_time">End time</string>
+    <string name="timeframe_start_time">Start time</string>
+    <string name="timeframe_end_after_start">End must be after start</string>
+    <string name="timeframe_action_add">Add</string>
+    <string name="timeframe_action_next">Next</string>
+    <string name="timeframe_blocked_all_day">Blocked all day</string>
+    <string name="timeframe_all_day">All day</string>
+
+    <!-- limits/LimitsScreen.kt -->
+    <string name="limits_history_action">History</string>
+    <string name="limits_title">Limits</string>
+    <string name="limits_dismiss">Dismiss</string>
+    <string name="limits_hero_of_daily">of %1$s daily</string>
+    <string name="limits_hero_left">%1$s left</string>
+    <string name="limits_hero_reset">Resets at midnight</string>
+    <string name="limits_app_section_title">App limits</string>
+    <string name="limits_empty_title">No app limits yet</string>
+    <string name="limits_empty_subtitle">Tap the + to add one.</string>
+    <string name="limits_add_limit_fab">+ Add limit</string>
+
+    <string name="limits_lockout_timer_duration">%1$d min lock</string>
+    <string name="limits_lockout_parent_unlock">Parent unlock</string>
+    <string name="limits_lockout_title">Code lockout</string>
+    <string name="limits_lockout_subtitle">After 5 wrong codes in 1 minute</string>
+    <string name="limits_lockout_locked_notice">TV code entry is currently locked.</string>
+    <string name="limits_lockout_unlock_now">Unlock now</string>
+
+    <string name="limits_pick_app_title">Add app limit</string>
+    <string name="limits_pick_app_no_apps">No apps found on the TV yet. Make sure the TV is paired and online.</string>
+    <string name="limits_pick_app_all_have_limits">All apps already have limits.</string>
+
+    <string name="limits_edit_title">Edit limit</string>
+    <string name="limits_always_allowed">Always allowed</string>
+    <string name="limits_minutes_field_label">Minutes</string>
+    <string name="limits_action_block">Block</string>
+    <string name="limits_action_always_allow">Always allow</string>
+
+    <string name="limits_overall_title">Overall daily limit</string>
+    <string name="limits_overall_subtitle">Once today\'s total usage across all apps reaches this, the TV blocks no matter which app is open.</string>
+    <string name="limits_overall_no_limit">No overall limit</string>
+    <string name="limits_action_block_all">Block all</string>
+    <string name="limits_action_no_limit">No limit</string>
+
+    <string name="limits_lockout_dialog_subtitle">After 5 incorrect codes within 1 minute, the TV\'s code entry will:</string>
+    <string name="limits_lockout_mode_timer">Lock for a set time</string>
+    <string name="limits_lockout_mode_parent">Require a parent to unlock</string>
+
+    <string name="limits_mode_lock_title">Instant lock</string>
+    <string name="limits_mode_lock_caption">TV is locked — tap Default to release</string>
+    <string name="limits_mode_default_title">Limits active</string>
+    <string name="limits_mode_default_caption">Today\'s schedule and app limits apply</string>
+    <string name="limits_mode_allow_title">Allow all day</string>
+    <string name="limits_mode_allow_caption">All limits paused until midnight</string>
+    <string name="limits_mode_segment_lock">Lock</string>
+    <string name="limits_mode_segment_default">Default</string>
+    <string name="limits_mode_segment_allow">Allow</string>
+
+    <string name="limits_allowed_hours_title">Allowed hours</string>
+    <string name="limits_schedule_none">No schedule set</string>
+    <string name="limits_schedule_on_no_windows">Schedule on — no windows set</string>
+
+    <!-- family/PairTvSection.kt -->
+    <string name="pairtv_section_title">TVs</string>
+    <string name="pairtv_none_paired">None paired</string>
+    <plurals name="pairtv_count_paired">
+        <item quantity="one">%d paired</item>
+        <item quantity="other">%d paired</item>
+    </plurals>
+    <string name="pairtv_empty_title">No TV paired</string>
+    <string name="pairtv_empty_subtitle">Open ScreenTime on your Android TV and enter the 6-digit code it shows.</string>
+    <string name="pairtv_action_pair">Pair a TV</string>
+    <string name="pairtv_form_subtitle">Enter the 6-digit code shown on the TV\'s pairing screen.</string>
+    <string name="pairtv_pairing">Pairing…</string>
+    <string name="pairtv_pair">Pair</string>
+    <string name="pairtv_add_another">+ Pair another TV</string>
+    <string name="pairtv_collapse">Collapse</string>
+    <string name="pairtv_expand">Expand</string>
+    <!-- "0m" usage figure is a hardcoded placeholder pending real per-device
+         usage tracking — unrelated to i18n, kept as-is; only the sentence
+         template is made translatable here. -->
+    <string name="pairtv_online_status">Online · %1$s today</string>
+    <string name="pairtv_stat_today_label">Today</string>
+    <string name="pairtv_stat_paired_label">Paired</string>
+    <string name="pairtv_stat_paired_value">Active</string>
+    <string name="pairtv_unpair_confirm">Unpair this TV? Limits stop applying until you pair it again.</string>
+    <string name="pairtv_action_unpair">Unpair</string>
+    <string name="pairtv_action_rename">Rename</string>
+    <string name="pairtv_action_unpair_tv">Unpair TV</string>
+    <string name="pairtv_rename_title">Rename TV</string>
+
+    <!-- ui/settings/FamilyMembersSection.kt (formerly family/InviteScreen.kt) -->
+    <string name="family_devices_title">Family &amp; devices</string>
+    <string name="family_devices_subtitle">Co-parents and your paired TV.</string>
+    <string name="family_parents_title">Parents</string>
+    <plurals name="family_members">
+        <item quantity="one">%d member</item>
+        <item quantity="other">%d members</item>
+    </plurals>
+    <string name="family_you">You</string>
+    <string name="family_role_co_parent">Co-parent</string>
+    <string name="family_role_owner">Owner</string>
+    <string name="family_role_owner_you">Owner · you</string>
+    <string name="family_remove_confirm_title">Remove co-parent?</string>
+    <string name="family_remove_confirm_body">They will lose access to this family immediately.</string>
+    <string name="family_options">Options</string>
+    <string name="family_remove_from_family">Remove from family</string>
+    <string name="family_invite_title">Invite a parent</string>
+    <string name="family_invite_subtitle">They join as a co-parent</string>
+    <string name="family_invite_share_hint">Share this code with the parent you\'re inviting. It expires in 24 hours.</string>
+    <string name="family_invite_copied">Copied!</string>
+    <string name="family_invite_copy">Copy</string>
+    <string name="family_invite_generating">Generating code…</string>
+    <string name="family_invite_generate_new">Generate a new code</string>
+
+    <!-- ui/settings/ (Stage 3: Settings tab, replaces the old Family tab) -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_language_section_title">Language</string>
+    <string name="settings_language_system">Use device language</string>
+    <!-- Language endonyms are deliberately not translated — you never
+         localize a language's own name in its own picker. -->
+    <string name="settings_language_en" translatable="false">English</string>
+    <string name="settings_language_he" translatable="false">עברית</string>
+    <string name="settings_language_hint">Also sets the language on your paired TVs.</string>
+    <string name="settings_about_title">About</string>
+    <string name="settings_about_version">Version %1$s</string>
+
+    <!-- components/BottomNavBar.kt -->
     <string name="tab_limits">Limits</string>
     <string name="tab_requests">Requests</string>
     <string name="tab_codes">Codes</string>
-    <string name="tab_history">History</string>
-    <string name="tab_family">Family</string>
-    <string name="add_app_limit">Add app limit</string>
-    <string name="edit_app_limit">Edit limit</string>
-    <string name="cancel">Cancel</string>
-    <string name="save">Save</string>
-    <string name="remove">Remove</string>
-    <string name="daily_minutes">Daily minutes</string>
-    <string name="no_limits_set">No app limits yet — tap + to add one!</string>
+    <!-- tab_settings reuses settings_title ("Settings") — same string, same screen. -->
+
+    <!-- Client-side precondition errors (not from a caught exception, so
+         :shared's FunctionsErrors.toErrorRes() doesn't cover these). -->
+    <string name="error_no_family_linked">No family linked yet.</string>
 </resources>

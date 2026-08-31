@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Generic actions shared between the mobile app and the TV overlay. -->
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_done">Done</string>
+    <string name="action_back">Back</string>
+    <string name="action_okay">Okay</string>
+
+    <!-- Duration / clock primitives, consumed only by the DurationFormat / ClockFormat helpers below. -->
+    <string name="duration_h_m">%1$dh %2$dm</string>
+    <string name="duration_h">%1$dh</string>
+    <string name="duration_m">%1$dm</string>
+    <string name="duration_none">No limit</string>
+    <string name="duration_zero">0m</string>
+    <string name="countdown_m_s">%1$d:%2$02d</string>
+    <string name="clock_range">%1$s–%2$s</string>
+    <string name="list_separator">·</string>
+
+    <plurals name="minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <plurals name="days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="apps">
+        <item quantity="one">%d app</item>
+        <item quantity="other">%d apps</item>
+    </plurals>
+
+    <!-- Cloud Function / Firestore error mapping — see format/FunctionsErrors.kt.
+         Machine-readable `details.reason` tags come from functions/src/index.ts;
+         gRPC codes alone are ambiguous (NOT_FOUND covers five distinct cases). -->
+    <string name="error_generic">Something went wrong.</string>
+    <string name="error_family_not_found">Family not found.</string>
+    <string name="error_not_admin">Only admins can invite members.</string>
+    <string name="error_not_owner">Only the family owner can pair a TV.</string>
+    <string name="error_code_invalid">Invalid code.</string>
+    <string name="error_code_used">This code has already been used.</string>
+    <string name="error_code_expired">This code has expired.</string>
+    <string name="error_code_invalid_or_expired">Invalid or expired code.</string>
+    <string name="error_tv_already_paired">This TV is already paired with another family.</string>
+    <string name="error_device_not_paired">Device not paired to this family.</string>
+    <string name="error_locked_out">Code entry is locked.</string>
+    <string name="error_signin_required">Sign-in required.</string>
+    <string name="error_permission_denied">You don\'t have permission to do that.</string>
+    <string name="error_network">Couldn\'t connect. Check your internet connection and try again.</string>
+
+    <!-- Success/status messages that share a field with the errors above. -->
+    <string name="status_tv_paired">TV paired.</string>
+</resources>

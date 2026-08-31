@@ -2,8 +2,10 @@ package com.screentime.mobile.ui.family
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.screentime.shared.R as SharedR
 import com.screentime.shared.auth.AuthRepository
 import com.screentime.shared.firestore.FirestoreRepository
+import com.screentime.shared.firestore.toErrorRes
 import com.screentime.shared.model.Family
 import com.screentime.shared.model.FamilyRole
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +19,8 @@ import javax.inject.Inject
 data class FamilyUiState(
     val inviteCode: String? = null,
     val joining: Boolean = false,
-    val error: String? = null,
+    /** A @StringRes, or null when there's no error to show. */
+    val error: Int? = null,
     val family: Family? = null,
     val currentUid: String? = null,
 )
@@ -49,7 +52,7 @@ class FamilyViewModel @Inject constructor(
         viewModelScope.launch {
             val session = auth.currentSession.first() ?: return@launch
             runCatching { firestore.createFamily(session.uid) }
-                .onFailure { _state.value = _state.value.copy(error = it.message) }
+                .onFailure { _state.value = _state.value.copy(error = it.toErrorRes()) }
         }
     }
 
@@ -58,7 +61,7 @@ class FamilyViewModel @Inject constructor(
             val session = auth.currentSession.first() ?: return@launch
             runCatching { firestore.generateInvite(familyId, session.uid) }
                 .onSuccess { _state.value = _state.value.copy(inviteCode = it, error = null) }
-                .onFailure { _state.value = _state.value.copy(error = it.message) }
+                .onFailure { _state.value = _state.value.copy(error = it.toErrorRes()) }
         }
     }
 
@@ -69,24 +72,24 @@ class FamilyViewModel @Inject constructor(
             runCatching { firestore.joinFamilyByInvite(code, session.uid) }
                 .onSuccess { joined ->
                     _state.value = if (joined == null) {
-                        _state.value.copy(joining = false, error = "Invalid or expired code.")
+                        _state.value.copy(joining = false, error = SharedR.string.error_code_invalid_or_expired)
                     } else _state.value.copy(joining = false)
                 }
-                .onFailure { _state.value = _state.value.copy(joining = false, error = it.message) }
+                .onFailure { _state.value = _state.value.copy(joining = false, error = it.toErrorRes()) }
         }
     }
 
     fun setMemberRole(familyId: String, uid: String, role: FamilyRole) {
         viewModelScope.launch {
             runCatching { firestore.setMemberRole(familyId, uid, role) }
-                .onFailure { _state.value = _state.value.copy(error = it.message) }
+                .onFailure { _state.value = _state.value.copy(error = it.toErrorRes()) }
         }
     }
 
     fun removeMember(familyId: String, uid: String) {
         viewModelScope.launch {
             runCatching { firestore.removeMember(familyId, uid) }
-                .onFailure { _state.value = _state.value.copy(error = it.message) }
+                .onFailure { _state.value = _state.value.copy(error = it.toErrorRes()) }
         }
     }
 }

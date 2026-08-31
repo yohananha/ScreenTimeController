@@ -26,10 +26,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.screentime.mobile.R
+import com.screentime.shared.R as SharedR
+import com.screentime.mobile.ui.theme.LocalFormats
 import com.screentime.mobile.ui.theme.rememberScreenPadding
 import com.screentime.mobile.ui.components.ChipGroup
 import com.screentime.mobile.ui.components.CodeTilesRow
@@ -57,9 +62,9 @@ fun CodesScreen(viewModel: CodesViewModel = hiltViewModel()) {
             item { TopHeader(familyName = "Family", parentInitial = "P") }
             item {
                 Column(modifier = Modifier.padding(top = 4.dp, bottom = 6.dp)) {
-                    Text("Unlock codes", style = Sprout.typography.display, color = Sprout.colors.ink)
+                    Text(stringResource(R.string.codes_title), style = Sprout.typography.display, color = Sprout.colors.ink)
                     Text(
-                        "Single-use codes your child types on the TV.",
+                        stringResource(R.string.codes_subtitle),
                         style = Sprout.typography.caption,
                         color = Sprout.colors.inkMuted,
                         modifier = Modifier.padding(top = 5.dp),
@@ -90,7 +95,7 @@ fun CodesScreen(viewModel: CodesViewModel = hiltViewModel()) {
             }
 
             state.error?.let {
-                item { Text(it, color = Sprout.colors.overText, style = Sprout.typography.bodyStrong) }
+                item { Text(stringResource(it), color = Sprout.colors.overText, style = Sprout.typography.bodyStrong) }
             }
         }
     }
@@ -112,18 +117,21 @@ private fun ActiveCodeHero(code: String, extraMinutes: Int, expiresAt: Instant, 
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("UNLOCK CODE", style = Sprout.typography.label, color = Sprout.colors.darkMutedText)
+                Text(stringResource(R.string.codes_hero_label), style = Sprout.typography.label, color = Sprout.colors.darkMutedText)
                 Box(
                     modifier = Modifier
                         .background(Sprout.colors.accent, Sprout.radius.pill)
                         .padding(horizontal = 10.dp, vertical = 4.dp),
                 ) {
-                    Text("Single-use", style = Sprout.typography.caption, color = Sprout.colors.ink)
+                    Text(stringResource(R.string.codes_hero_single_use), style = Sprout.typography.caption, color = Sprout.colors.ink)
                 }
             }
             CodeTilesRow(code = code)
             Text(
-                "Unlocks Everything for $extraMinutes min",
+                stringResource(
+                    R.string.codes_unlocks_for,
+                    LocalFormats.current.duration.minutes(LocalContext.current.resources, extraMinutes),
+                ),
                 style = Sprout.typography.bodyStrong,
                 color = Sprout.colors.background,
             )
@@ -136,13 +144,13 @@ private fun ActiveCodeHero(code: String, extraMinutes: Int, expiresAt: Instant, 
             ) {
                 Icon(Icons.Filled.Schedule, contentDescription = null, tint = Sprout.colors.primary, modifier = Modifier.size(14.dp))
                 Text(
-                    if (remaining > 0) "Expires in ${formatRemaining(remaining)}" else "Expired",
+                    if (remaining > 0) stringResource(R.string.codes_expires_in, formatRemaining(remaining)) else stringResource(R.string.codes_expired),
                     style = Sprout.typography.label,
                     color = Sprout.colors.background,
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SproutPrimaryButton(text = "Done", onClick = onDismiss, modifier = Modifier.weight(1f))
+                SproutPrimaryButton(text = stringResource(SharedR.string.action_done), onClick = onDismiss, modifier = Modifier.weight(1f))
             }
         }
     }
@@ -176,7 +184,7 @@ private fun NoCodeHero() {
             }
         }
         Text(
-            "Generate a code below.",
+            stringResource(R.string.codes_generate_below),
             style = Sprout.typography.body,
             color = Sprout.colors.inkMuted,
         )
@@ -190,6 +198,8 @@ private fun SettingsCard(
     isGenerating: Boolean,
     onGenerate: () -> Unit,
 ) {
+    val restOfDayLabel = stringResource(R.string.codes_rest_of_day)
+    val minutesLabel = stringResource(R.string.codes_chip_minutes)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -197,9 +207,9 @@ private fun SettingsCard(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Text("What it unlocks", style = Sprout.typography.headline, color = Sprout.colors.ink)
+        Text(stringResource(R.string.codes_what_it_unlocks), style = Sprout.typography.headline, color = Sprout.colors.ink)
         Text(
-            "HOW MUCH TIME",
+            stringResource(R.string.codes_how_much_time),
             style = Sprout.typography.label,
             color = Sprout.colors.inkFaint,
         )
@@ -207,10 +217,10 @@ private fun SettingsCard(
             options = listOf(15, 30, 60, -1),
             selected = selectedMinutes,
             onSelect = onSelectMinutes,
-            label = { if (it == -1) "Rest of day" else "$it min" },
+            label = { if (it == -1) restOfDayLabel else minutesLabel.format(it) },
         )
         SproutPrimaryButton(
-            text = if (isGenerating) "Generating…" else "Generate code",
+            text = if (isGenerating) stringResource(R.string.codes_generating) else stringResource(R.string.codes_generate_action),
             onClick = { if (!isGenerating) onGenerate() },
             enabled = !isGenerating,
             modifier = Modifier.fillMaxWidth(),
@@ -218,11 +228,9 @@ private fun SettingsCard(
     }
 }
 
-private fun formatRemaining(seconds: Long): String {
-    val m = seconds / 60
-    val s = seconds % 60
-    return "%d:%02d".format(m, s)
-}
+@Composable
+private fun formatRemaining(seconds: Long): String =
+    LocalFormats.current.duration.countdown(LocalContext.current.resources, seconds)
 
 private fun secondsUntil(instant: Instant): Long =
     (instant.epochSecond - Instant.now().epochSecond).coerceAtLeast(0)

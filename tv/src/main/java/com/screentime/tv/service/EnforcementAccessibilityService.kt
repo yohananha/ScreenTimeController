@@ -3,6 +3,7 @@ package com.screentime.tv.service
 import android.accessibilityservice.AccessibilityService
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import com.screentime.shared.format.ClockFormat
 import com.screentime.shared.limits.BonusStore
 import com.screentime.shared.limits.LimitsProvider
 import com.screentime.shared.model.Limits
@@ -33,6 +34,7 @@ class EnforcementAccessibilityService : AccessibilityService() {
     @Inject lateinit var usage: UsageRepository
     @Inject lateinit var overlay: BlockOverlayController
     @Inject lateinit var bonusStore: BonusStore
+    @Inject lateinit var clockFormat: ClockFormat
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val foregroundPackage = MutableStateFlow<String?>(null)
@@ -133,7 +135,7 @@ class EnforcementAccessibilityService : AccessibilityService() {
         val now = LocalDateTime.now()
         if (!limits.timeFrame.isAllowedAt(now)) {
             val nextLabel = limits.timeFrame.nextAllowedMinute(now)
-                ?.let { java.time.format.DateTimeFormatter.ofPattern("h:mm a").format(it) }
+                ?.let { clockFormat.timeOfDay(it.toLocalTime()) }
             Log.d(TAG, "Eval $pkg: outside time-frame schedule, next=$nextLabel")
             overlay.show(pkg, BlockReason.OutsideHours, nextLabel)
             return

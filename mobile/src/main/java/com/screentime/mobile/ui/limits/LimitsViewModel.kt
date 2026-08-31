@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.screentime.shared.auth.FamilyIdProvider
 import com.screentime.shared.firestore.FirestoreRepository
+import com.screentime.shared.firestore.toErrorRes
 import com.screentime.shared.model.AppLimit
 import com.screentime.shared.model.InstalledApp
 import com.screentime.shared.model.Limits
@@ -46,8 +47,9 @@ open class LimitsViewModel @Inject constructor(
     private val familyIdProvider: FamilyIdProvider,
 ) : ViewModel() {
 
-    private val _writeError = MutableStateFlow<String?>(null)
-    open val writeError: StateFlow<String?> = _writeError.asStateFlow()
+    /** A @StringRes to render, or null when there's no error to show. */
+    private val _writeError = MutableStateFlow<Int?>(null)
+    open val writeError: StateFlow<Int?> = _writeError.asStateFlow()
 
     private val _todayUsage: StateFlow<UsageSnapshot> = familyIdProvider.familyId
         .flatMapLatest { familyId ->
@@ -108,7 +110,7 @@ open class LimitsViewModel @Inject constructor(
     private fun write(block: suspend () -> Unit) {
         viewModelScope.launch {
             runCatching { block() }
-                .onFailure { _writeError.value = it.message ?: "Something went wrong." }
+                .onFailure { _writeError.value = it.toErrorRes() }
         }
     }
 }

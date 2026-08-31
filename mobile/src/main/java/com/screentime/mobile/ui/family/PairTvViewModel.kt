@@ -2,8 +2,10 @@ package com.screentime.mobile.ui.family
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.screentime.shared.R as SharedR
 import com.screentime.shared.auth.FamilyIdProvider
 import com.screentime.shared.firestore.FirestoreRepository
+import com.screentime.shared.firestore.toErrorRes
 import com.screentime.shared.model.PairedDevice
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,7 +22,8 @@ import javax.inject.Inject
 data class PairTvUiState(
     val busy: Boolean = false,
     val success: Boolean = false,
-    val message: String? = null,
+    /** A @StringRes — used for both the success message and any error. */
+    val message: Int? = null,
 )
 
 @HiltViewModel
@@ -46,11 +49,11 @@ class PairTvViewModel @Inject constructor(
                 .onSuccess { ok ->
                     _state.value = PairTvUiState(
                         success = ok,
-                        message = if (ok) "TV paired." else "Invalid or expired code.",
+                        message = if (ok) SharedR.string.status_tv_paired else SharedR.string.error_code_invalid_or_expired,
                     )
                 }
                 .onFailure {
-                    _state.value = PairTvUiState(message = it.message ?: "Failed.")
+                    _state.value = PairTvUiState(message = it.toErrorRes())
                 }
         }
     }

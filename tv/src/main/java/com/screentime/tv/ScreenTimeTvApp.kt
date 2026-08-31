@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.screentime.shared.limits.BonusStore
+import com.screentime.tv.locale.TvLocaleController
 import com.screentime.tv.usage.DailyResetWorker
 import com.screentime.tv.usage.UsageWorker
 import dagger.hilt.android.HiltAndroidApp
@@ -14,6 +15,12 @@ class ScreenTimeTvApp : Application(), Configuration.Provider {
 
     @Inject lateinit var workerFactory: HiltWorkerFactory
     @Inject lateinit var bonusStore: BonusStore
+
+    // Field injection alone is enough to force this @Singleton to be
+    // constructed at process start, which is what starts its Firestore
+    // collector (see TvLocaleController's init{} block) — nothing here
+    // needs to call it directly.
+    @Inject lateinit var localeController: TvLocaleController
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()

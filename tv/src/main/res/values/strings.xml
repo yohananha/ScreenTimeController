@@ -1,14 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Screen Time TV</string>
-    <string name="grant_usage_access">Grant usage access</string>
-    <string name="usage_access_prompt">Screen Time needs access to app usage statistics so it can track and limit screen time. Tap below to open system settings.</string>
-    <string name="usage_access_granted">Usage access granted. Tracking is now running.</string>
+    <!-- Referenced from res/xml/accessibility_service_config.xml. -->
     <string name="accessibility_service_description">Detects which app is in the foreground so Screen Time can block apps when daily limits are reached.</string>
-    <string name="grant_overlay">Grant overlay permission</string>
-    <string name="overlay_prompt">Screen Time needs permission to show the block screen over other apps when time\'s up. Tap below to open system settings.</string>
-    <string name="grant_accessibility">Enable accessibility service</string>
-    <string name="accessibility_prompt">Screen Time needs the accessibility service to detect which app is open and enforce limits. Tap below to open system settings.</string>
-    <string name="permissions_complete">All permissions granted. Enforcement is now active.</string>
-    <string name="permissions_complete_title">All set!</string>
+
+    <!-- MainActivity.kt: permission wall (3 steps) + the "all set" operational screen. -->
+    <string name="permission_usage_headline">One quick setup</string>
+    <string name="permission_usage_body">ScreenTime needs Usage Access so it can see which app is open and step in only when limits are hit.</string>
+    <string name="permission_overlay_headline">One more setting</string>
+    <string name="permission_overlay_body">ScreenTime needs \"Display over other apps\" so it can show the gentle reminder when time\'s up.</string>
+    <string name="permission_accessibility_headline">Almost there!</string>
+    <string name="permission_accessibility_body">Turn on the ScreenTime accessibility service so it can tell which app is open and step in only when needed.</string>
+    <string name="permission_open_settings">Open Android settings</string>
+    <string name="permission_why_needed">Why do you need this?</string>
+    <string name="operational_title">You\'re all set!</string>
+    <string name="operational_body">ScreenTime is running in the background. We\'ll only show up when a limit hits — promise.</string>
+
+    <!-- ui/pairing/PairingScreen.kt -->
+    <string name="pairing_headline">Pair with a parent\'s phone</string>
+    <!-- Rewritten to avoid a hardcoded "→" (points the wrong way under RTL)
+         and to reference the new Settings tab (was "Family & devices"). -->
+    <string name="pairing_instructions">In the ScreenTime app: Settings, then Pair a TV. Enter this code.</string>
+    <string name="pairing_generating_code">Generating your code…</string>
+    <string name="pairing_waiting">Waiting for the phone…</string>
+    <string name="pairing_get_new_code">Get a new code</string>
+    <string name="pairing_how_to_pair">How to pair</string>
+
+    <!-- ui/components/TvSurfaces.kt -->
+    <string name="tv_remote_hint">◀ ▶ ▲ ▼  +  OK</string>
+
+    <!-- ui/components/TvKeypad.kt -->
+    <string name="keypad_clear">C</string>
+
+    <!-- ui/BlockOverlayContent.kt — the kid-facing block screen, one entry per view state. -->
+    <string name="overlay_instant_locked_title">TV is locked</string>
+    <string name="overlay_instant_locked_body">A parent locked the TV from the Sprout app. Ask them to unlock it when you\'re ready.</string>
+
+    <string name="overlay_outside_hours_title">TV time is paused right now</string>
+    <string name="overlay_opens_again_at">Screen time opens again at %1$s — hang tight!</string>
+    <string name="overlay_no_more_today">No more screen time scheduled for today — see you tomorrow!</string>
+
+    <string name="overlay_main_title">That\'s a wrap for today!</string>
+    <string name="overlay_watched_today">%1$s · %2$s watched today</string>
+    <string name="overlay_used_all_time">Nice watching. You\'ve used all your %1$s time — see you tomorrow, or ask for a little more.</string>
+    <string name="overlay_resets_midnight">Resets at midnight · %1$s</string>
+    <string name="overlay_ask_parent_more_time">Ask a parent for more time</string>
+    <string name="overlay_enter_unlock_code">Enter an unlock code</string>
+
+    <string name="overlay_request_time_title">How much more?</string>
+    <string name="overlay_request_time_body">We\'ll send a quick request to a parent\'s phone.</string>
+    <string name="overlay_request_15">15 more minutes</string>
+    <string name="overlay_request_30">30 more minutes</string>
+    <string name="overlay_request_other_amount">Other amount</string>
+    <string name="overlay_maybe_later">Maybe later</string>
+
+    <string name="overlay_request_custom_title">How many minutes?</string>
+    <string name="overlay_request_custom_body">Anywhere from 1 to 240 minutes. We\'ll send the request to a parent\'s phone.</string>
+    <string name="overlay_request_custom_placeholder" translatable="false">—</string>
+    <string name="overlay_pick_number_range">Pick a number between 1 and 240</string>
+    <string name="overlay_send_to_parent">Send to parent</string>
+
+    <string name="overlay_numpad_title">Enter the unlock code</string>
+    <string name="overlay_numpad_body">Ask a parent to read it to you, or check their phone.</string>
+    <plurals name="overlay_code_wrong">
+        <item quantity="one">That code didn\'t work — %d try left</item>
+        <item quantity="other">That code didn\'t work — %d tries left</item>
+    </plurals>
+
+    <string name="overlay_waiting_title">Asked your parent!</string>
+    <string name="overlay_waiting_body">They just got a notification. Hang tight — or punch in an unlock code if they gave you one.</string>
+    <string name="overlay_enter_code_instead">Enter a code instead</string>
+    <string name="overlay_never_mind">Never mind</string>
+
+    <!-- Not a real plurals candidate: "more" doesn't grammatically inflect
+         by count in English or Hebrew here (no noun being counted, unlike
+         "%d minutes"), so this stays a plain string rather than <plurals>. -->
+    <string name="overlay_approved_headline" tools:ignore="PluralsCandidate">You got %1$d more!</string>
+    <string name="overlay_approved_headline_unknown">You got more time!</string>
+    <string name="overlay_approved_body">Make it count — your timer\'s running again.</string>
+
+    <string name="overlay_unlocked_title">Code worked!</string>
+    <string name="overlay_unlocked_body">Limit\'s paused for a bit. Enjoy!</string>
+
+    <string name="overlay_denied_title">Not right now</string>
+    <string name="overlay_denied_body">Your parent said maybe later — and that\'s okay. There\'s always tomorrow.</string>
+    <string name="overlay_okay">Okay</string>
+
+    <string name="overlay_locked_parent_title">Ask a parent to unlock</string>
+    <string name="overlay_locked_timer_title">Let\'s take a short break</string>
+    <string name="overlay_locked_parent_body">That\'s a few wrong codes. A parent needs to unlock the TV from the mobile app.</string>
+    <string name="overlay_locked_timer_body">That\'s a few wrong codes. The TV unlocks again on its own — grab a snack or stretch!</string>
+
+    <string name="overlay_keep_watching">Keep watching</string>
+    <string name="overlay_cancel">Cancel</string>
 </resources>

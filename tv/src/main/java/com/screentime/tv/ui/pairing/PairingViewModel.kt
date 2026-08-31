@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.screentime.shared.auth.DeviceFamilyIdProvider
 import com.screentime.shared.firestore.FirestoreRepository
+import com.screentime.shared.firestore.toErrorRes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 data class PairingUiState(
     val code: String? = null,
-    val error: String? = null,
+    /** A @StringRes, or null when there's no error to show. */
+    val error: Int? = null,
     val generating: Boolean = false,
 )
 
@@ -41,7 +43,7 @@ class PairingViewModel @Inject constructor(
             }.onSuccess {
                 _state.value = PairingUiState(code = it)
             }.onFailure {
-                _state.value = PairingUiState(error = it.message ?: "Failed to create code.")
+                _state.value = PairingUiState(error = it.toErrorRes())
             }
         }
     }

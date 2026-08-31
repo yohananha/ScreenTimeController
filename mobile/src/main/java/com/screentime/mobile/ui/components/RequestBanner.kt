@@ -17,14 +17,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.screentime.mobile.R
 import com.screentime.mobile.ui.theme.Sprout
 
 @Composable
 fun RequestBanner(
     title: String,
     context: String,
-    actionLabel: String = "Review",
+    actionLabel: String = stringResource(R.string.requests_action_review),
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {

@@ -9,6 +9,7 @@
         android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.ScreenTimeMobile">
@@ -29,6 +30,19 @@
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
+        </service>
+
+        <!-- Lets AppCompatDelegate.setApplicationLocales() persist the chosen
+             per-app language across process death without us wiring our own
+             SharedPreferences/DataStore layer for it; it also delegates to
+             the platform LocaleManager on API 33+. -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
         </service>
     </application>
 </manifest>

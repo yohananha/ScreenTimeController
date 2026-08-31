@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_cancel">ביטול</string>
+    <string name="action_save">שמירה</string>
+    <string name="action_remove">הסרה</string>
+    <string name="action_done">סיום</string>
+    <string name="action_back">חזרה</string>
+    <string name="action_okay">אישור</string>
+
+    <string name="duration_h_m">%1$d שע׳ %2$d דק׳</string>
+    <string name="duration_h">%1$d שע׳</string>
+    <string name="duration_m">%1$d דק׳</string>
+    <string name="duration_none">ללא הגבלה</string>
+    <string name="duration_zero">0 דק׳</string>
+    <string name="countdown_m_s">%1$d:%2$02d</string>
+    <string name="clock_range">%1$s–%2$s</string>
+    <string name="list_separator">·</string>
+
+    <!-- Hebrew CLDR has four cardinal categories: one, two, many, other.
+         "many" applies to non-zero multiples of 10 (20, 30, ...); it takes
+         the same noun form as "other" here, as is typical for Hebrew. -->
+    <plurals name="minutes">
+        <item quantity="one">דקה אחת</item>
+        <item quantity="two">שתי דקות</item>
+        <item quantity="many">%d דקות</item>
+        <item quantity="other">%d דקות</item>
+    </plurals>
+    <plurals name="days">
+        <item quantity="one">יום אחד</item>
+        <item quantity="two">יומיים</item>
+        <item quantity="many">%d ימים</item>
+        <item quantity="other">%d ימים</item>
+    </plurals>
+    <plurals name="apps">
+        <item quantity="one">אפליקציה אחת</item>
+        <item quantity="two">שתי אפליקציות</item>
+        <item quantity="many">%d אפליקציות</item>
+        <item quantity="other">%d אפליקציות</item>
+    </plurals>
+
+    <string name="error_generic">משהו השתבש.</string>
+    <string name="error_family_not_found">המשפחה לא נמצאה.</string>
+    <string name="error_not_admin">רק מנהלים יכולים להזמין חברים.</string>
+    <string name="error_not_owner">רק בעל/ת המשפחה יכול/ה לחבר טלוויזיה.</string>
+    <string name="error_code_invalid">קוד לא תקין.</string>
+    <string name="error_code_used">הקוד הזה כבר נוצל.</string>
+    <string name="error_code_expired">תוקף הקוד פג.</string>
+    <string name="error_code_invalid_or_expired">קוד לא תקין או שפג תוקפו.</string>
+    <string name="error_tv_already_paired">הטלוויזיה הזו כבר מחוברת למשפחה אחרת.</string>
+    <string name="error_device_not_paired">המכשיר לא מחובר למשפחה הזו.</string>
+    <string name="error_locked_out">הזנת הקוד נעולה.</string>
+    <string name="error_signin_required">נדרשת התחברות.</string>
+    <string name="error_permission_denied">אין לכם הרשאה לבצע פעולה זו.</string>
+    <string name="error_network">לא הצלחנו להתחבר. בדקו את חיבור האינטרנט ונסו שוב.</string>
+
+    <string name="status_tv_paired">הטלוויזיה חוברה.</string>
+</resources>

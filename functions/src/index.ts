@@ -4,6 +4,7 @@ import { getMessaging } from "firebase-admin/messaging";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError, CallableRequest } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions";
+import { PUSH_TIME_REQUEST, resolveLang } from "./strings";
 
 initializeApp();
 
@@ -68,16 +69,29 @@ export const onNewTimeRequest = onDocumentCreated(
       return;
     }
 
+    const db = getFirestore();
+    const [langSnap, appSnap] = await Promise.all([
+      db.doc(`families/${familyId}/settings/language`).get(),
+      db.doc(`families/${familyId}/tvApps/${appPackage}`).get(),
+    ]);
+    const lang = resolveLang(langSnap.get("code") as string | undefined);
+    // Falls back to the raw package name only if the TV hasn't reported a
+    // label yet — previously this was the *only* path, so a notification
+    // always read "+30 min for com.google.android.youtube".
+    const appLabel = (appSnap.get("label") as string | undefined) ?? appPackage;
+    const copy = PUSH_TIME_REQUEST[lang];
+
     const response = await getMessaging().sendEachForMulticast({
       tokens,
       notification: {
-        title: "Time request",
-        body: `+${requestedMinutes} min for ${appPackage}`,
+        title: copy.title,
+        body: copy.body(requestedMinutes, appLabel),
       },
       data: {
         familyId,
         requestId,
         appPackage,
+        appLabel,
         requestedMinutes: String(requestedMinutes),
       },
       android: {
@@ -171,10 +185,14 @@ export const createFamilyInvite = onCall(async (req) => {
 
   const db = getFirestore();
   const fam = await db.collection("families").doc(familyId).get();
-  if (!fam.exists) throw new HttpsError("not-found", "Family not found.");
+  if (!fam.exists) {
+    throw new HttpsError("not-found", "Family not found.", { reason: "family_not_found" });
+  }
   const roles = (fam.get("roles") as Record<string, string> | undefined) ?? {};
   if (roles[uid] !== "admin") {
-    throw new HttpsError("permission-denied", "Only admins can invite members.");
+    throw new HttpsError("permission-denied", "Only admins can invite members.", {
+      reason: "not_admin",
+    });
   }
 
   const code = await allocateCode("invites", () => ({
@@ -201,18 +219,26 @@ export const joinFamilyWithInvite = onCall(async (req) => {
 
   const familyId = await db.runTransaction(async (tx) => {
     const invite = await tx.get(inviteRef);
-    if (!invite.exists) throw new HttpsError("not-found", "Invalid code.");
+    if (!invite.exists) {
+      throw new HttpsError("not-found", "Invalid code.", { reason: "code_invalid" });
+    }
     if (invite.get("used") === true) {
-      throw new HttpsError("not-found", "This code has already been used.");
+      throw new HttpsError("not-found", "This code has already been used.", {
+        reason: "code_used",
+      });
     }
     const expiresAt = invite.get("expiresAt") as Timestamp | undefined;
     if (expiresAt && expiresAt.toMillis() < Date.now()) {
-      throw new HttpsError("not-found", "This code has expired.");
+      throw new HttpsError("not-found", "This code has expired.", { reason: "code_expired" });
     }
     const fid = invite.get("familyId") as string;
     const familyRef = db.collection("families").doc(fid);
     const fam = await tx.get(familyRef);
-    if (!fam.exists) throw new HttpsError("not-found", "Family no longer exists.");
+    if (!fam.exists) {
+      throw new HttpsError("not-found", "Family no longer exists.", {
+        reason: "family_not_found",
+      });
+    }
 
     tx.update(familyRef, { [`roles.${uid}`]: "user" });
     tx.set(db.collection("users").doc(uid), { familyId: fid }, { merge: true });
@@ -252,10 +278,14 @@ export const claimTvPairing = onCall(async (req) => {
 
   const db = getFirestore();
   const fam = await db.collection("families").doc(familyId).get();
-  if (!fam.exists) throw new HttpsError("not-found", "Family not found.");
+  if (!fam.exists) {
+    throw new HttpsError("not-found", "Family not found.", { reason: "family_not_found" });
+  }
   // Only the main admin (owner) may pair/control the TV.
   if (fam.get("ownerUid") !== uid) {
-    throw new HttpsError("permission-denied", "Only the family owner can pair a TV.");
+    throw new HttpsError("permission-denied", "Only the family owner can pair a TV.", {
+      reason: "not_owner",
+    });
   }
 
   const pairingRef = db.collection("pairings").doc(code);
@@ -264,7 +294,9 @@ export const claimTvPairing = onCall(async (req) => {
   // inside a transaction callback aborts it and rolls back all writes).
   const isExpired = await db.runTransaction(async (tx) => {
     const pairing = await tx.get(pairingRef);
-    if (!pairing.exists) throw new HttpsError("not-found", "Invalid code.");
+    if (!pairing.exists) {
+      throw new HttpsError("not-found", "Invalid code.", { reason: "code_invalid" });
+    }
     const expiresAt = pairing.get("expiresAt") as Timestamp | undefined;
     if (expiresAt && expiresAt.toMillis() < Date.now()) {
       tx.delete(pairingRef);
@@ -289,6 +321,7 @@ export const claimTvPairing = onCall(async (req) => {
       throw new HttpsError(
         "failed-precondition",
         "This TV is already paired with another family.",
+        { reason: "tv_already_paired" },
       );
     }
 
@@ -298,7 +331,9 @@ export const claimTvPairing = onCall(async (req) => {
     return false;
   });
 
-  if (isExpired) throw new HttpsError("not-found", "This code has expired.");
+  if (isExpired) {
+    throw new HttpsError("not-found", "This code has expired.", { reason: "code_expired" });
+  }
   return { success: true };
 });
 
@@ -345,11 +380,13 @@ export const redeemCode = onCall(async (req) => {
     // (1) Pairing — must be inside the txn so it sees a fresh devices array.
     const famSnap = await tx.get(familyRef);
     if (!famSnap.exists) {
-      throw new HttpsError("not-found", "Family not found.");
+      throw new HttpsError("not-found", "Family not found.", { reason: "family_not_found" });
     }
     const devices = (famSnap.get("devices") as string[] | undefined) ?? [];
     if (!devices.includes(deviceId)) {
-      throw new HttpsError("permission-denied", "Device not paired to this family.");
+      throw new HttpsError("permission-denied", "Device not paired to this family.", {
+        reason: "device_not_paired",
+      });
     }
 
     // (2) Lockout — refuse before consuming the code.
@@ -426,9 +463,13 @@ export const redeemCode = onCall(async (req) => {
 
   switch (outcome.kind) {
     case "locked":
-      throw new HttpsError("failed-precondition", "Code entry is locked.");
+      throw new HttpsError("failed-precondition", "Code entry is locked.", {
+        reason: "locked_out",
+      });
     case "wrong":
-      throw new HttpsError("not-found", "Invalid or expired code.");
+      throw new HttpsError("not-found", "Invalid or expired code.", {
+        reason: "code_invalid_or_expired",
+      });
     case "ok":
       return { extraMinutes: outcome.extraMinutes };
   }

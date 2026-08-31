@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
@@ -71,14 +72,14 @@ fun SignInScreen(viewModel: AuthViewModel = hiltViewModel()) {
         }
         Spacer(Modifier.height(26.dp))
         Text(
-            "Welcome to ScreenTime",
+            stringResource(R.string.auth_welcome_title),
             style = Sprout.typography.display,
             color = Sprout.colors.ink,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            "Sign in to manage your family's screen time",
+            stringResource(R.string.auth_welcome_subtitle),
             style = Sprout.typography.bodyL,
             color = Sprout.colors.inkMuted,
             textAlign = TextAlign.Center,
@@ -97,7 +98,7 @@ fun SignInScreen(viewModel: AuthViewModel = hiltViewModel()) {
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             SproutPrimaryButton(
-                text = "Continue with Google",
+                text = stringResource(R.string.auth_continue_google),
                 onClick = { scope.launch { signInWithGoogle(context, viewModel) } },
                 leading = {
                     Box(
@@ -115,7 +116,7 @@ fun SignInScreen(viewModel: AuthViewModel = hiltViewModel()) {
         Spacer(Modifier.height(12.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             SproutGhostButton(
-                text = "Sign in with email",
+                text = stringResource(R.string.auth_sign_in_email),
                 onClick = { /* email path TODO */ },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -123,7 +124,7 @@ fun SignInScreen(viewModel: AuthViewModel = hiltViewModel()) {
 
         Spacer(Modifier.height(20.dp))
         Text(
-            "By continuing you agree to our Privacy Policy and Terms of Service",
+            stringResource(R.string.auth_legal_notice),
             style = Sprout.typography.caption,
             color = Sprout.colors.inkFaint,
             textAlign = TextAlign.Center,
@@ -150,11 +151,11 @@ private suspend fun signInWithGoogle(context: Context, viewModel: AuthViewModel)
             val idToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
             viewModel.signInWithGoogle(idToken)
         } else {
-            viewModel.reportError("Unexpected credential type")
+            viewModel.reportError(context.getString(R.string.error_unexpected_credential))
         }
     } catch (e: GetCredentialCancellationException) {
         // User dismissed the account picker — not an error.
     } catch (e: GetCredentialException) {
-        viewModel.reportError(e.message ?: "Google sign-in failed")
+        viewModel.reportError(e.message ?: context.getString(R.string.error_google_sign_in_failed))
     }
 }

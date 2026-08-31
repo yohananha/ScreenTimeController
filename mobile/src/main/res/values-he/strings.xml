@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">זמן מסך</string>
+
+    <string name="status_on_track">במסלול</string>
+    <string name="status_almost_up">כמעט נגמר</string>
+    <string name="status_times_up">הזמן נגמר</string>
+    <string name="status_paused">מושהה</string>
+
+    <string name="hero_todays_screen_time">זמן המסך של היום</string>
+
+    <string name="requests_action_review">סקירה</string>
+
+    <string name="auth_welcome_title">ברוכים הבאים ל-ScreenTime</string>
+    <string name="auth_welcome_subtitle">התחברו כדי לנהל את זמן המסך של המשפחה שלכם</string>
+    <string name="auth_continue_google">המשך עם Google</string>
+    <string name="auth_sign_in_email">התחברות עם אימייל</string>
+    <string name="auth_legal_notice">בהמשך אתם מסכימים למדיניות הפרטיות ולתנאי השימוש שלנו</string>
+    <string name="error_unexpected_credential">סוג אישור לא צפוי</string>
+    <string name="error_google_sign_in_failed">ההתחברות עם Google נכשלה</string>
+
+    <string name="family_onboarding_title">הגדירו את המשפחה שלכם</string>
+    <string name="family_onboarding_subtitle">צרו משפחה חדשה או הצטרפו לאחת שהורה שותף הגדיר.</string>
+    <string name="family_onboarding_create_title">יצירת משפחה</string>
+    <string name="family_onboarding_create_subtitle">התחילו מאפס. תהיו הבעלים.</string>
+    <string name="family_onboarding_join_title">הצטרפות למשפחה</string>
+    <string name="family_onboarding_join_subtitle">השתמשו בקוד ההזמנה מההורה השותף שלכם.</string>
+    <string name="family_onboarding_invite_code_label">הזינו את קוד ההזמנה בן 6 הספרות</string>
+    <string name="family_onboarding_joining">מצטרפים…</string>
+    <string name="action_continue">המשך</string>
+
+    <string name="history_title">שימוש</string>
+    <string name="history_subtitle">7 הימים האחרונים</string>
+    <string name="history_empty_title">אין עדיין שימוש</string>
+    <string name="history_empty_subtitle">המשפחה שלכם לא צפתה בכלום היום. תיהנו מהשקט!</string>
+    <string name="history_legend_over_limit">מעל המגבלה</string>
+    <string name="history_today">היום</string>
+    <string name="history_yesterday">אתמול</string>
+
+    <string name="codes_title">קודי פתיחה</string>
+    <string name="codes_subtitle">קודים חד-פעמיים שהילד/ה מקליד/ה בטלוויזיה.</string>
+    <string name="codes_hero_label">קוד פתיחה</string>
+    <string name="codes_hero_single_use">שימוש חד-פעמי</string>
+    <string name="codes_unlocks_for">פותח הכול למשך %1$s</string>
+    <string name="codes_expires_in">פג תוקף בעוד %1$s</string>
+    <string name="codes_expired">פג תוקף</string>
+    <string name="codes_generate_below">צרו קוד למטה.</string>
+    <string name="codes_what_it_unlocks">מה זה פותח</string>
+    <string name="codes_how_much_time">כמה זמן</string>
+    <string name="codes_rest_of_day">עד סוף היום</string>
+    <string name="codes_chip_minutes">%1$d דק׳</string>
+    <string name="codes_generating">יוצר…</string>
+    <string name="codes_generate_action">יצירת קוד</string>
+
+    <string name="requests_title">בקשות</string>
+    <string name="requests_subtitle">אשרו או דחו זמן נוסף שהטלוויזיה מבקשת.</string>
+    <string name="requests_empty_title">הכול מעודכן</string>
+    <string name="requests_empty_subtitle">אין כרגע בקשות ממתינות.</string>
+    <string name="requests_active_section">פעיל</string>
+    <string name="requests_device_name">טלוויזיית הסלון</string>
+    <string name="requests_pending_ask">רוצה עוד %1$s</string>
+    <string name="requests_grant_how_long">לכמה זמן לאשר?</string>
+    <string name="requests_chip_minutes">%1$d דק׳</string>
+    <string name="requests_action_approve">אישור %1$s</string>
+    <string name="requests_action_deny">דחייה</string>
+    <string name="requests_just_now">הרגע</string>
+    <string name="requests_minutes_ago">לפני %1$d דק׳</string>
+    <string name="requests_hours_ago">לפני %1$d שע׳</string>
+    <string name="requests_approved_on">אושרו %1$s עבור %2$s</string>
+    <string name="requests_active_until">פעיל עד %1$s</string>
+
+    <string name="timeframe_back">חזרה</string>
+    <string name="timeframe_title">שעות מותרות</string>
+    <string name="timeframe_subtitle">מתי מותר להפעיל את הטלוויזיה</string>
+    <string name="timeframe_enforce_schedule">הפעלת לוח זמנים</string>
+    <string name="timeframe_enforce_hint">מחוץ לשעות אלו הטלוויזיה חסומה. קודי בונוס עדיין פועלים.</string>
+    <string name="timeframe_copy_weekdays">העתקת שני לימי החול</string>
+    <string name="timeframe_copy_weekend">העתקת שבת לסוף השבוע</string>
+    <string name="timeframe_saving">שומר…</string>
+    <string name="timeframe_save_schedule">שמירת לוח הזמנים</string>
+    <string name="timeframe_today_badge">היום</string>
+    <string name="timeframe_close">סגירה</string>
+    <string name="timeframe_blocked_all_day_on">חסום כל היום ב%1$s</string>
+    <string name="timeframe_add_window_hint">הוסיפו חלון זמן כדי לאפשר קצת זמן מסך.</string>
+    <string name="timeframe_add_window_action">+ הוספת חלון זמן</string>
+    <string name="timeframe_window_remove">הסרה</string>
+    <string name="timeframe_end_time">שעת סיום</string>
+    <string name="timeframe_start_time">שעת התחלה</string>
+    <string name="timeframe_end_after_start">שעת הסיום חייבת להיות אחרי ההתחלה</string>
+    <string name="timeframe_action_add">הוספה</string>
+    <string name="timeframe_action_next">הבא</string>
+    <string name="timeframe_blocked_all_day">חסום כל היום</string>
+    <string name="timeframe_all_day">כל היום</string>
+
+    <string name="limits_history_action">היסטוריה</string>
+    <string name="limits_title">מגבלות</string>
+    <string name="limits_dismiss">סגירה</string>
+    <string name="limits_hero_of_daily">מתוך %1$s ליום</string>
+    <string name="limits_hero_left">%1$s נותרו</string>
+    <string name="limits_hero_reset">מתאפס בחצות</string>
+    <string name="limits_app_section_title">מגבלות אפליקציות</string>
+    <string name="limits_empty_title">אין עדיין מגבלות אפליקציה</string>
+    <string name="limits_empty_subtitle">הקישו על + כדי להוסיף אחת.</string>
+    <string name="limits_add_limit_fab">+ הוספת מגבלה</string>
+
+    <string name="limits_lockout_timer_duration">נעילה של %1$d דק׳</string>
+    <string name="limits_lockout_parent_unlock">פתיחה על ידי הורה</string>
+    <string name="limits_lockout_title">נעילת קוד</string>
+    <string name="limits_lockout_subtitle">אחרי 5 קודים שגויים בדקה אחת</string>
+    <string name="limits_lockout_locked_notice">הזנת הקוד בטלוויזיה נעולה כרגע.</string>
+    <string name="limits_lockout_unlock_now">פתיחה עכשיו</string>
+
+    <string name="limits_pick_app_title">הוספת מגבלת אפליקציה</string>
+    <string name="limits_pick_app_no_apps">לא נמצאו אפליקציות בטלוויזיה. ודאו שהטלוויזיה מחוברת ומקוונת.</string>
+    <string name="limits_pick_app_all_have_limits">לכל האפליקציות כבר יש מגבלות.</string>
+
+    <string name="limits_edit_title">עריכת מגבלה</string>
+    <string name="limits_always_allowed">מותר תמיד</string>
+    <string name="limits_minutes_field_label">דקות</string>
+    <string name="limits_action_block">חסימה</string>
+    <string name="limits_action_always_allow">אפשר תמיד</string>
+
+    <string name="limits_overall_title">מגבלה יומית כוללת</string>
+    <string name="limits_overall_subtitle">כשסך השימוש היומי בכל האפליקציות מגיע לכמות הזו, הטלוויזיה נחסמת ללא קשר לאפליקציה הפתוחה.</string>
+    <string name="limits_overall_no_limit">אין מגבלה כוללת</string>
+    <string name="limits_action_block_all">חסימת הכול</string>
+    <string name="limits_action_no_limit">ללא מגבלה</string>
+
+    <string name="limits_lockout_dialog_subtitle">אחרי 5 קודים שגויים בתוך דקה אחת, הזנת הקוד בטלוויזיה:</string>
+    <string name="limits_lockout_mode_timer">תינעל לזמן קצוב</string>
+    <string name="limits_lockout_mode_parent">תדרוש פתיחה על ידי הורה</string>
+
+    <string name="limits_mode_lock_title">נעילה מיידית</string>
+    <string name="limits_mode_lock_caption">הטלוויזיה נעולה — הקישו על ברירת מחדל כדי לשחרר</string>
+    <string name="limits_mode_default_title">מגבלות פעילות</string>
+    <string name="limits_mode_default_caption">לוח הזמנים ומגבלות האפליקציות של היום חלים</string>
+    <string name="limits_mode_allow_title">אפשר כל היום</string>
+    <string name="limits_mode_allow_caption">כל המגבלות מושהות עד חצות</string>
+    <string name="limits_mode_segment_lock">נעילה</string>
+    <string name="limits_mode_segment_default">ברירת מחדל</string>
+    <string name="limits_mode_segment_allow">אפשור</string>
+
+    <string name="limits_allowed_hours_title">שעות מותרות</string>
+    <string name="limits_schedule_none">לא הוגדר לוח זמנים</string>
+    <string name="limits_schedule_on_no_windows">לוח הזמנים פעיל — לא הוגדרו חלונות זמן</string>
+
+    <string name="pairtv_section_title">טלוויזיות</string>
+    <string name="pairtv_none_paired">לא מחוברת אף טלוויזיה</string>
+    <!-- Only rendered when count >= 1 (the empty case uses pairtv_none_paired
+         above), but a real <plurals> is still needed: "מחוברת" (connected)
+         is a feminine adjective agreeing with the implied "TVs" noun, and
+         Hebrew inflects it by count — "מחוברות" (plural) is wrong for 1. -->
+    <plurals name="pairtv_count_paired">
+        <item quantity="one">%d מחוברת</item>
+        <item quantity="two">%d מחוברות</item>
+        <item quantity="many">%d מחוברות</item>
+        <item quantity="other">%d מחוברות</item>
+    </plurals>
+    <string name="pairtv_empty_title">אין טלוויזיה מחוברת</string>
+    <string name="pairtv_empty_subtitle">פתחו את ScreenTime בטלוויזיית האנדרואיד שלכם והזינו את הקוד בן 6 הספרות שמוצג.</string>
+    <string name="pairtv_action_pair">חיבור טלוויזיה</string>
+    <string name="pairtv_form_subtitle">הזינו את הקוד בן 6 הספרות המוצג במסך החיבור של הטלוויזיה.</string>
+    <string name="pairtv_pairing">מחבר…</string>
+    <string name="pairtv_pair">חיבור</string>
+    <string name="pairtv_add_another">+ חיבור טלוויזיה נוספת</string>
+    <string name="pairtv_collapse">כיווץ</string>
+    <string name="pairtv_expand">הרחבה</string>
+    <string name="pairtv_online_status">מקוונת · %1$s היום</string>
+    <string name="pairtv_stat_today_label">היום</string>
+    <string name="pairtv_stat_paired_label">מחוברת</string>
+    <string name="pairtv_stat_paired_value">פעילה</string>
+    <string name="pairtv_unpair_confirm">לנתק את הטלוויזיה הזו? המגבלות יפסיקו לחול עד שתחברו אותה שוב.</string>
+    <string name="pairtv_action_unpair">ניתוק</string>
+    <string name="pairtv_action_rename">שינוי שם</string>
+    <string name="pairtv_action_unpair_tv">ניתוק טלוויזיה</string>
+    <string name="pairtv_rename_title">שינוי שם הטלוויזיה</string>
+
+    <string name="family_devices_title">משפחה ומכשירים</string>
+    <string name="family_devices_subtitle">הורים שותפים והטלוויזיה המחוברת שלכם.</string>
+    <string name="family_parents_title">הורים</string>
+    <plurals name="family_members">
+        <item quantity="one">בן משפחה אחד</item>
+        <item quantity="two">שני בני משפחה</item>
+        <item quantity="many">%d בני משפחה</item>
+        <item quantity="other">%d בני משפחה</item>
+    </plurals>
+    <string name="family_you">אני</string>
+    <string name="family_role_co_parent">הורה שותף</string>
+    <string name="family_role_owner">בעלים</string>
+    <string name="family_role_owner_you">בעלים · אני</string>
+    <string name="family_remove_confirm_title">להסיר את ההורה השותף?</string>
+    <string name="family_remove_confirm_body">הם יאבדו גישה למשפחה הזו מיידית.</string>
+    <string name="family_options">אפשרויות</string>
+    <string name="family_remove_from_family">הסרה מהמשפחה</string>
+    <string name="family_invite_title">הזמנת הורה</string>
+    <string name="family_invite_subtitle">יצטרפו כהורה שותף</string>
+    <string name="family_invite_share_hint">שתפו את הקוד הזה עם ההורה שאתם מזמינים. תוקפו יפוג בעוד 24 שעות.</string>
+    <string name="family_invite_copied">הועתק!</string>
+    <string name="family_invite_copy">העתקה</string>
+    <string name="family_invite_generating">יוצר קוד…</string>
+    <string name="family_invite_generate_new">יצירת קוד חדש</string>
+
+    <string name="settings_title">הגדרות</string>
+    <string name="settings_language_section_title">שפה</string>
+    <string name="settings_language_system">שימוש בשפת המכשיר</string>
+    <string name="settings_language_hint">גם קובע את השפה בטלוויזיות המחוברות שלכם.</string>
+    <string name="settings_about_title">אודות</string>
+    <string name="settings_about_version">גרסה %1$s</string>
+
+    <string name="tab_limits">מגבלות</string>
+    <string name="tab_requests">בקשות</string>
+    <string name="tab_codes">קודים</string>
+
+    <string name="error_no_family_linked">עדיין לא מחוברים למשפחה.</string>
+</resources>

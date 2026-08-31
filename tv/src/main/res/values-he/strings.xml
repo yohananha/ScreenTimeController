@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">זמן מסך טלוויזיה</string>
+    <string name="accessibility_service_description">מזהה איזו אפליקציה פתוחה כדי ש-Screen Time יוכל לחסום אפליקציות כשמגיעים למגבלה היומית.</string>
+
+    <string name="permission_usage_headline">הגדרה מהירה אחת</string>
+    <string name="permission_usage_body">ל-ScreenTime צריך גישה לנתוני שימוש כדי לדעת איזו אפליקציה פתוחה ולהתערב רק כשמגיעים למגבלה.</string>
+    <string name="permission_overlay_headline">עוד הגדרה אחת</string>
+    <string name="permission_overlay_body">ל-ScreenTime צריך הרשאה כדי להציג את מסך התזכורת כשנגמר הזמן.</string>
+    <string name="permission_accessibility_headline">כמעט סיימנו!</string>
+    <string name="permission_accessibility_body">הפעילו את שירות הנגישות של ScreenTime כדי שיוכל לדעת איזו אפליקציה פתוחה ולהתערב רק כשצריך.</string>
+    <string name="permission_open_settings">פתיחת הגדרות אנדרואיד</string>
+    <string name="permission_why_needed">למה זה נחוץ?</string>
+    <string name="operational_title">הכול מוכן!</string>
+    <string name="operational_body">ScreenTime פועל ברקע. נופיע רק כשמגיעים למגבלה — מבטיחים.</string>
+
+    <string name="pairing_headline">חיבור לטלפון של הורה</string>
+    <string name="pairing_instructions">באפליקציית ScreenTime: הגדרות, ואז חיבור טלוויזיה. הזינו את הקוד הזה.</string>
+    <string name="pairing_generating_code">יוצר את הקוד שלכם…</string>
+    <string name="pairing_waiting">ממתין לטלפון…</string>
+    <string name="pairing_get_new_code">קוד חדש</string>
+    <string name="pairing_how_to_pair">איך מתחברים</string>
+
+    <string name="tv_remote_hint">◀ ▶ ▲ ▼  +  אישור</string>
+
+    <string name="keypad_clear">נ</string>
+
+    <string name="overlay_instant_locked_title">הטלוויזיה נעולה</string>
+    <string name="overlay_instant_locked_body">הורה נעל את הטלוויזיה מהאפליקציה. בקשו מהם לפתוח כשתהיו מוכנים.</string>
+
+    <string name="overlay_outside_hours_title">זמן הטלוויזיה מושהה כרגע</string>
+    <string name="overlay_opens_again_at">זמן המסך נפתח שוב ב-%1$s — עוד רגע!</string>
+    <string name="overlay_no_more_today">אין עוד זמן מסך מתוזמן להיום — נתראה מחר!</string>
+
+    <string name="overlay_main_title">זהו, סיימנו להיום!</string>
+    <string name="overlay_watched_today">%1$s · %2$s נצפו היום</string>
+    <string name="overlay_used_all_time">צפייה נעימה. ניצלתם את כל הזמן של %1$s — נתראה מחר, או בקשו קצת עוד.</string>
+    <string name="overlay_resets_midnight">מתאפס בחצות · %1$s</string>
+    <string name="overlay_ask_parent_more_time">בקשה מהורה לעוד זמן</string>
+    <string name="overlay_enter_unlock_code">הזנת קוד פתיחה</string>
+
+    <string name="overlay_request_time_title">כמה עוד?</string>
+    <string name="overlay_request_time_body">נשלח בקשה קצרה לטלפון של הורה.</string>
+    <string name="overlay_request_15">15 דקות נוספות</string>
+    <string name="overlay_request_30">30 דקות נוספות</string>
+    <string name="overlay_request_other_amount">כמות אחרת</string>
+    <string name="overlay_maybe_later">אולי מאוחר יותר</string>
+
+    <string name="overlay_request_custom_title">כמה דקות?</string>
+    <string name="overlay_request_custom_body">בין 1 ל-240 דקות. נשלח את הבקשה לטלפון של הורה.</string>
+    <string name="overlay_pick_number_range">בחרו מספר בין 1 ל-240</string>
+    <string name="overlay_send_to_parent">שליחה להורה</string>
+
+    <string name="overlay_numpad_title">הזינו את קוד הפתיחה</string>
+    <string name="overlay_numpad_body">בקשו מהורה להקריא לכם אותו, או בדקו בטלפון שלהם.</string>
+    <plurals name="overlay_code_wrong">
+        <item quantity="one">הקוד לא עבד — נשארה עוד ניסיון אחד</item>
+        <item quantity="two">הקוד לא עבד — נשארו עוד שני ניסיונות</item>
+        <item quantity="many">הקוד לא עבד — נשארו עוד %d ניסיונות</item>
+        <item quantity="other">הקוד לא עבד — נשארו עוד %d ניסיונות</item>
+    </plurals>
+
+    <string name="overlay_waiting_title">שלחנו בקשה להורה!</string>
+    <string name="overlay_waiting_body">הם קיבלו הודעה עכשיו. עוד רגע — או שאפשר להקיש קוד פתיחה אם קיבלתם אחד.</string>
+    <string name="overlay_enter_code_instead">הזנת קוד במקום</string>
+    <string name="overlay_never_mind">לא משנה</string>
+
+    <string name="overlay_approved_headline">קיבלתם עוד %1$d!</string>
+    <string name="overlay_approved_headline_unknown">קיבלתם עוד זמן!</string>
+    <string name="overlay_approved_body">תנצלו את זה טוב — הטיימר שלכם רץ שוב.</string>
+
+    <string name="overlay_unlocked_title">הקוד עבד!</string>
+    <string name="overlay_unlocked_body">המגבלה מושהית לזמן מה. תיהנו!</string>
+
+    <string name="overlay_denied_title">לא כרגע</string>
+    <string name="overlay_denied_body">ההורה אמר אולי מאוחר יותר — וזה בסדר גמור. תמיד יש מחר.</string>
+    <string name="overlay_okay">בסדר</string>
+
+    <string name="overlay_locked_parent_title">בקשו מהורה לפתוח</string>
+    <string name="overlay_locked_timer_title">בואו ניקח הפסקה קצרה</string>
+    <string name="overlay_locked_parent_body">אלו כמה קודים שגויים. הורה צריך לפתוח את הטלוויזיה מהאפליקציה בטלפון.</string>
+    <string name="overlay_locked_timer_body">אלו כמה קודים שגויים. הטלוויזיה נפתחת שוב לבד — קחו חטיף או תמתחו קצת!</string>
+
+    <string name="overlay_keep_watching">להמשיך לצפות</string>
+    <string name="overlay_cancel">ביטול</string>
+</resources>
