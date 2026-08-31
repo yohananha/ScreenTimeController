@@ -23,12 +23,15 @@ describe('useCodes', () => {
     expect(result.current.state.error).toBeNull();
   });
 
-  it('generate exposes error message on failure', async () => {
+  it('generate exposes a localized error message on failure', async () => {
+    // A plain Error (not a Functions callable error) maps to the generic
+    // localized message rather than surfacing the raw English SDK text —
+    // mirrors shared/.../FunctionsErrors.kt's fallback on the Android side.
     vi.mocked(repo.createCode).mockRejectedValue(new Error('boom'));
     const { result } = renderHook(() => useCodes('fam-1'));
 
     act(() => result.current.generate(15));
-    await waitFor(() => expect(result.current.state.error).toBe('boom'));
+    await waitFor(() => expect(result.current.state.error).toBe('Something went wrong.'));
     expect(result.current.state.active).toBeNull();
   });
 

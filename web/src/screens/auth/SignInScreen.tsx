@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { SproutPrimaryButton } from '../../components/SproutButton';
 import { signInWithGoogle } from '../../firebase/authRepository';
 
 export function SignInScreen() {
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
 
   const handleSignIn = () => {
@@ -12,7 +14,7 @@ export function SignInScreen() {
     signInWithGoogle().catch((e: unknown) => {
       // Popup-closed-by-user is a normal dismissal, not an error.
       if (e instanceof Error && e.message.includes('popup-closed-by-user')) return;
-      setError(e instanceof Error ? e.message : 'Google sign-in failed');
+      setError(e instanceof Error && e.message ? e.message : t('auth.signInFailed'));
     });
   };
 
@@ -42,11 +44,9 @@ export function SignInScreen() {
           <div style={{ width: 40, height: 40, borderRadius: '50%', background: colors.ink }} />
         </div>
         <h1 style={{ ...typography.display, color: colors.ink, marginTop: 26, marginBottom: 10 }}>
-          Welcome to ScreenTime
+          {t('auth.welcomeTitle')}
         </h1>
-        <p style={{ ...typography.bodyL, color: colors.inkMuted, margin: 0 }}>
-          Sign in to manage your family's screen time
-        </p>
+        <p style={{ ...typography.bodyL, color: colors.inkMuted, margin: 0 }}>{t('auth.welcomeSubtitle')}</p>
         {error && (
           <p style={{ ...typography.bodyStrong, color: colors.overText, marginTop: 16 }}>{error}</p>
         )}
@@ -72,12 +72,10 @@ export function SignInScreen() {
               </span>
             }
           >
-            Continue with Google
+            {t('auth.continueGoogle')}
           </SproutPrimaryButton>
         </div>
-        <p style={{ ...typography.caption, color: colors.inkFaint, marginTop: 20 }}>
-          By continuing you agree to our Privacy Policy and Terms of Service
-        </p>
+        <p style={{ ...typography.caption, color: colors.inkFaint, marginTop: 20 }}>{t('auth.terms')}</p>
       </div>
     </div>
   );

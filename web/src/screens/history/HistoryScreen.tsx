@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/i18n';
 import { colors } from '../../theme/colors';
 import { radius } from '../../theme/radius';
 import { typography } from '../../theme/typography';
@@ -24,6 +26,7 @@ function appLabelFor(pkg: string): string {
 }
 
 export function HistoryScreen({ familyId }: { familyId: string }) {
+  const { t } = useTranslation();
   const snapshots = useHistory(familyId);
   const nonEmpty = snapshots.filter((s) => Object.keys(s.perAppMillis).length > 0);
   const hPad = useResponsivePadding();
@@ -31,18 +34,18 @@ export function HistoryScreen({ familyId }: { familyId: string }) {
   return (
     <div style={{ minHeight: '100%', background: colors.background, display: 'flex', justifyContent: 'center' }}>
       <div style={{ width: '100%', maxWidth: 600, padding: `0 ${hPad}px 24px`, display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <TopHeader familyName="Family" parentInitial="P" />
+        <TopHeader familyName={t('topHeader.family')} parentInitial="P" />
         <div style={{ paddingTop: 4, paddingBottom: 6 }}>
-          <h1 style={{ ...typography.display, color: colors.ink, margin: 0 }}>Usage</h1>
-          <p style={{ ...typography.caption, color: colors.inkMuted, marginTop: 5 }}>Last 7 days</p>
+          <h1 style={{ ...typography.display, color: colors.ink, margin: 0 }}>{t('history.title')}</h1>
+          <p style={{ ...typography.caption, color: colors.inkMuted, marginTop: 5 }}>{t('history.last7Days')}</p>
         </div>
 
         {nonEmpty.length === 0 ? (
           <EmptyState
             icon={<span style={{ fontSize: 36, color: colors.positiveText }}>✓</span>}
             iconBg={colors.positiveContainer}
-            title="No usage yet"
-            subtitle="Your family hasn't watched anything today. Enjoy the quiet!"
+            title={t('history.noUsageTitle')}
+            subtitle={t('history.noUsageSubtitle')}
           />
         ) : (
           <>
@@ -58,6 +61,7 @@ export function HistoryScreen({ familyId }: { familyId: string }) {
 }
 
 function WeeklyBarChartCard({ snapshots }: { snapshots: UsageSnapshot[] }) {
+  const { t } = useTranslation();
   const maxMinutes = Math.max(1, ...snapshots.map(totalMinutes));
   const todayIso = new Date().toISOString().slice(0, 10);
 
@@ -69,7 +73,7 @@ function WeeklyBarChartCard({ snapshots }: { snapshots: UsageSnapshot[] }) {
           const mins = totalMinutes(snapshot);
           const fraction = Math.min(1, Math.max(0.05, mins / maxMinutes));
           const color = statusColorFor(mins);
-          const dayLabel = new Date(`${snapshot.date}T00:00:00`).toLocaleDateString(undefined, { weekday: 'narrow' });
+          const dayLabel = new Date(`${snapshot.date}T00:00:00`).toLocaleDateString(i18n.language, { weekday: 'narrow' });
           return (
             <div key={snapshot.date} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ width: '100%', height: 94, display: 'flex', alignItems: 'flex-end' }}>
@@ -83,9 +87,9 @@ function WeeklyBarChartCard({ snapshots }: { snapshots: UsageSnapshot[] }) {
         })}
       </div>
       <div style={{ display: 'flex', gap: 14 }}>
-        <LegendDot color={colors.positiveDisplay} label="On track" />
-        <LegendDot color={colors.warningDisplay} label="Almost up" />
-        <LegendDot color={colors.overDisplay} label="Over limit" />
+        <LegendDot color={colors.positiveDisplay} label={t('history.onTrack')} />
+        <LegendDot color={colors.warningDisplay} label={t('history.almostUp')} />
+        <LegendDot color={colors.overDisplay} label={t('history.overLimit')} />
       </div>
     </div>
   );
@@ -101,14 +105,15 @@ function LegendDot({ color, label }: { color: string; label: string }) {
 }
 
 function DayCard({ snapshot }: { snapshot: UsageSnapshot }) {
+  const { t } = useTranslation();
   const date = new Date(`${snapshot.date}T00:00:00`);
   const today = new Date();
   const isToday = date.toDateString() === today.toDateString();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
   const isYesterday = date.toDateString() === yesterday.toDateString();
-  const dayLabel = isToday ? 'Today' : isYesterday ? 'Yesterday' : date.toLocaleDateString(undefined, { weekday: 'long' });
-  const dateLabel = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const dayLabel = isToday ? t('history.today') : isYesterday ? t('history.yesterday') : date.toLocaleDateString(i18n.language, { weekday: 'long' });
+  const dateLabel = date.toLocaleDateString(i18n.language, { month: 'short', day: 'numeric' });
   const total = totalMinutes(snapshot);
   const totalSum = Math.max(1, Object.values(snapshot.perAppMillis).reduce((s, v) => s + v, 0));
   const topApps = Object.entries(snapshot.perAppMillis)

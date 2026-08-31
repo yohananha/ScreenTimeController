@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../theme/colors';
 
 /** 6-digit invite/pairing code entry. Hidden text input accepts input; visible slots render code. */
@@ -11,10 +12,12 @@ export function CodeSlotInput({
   onValueChange: (value: string) => void;
   slots?: number;
 }) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   return (
     <div style={{ position: 'relative', width: '100%' }}>
-      <div style={{ display: 'flex', gap: 8, cursor: 'text' }} onClick={() => inputRef.current?.focus()}>
+      {/* dir="ltr" keeps digit order stable under RTL — a Row would otherwise reverse it. */}
+      <div dir="ltr" style={{ display: 'flex', gap: 8, cursor: 'text' }} onClick={() => inputRef.current?.focus()}>
         {Array.from({ length: slots }).map((_, i) => {
           const filled = i < value.length;
           const active = i === value.length;
@@ -46,7 +49,7 @@ export function CodeSlotInput({
         value={value}
         onChange={(e) => onValueChange(e.target.value.replace(/\D/g, '').slice(0, slots))}
         inputMode="numeric"
-        aria-label="Code"
+        aria-label={t('common.code')}
         style={{
           position: 'absolute',
           inset: 0,

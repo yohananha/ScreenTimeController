@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../theme/colors';
 import { radius } from '../theme/radius';
 import { typography } from '../theme/typography';
@@ -52,11 +53,12 @@ export function DailyTotalHero({
   status: Status;
   onClick?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <HeroCard style={onClick ? { cursor: 'pointer' } : undefined}>
       <div onClick={onClick} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ ...typography.label, color: colors.darkMutedText }}>TODAY'S SCREEN TIME</span>
+          <span style={{ ...typography.label, color: colors.darkMutedText }}>{t('limits.todaysScreenTime')}</span>
           <StatusBadge status={status} />
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>

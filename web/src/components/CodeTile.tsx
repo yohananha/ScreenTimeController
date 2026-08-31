@@ -3,7 +3,8 @@ import { colors } from '../theme/colors';
 /** 6 cream-on-dark digit tiles used in the active unlock-code hero card. */
 export function CodeTilesRow({ code }: { code: string }) {
   return (
-    <div style={{ display: 'flex', gap: 9, width: '100%' }}>
+    // dir="ltr" keeps digit order stable under RTL — a Row would otherwise reverse it.
+    <div dir="ltr" style={{ display: 'flex', gap: 9, width: '100%' }}>
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}

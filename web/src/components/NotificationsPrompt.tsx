@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../theme/colors';
 import { radius } from '../theme/radius';
 import { typography } from '../theme/typography';
@@ -11,6 +12,7 @@ import { enableNotifications } from '../firebase/push';
  * once per session until dismissed or granted.
  */
 export function NotificationsPrompt({ familyId }: { familyId: string }) {
+  const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(
     () => typeof Notification !== 'undefined' && Notification.permission !== 'default',
   );
@@ -30,12 +32,10 @@ export function NotificationsPrompt({ familyId }: { familyId: string }) {
         margin: '0 16px',
       }}
     >
-      <span style={{ ...typography.caption, color: colors.ink }}>
-        Turn on notifications to hear about time requests right away.
-      </span>
+      <span style={{ ...typography.caption, color: colors.ink }}>{t('notifications.prompt')}</span>
       <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
         <SproutGhostButton onClick={() => setDismissed(true)} style={{ padding: '8px 12px' }}>
-          Not now
+          {t('notifications.notNow')}
         </SproutGhostButton>
         <SproutPrimaryButton
           onClick={() => {
@@ -43,7 +43,7 @@ export function NotificationsPrompt({ familyId }: { familyId: string }) {
           }}
           style={{ padding: '8px 14px' }}
         >
-          Enable
+          {t('notifications.enable')}
         </SproutPrimaryButton>
       </div>
     </div>

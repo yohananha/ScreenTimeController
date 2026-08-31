@@ -1,17 +1,19 @@
 import type { CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 
 export type Status = 'OnTrack' | 'AlmostUp' | 'TimesUp' | 'Paused';
 
-const VISUALS: Record<Status, { bg: string; fg: string; dot: string; label: string }> = {
-  OnTrack: { bg: colors.positiveContainer, fg: colors.positiveText, dot: colors.positiveDisplay, label: 'On track' },
-  AlmostUp: { bg: colors.warningContainer, fg: colors.warningText, dot: colors.warningDisplay, label: 'Almost up' },
-  TimesUp: { bg: colors.overContainer, fg: colors.overText, dot: colors.overDisplay, label: "Time's up" },
-  Paused: { bg: colors.accentContainer, fg: colors.ink, dot: colors.accent, label: 'Paused' },
+const VISUALS: Record<Status, { bg: string; fg: string; dot: string; labelKey: string }> = {
+  OnTrack: { bg: colors.positiveContainer, fg: colors.positiveText, dot: colors.positiveDisplay, labelKey: 'history.onTrack' },
+  AlmostUp: { bg: colors.warningContainer, fg: colors.warningText, dot: colors.warningDisplay, labelKey: 'history.almostUp' },
+  TimesUp: { bg: colors.overContainer, fg: colors.overText, dot: colors.overDisplay, labelKey: 'limits.timesUp' },
+  Paused: { bg: colors.accentContainer, fg: colors.ink, dot: colors.accent, labelKey: 'limits.paused' },
 };
 
 export function StatusBadge({ status, style }: { status: Status; style?: CSSProperties }) {
+  const { t } = useTranslation();
   const v = VISUALS[status];
   return (
     <span
@@ -31,7 +33,7 @@ export function StatusBadge({ status, style }: { status: Status; style?: CSSProp
       {status !== 'Paused' && (
         <span style={{ width: 7, height: 7, borderRadius: 999, background: v.dot, display: 'inline-block' }} />
       )}
-      {v.label}
+      {t(v.labelKey)}
     </span>
   );
 }

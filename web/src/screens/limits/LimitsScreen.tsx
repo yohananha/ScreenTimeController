@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/colors';
 import { radius } from '../../theme/radius';
 import { typography } from '../../theme/typography';
@@ -13,9 +14,9 @@ import type { Status } from '../../components/StatusBadge';
 import { useLimits } from '../../hooks/useLimits';
 import { UNLIMITED } from '../../models/Limits';
 import type { InstalledApp } from '../../models/InstalledApp';
-import type { LockoutMode, LockoutSettings } from '../../models/LockoutSettings';
 import type { TimeFrameSchedule } from '../../models/TimeFrameSchedule';
-import { formatLimitLabel, summarizeSchedule } from './format';
+import { Chevron } from '../../components/Chevron';
+import { formatLimitLabel, summarizeSchedule } from '../../i18n/format';
 
 type LimitMode = 'Lock' | 'Default' | 'Allow';
 
@@ -28,6 +29,7 @@ export function LimitsScreen({
   onOpenHistory: () => void;
   onOpenTimeFrame: () => void;
 }) {
+  const { t, i18n } = useTranslation();
   const {
     state,
     writeError,
@@ -35,8 +37,6 @@ export function LimitsScreen({
     setLimit,
     removeLimit,
     setOverallLimit,
-    setLockoutConfig,
-    unlockNow,
     selectInstantLock,
     selectAllowAllDay,
     selectDefaultLimits,
@@ -44,7 +44,6 @@ export function LimitsScreen({
   const [editing, setEditing] = useState<{ packageName: string; displayName: string; defaultMinutes: number } | null>(null);
   const [picking, setPicking] = useState(false);
   const [editingOverall, setEditingOverall] = useState(false);
-  const [editingLockout, setEditingLockout] = useState(false);
   const hPad = useResponsivePadding();
 
   const mode: LimitMode = state.instantLocked ? 'Lock' : state.allowAllDayActive ? 'Allow' : 'Default';
@@ -64,12 +63,12 @@ export function LimitsScreen({
     <div style={{ minHeight: '100%', background: colors.background, display: 'flex', justifyContent: 'center' }}>
       <div style={{ width: '100%', maxWidth: 600, padding: `0 ${hPad}px 132px`, display: 'flex', flexDirection: 'column', gap: 12 }}>
         <TopHeader
-          familyName="Family"
+          familyName={t('topHeader.family')}
           parentInitial="P"
           trailing={
             <button
               onClick={onOpenHistory}
-              aria-label="History"
+              aria-label={t('limits.historyAria')}
               style={{
                 width: 38,
                 height: 38,
@@ -83,9 +82,9 @@ export function LimitsScreen({
           }
         />
         <div style={{ paddingTop: 4, paddingBottom: 6 }}>
-          <h1 style={{ ...typography.display, fontSize: 30, color: colors.ink, margin: 0 }}>Limits</h1>
+          <h1 style={{ ...typography.display, fontSize: 30, color: colors.ink, margin: 0 }}>{t('limits.title')}</h1>
           <div style={{ ...typography.caption, color: colors.inkMuted, marginTop: 5 }}>
-            {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+            {new Date().toLocaleDateString(i18n.language, { weekday: 'long', month: 'short', day: 'numeric' })}
           </div>
         </div>
 
@@ -118,23 +117,19 @@ export function LimitsScreen({
 
         <DailyTotalHero
           usedLabel={formatLimitLabel(usedMin)}
-          ofLabel={`of ${formatLimitLabel(state.overallDailyMinutes)} daily`}
+          ofLabel={t('limits.ofDaily', { limit: formatLimitLabel(state.overallDailyMinutes) })}
           progress={overallProgress}
-          timeLeft={`${formatLimitLabel(leftMin)} left`}
-          resetLabel="Resets at midnight"
+          timeLeft={t('limits.leftLabel', { time: formatLimitLabel(leftMin) })}
+          resetLabel={t('limits.resetsAtMidnight')}
           status={overallStatus}
           onClick={() => setEditingOverall(true)}
         />
 
         <AllowedHoursRow schedule={state.timeFrame} onClick={onOpenTimeFrame} />
 
-        <LockoutCard lockout={state.lockout} onClick={() => setEditingLockout(true)} onUnlockNow={unlockNow} />
-
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 2px 4px' }}>
-          <span style={{ ...typography.title, color: colors.ink }}>App limits</span>
-          <span style={{ ...typography.caption, color: colors.inkMuted }}>
-            {state.limits.length} {state.limits.length === 1 ? 'app' : 'apps'}
-          </span>
+          <span style={{ ...typography.title, color: colors.ink }}>{t('limits.appLimits')}</span>
+          <span style={{ ...typography.caption, color: colors.inkMuted }}>{t('limits.appsCount', { count: state.limits.length })}</span>
         </div>
 
         {state.limits.length === 0 ? (
@@ -149,8 +144,8 @@ export function LimitsScreen({
               padding: 28,
             }}
           >
-            <span style={{ ...typography.headline, color: colors.ink }}>No app limits yet</span>
-            <span style={{ ...typography.body, color: colors.inkMuted }}>Tap the + to add one.</span>
+            <span style={{ ...typography.headline, color: colors.ink }}>{t('limits.noAppLimitsTitle')}</span>
+            <span style={{ ...typography.body, color: colors.inkMuted }}>{t('limits.noAppLimitsSubtitle')}</span>
           </div>
         ) : (
           state.limits.map((limit) => {
@@ -197,9 +192,9 @@ export function LimitsScreen({
       <SproutPrimaryButton
         onClick={() => setPicking(true)}
         shadow
-        style={{ position: 'fixed', bottom: 96, right: 18, borderRadius: radius.large }}
+        style={{ position: 'fixed', bottom: 96, insetInlineEnd: 18, borderRadius: radius.large }}
       >
-        + Add limit
+        {t('limits.addLimit')}
       </SproutPrimaryButton>
 
       {picking && (
@@ -240,56 +235,12 @@ export function LimitsScreen({
         />
       )}
 
-      {editingLockout && (
-        <EditLockoutDialog
-          current={state.lockout}
-          onDismiss={() => setEditingLockout(false)}
-          onSave={(minutes, mode2) => {
-            setLockoutConfig(minutes, mode2);
-            setEditingLockout(false);
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
-function LockoutCard({
-  lockout,
-  onClick,
-  onUnlockNow,
-}: {
-  lockout: LockoutSettings;
-  onClick: () => void;
-  onUnlockNow: () => void;
-}) {
-  const statusText = lockout.mode === 'TIMER' ? `${lockout.durationMinutes} min lock` : 'Parent unlock';
-  return (
-    <div style={{ background: colors.surface, borderRadius: radius.card, padding: '14px 15px' }}>
-      <div onClick={onClick} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-        <div>
-          <div style={{ ...typography.headline, color: colors.ink }}>Code lockout</div>
-          <div style={{ ...typography.caption, color: colors.inkMuted }}>After 5 wrong codes in 1 minute</div>
-        </div>
-        <span style={{ ...typography.bodyStrong, color: colors.ink }}>{statusText}</span>
-      </div>
-      {lockout.locked && (
-        <>
-          <div style={{ ...typography.caption, color: colors.overText, marginTop: 6 }}>
-            TV code entry is currently locked.
-          </div>
-          {lockout.mode === 'PARENT_UNLOCK' && (
-            <div style={{ marginTop: 8 }}>
-              <SproutPrimaryButton onClick={onUnlockNow}>Unlock now</SproutPrimaryButton>
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 }
 
 function AllowedHoursRow({ schedule, onClick }: { schedule: TimeFrameSchedule; onClick: () => void }) {
+  const { t } = useTranslation();
   return (
     <div
       onClick={onClick}
@@ -318,23 +269,27 @@ function AllowedHoursRow({ schedule, onClick }: { schedule: TimeFrameSchedule; o
           🕐
         </div>
         <div>
-          <div style={{ ...typography.headline, color: colors.ink }}>Allowed hours</div>
+          <div style={{ ...typography.headline, color: colors.ink }}>{t('limits.allowedHours')}</div>
           <div style={{ ...typography.caption, color: colors.inkMuted }}>{summarizeSchedule(schedule)}</div>
         </div>
       </div>
-      <span style={{ color: colors.inkMuted }}>{'›'}</span>
+      <Chevron style={{ color: colors.inkMuted }} />
     </div>
   );
 }
 
-const MODE_VISUALS: Record<LimitMode, { bg: string; titleColor: string; icon: string; title: string; caption: string }> = {
-  Lock: { bg: colors.overContainer, titleColor: colors.overText, icon: '🔒', title: 'Instant lock', caption: 'TV is locked — tap Default to release' },
-  Default: { bg: colors.surface, titleColor: colors.ink, icon: '✓', title: 'Limits active', caption: "Today's schedule and app limits apply" },
-  Allow: { bg: colors.positiveContainer, titleColor: colors.positiveText, icon: '☀', title: 'Allow all day', caption: 'All limits paused until midnight' },
-};
+function useModeVisuals(): Record<LimitMode, { bg: string; titleColor: string; icon: string; title: string; caption: string; segLabel: string }> {
+  const { t } = useTranslation();
+  return {
+    Lock: { bg: colors.overContainer, titleColor: colors.overText, icon: '🔒', title: t('limits.modeLockTitle'), caption: t('limits.modeLockCaption'), segLabel: t('limits.modeLockLabel') },
+    Default: { bg: colors.surface, titleColor: colors.ink, icon: '✓', title: t('limits.modeDefaultTitle'), caption: t('limits.modeDefaultCaption'), segLabel: t('limits.modeDefaultLabel') },
+    Allow: { bg: colors.positiveContainer, titleColor: colors.positiveText, icon: '☀', title: t('limits.modeAllowTitle'), caption: t('limits.modeAllowCaption'), segLabel: t('limits.modeAllowLabel') },
+  };
+}
 
 function LimitModeCard({ mode, onSelect }: { mode: LimitMode; onSelect: (mode: LimitMode) => void }) {
-  const v = MODE_VISUALS[mode];
+  const visuals = useModeVisuals();
+  const v = visuals[mode];
   return (
     <div style={{ background: v.bg, borderRadius: radius.card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -369,7 +324,7 @@ function LimitModeCard({ mode, onSelect }: { mode: LimitMode; onSelect: (mode: L
               }}
             >
               <span>{m === 'Lock' ? '🔒' : m === 'Default' ? '✓' : '☀'}</span>
-              <span style={{ ...typography.caption }}>{m}</span>
+              <span style={{ ...typography.caption }}>{visuals[m].segLabel}</span>
             </button>
           );
         })}
@@ -389,12 +344,13 @@ function PickAppDialog({
   onDismiss: () => void;
   onPick: (app: InstalledApp) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Modal onClose={onDismiss}>
-      <h2 style={{ ...typography.headline, margin: '0 0 12px' }}>Add app limit</h2>
+      <h2 style={{ ...typography.headline, margin: '0 0 12px' }}>{t('limits.addAppLimitTitle')}</h2>
       {available.length === 0 ? (
         <p style={{ ...typography.body, color: colors.inkMuted }}>
-          {tvHasNoApps ? 'No apps found on the TV yet. Make sure the TV is paired and online.' : 'All apps already have limits.'}
+          {tvHasNoApps ? t('limits.noAppsFound') : t('limits.allAppsHaveLimits')}
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 320, overflowY: 'auto' }}>
@@ -402,7 +358,7 @@ function PickAppDialog({
             <button
               key={app.packageName}
               onClick={() => onPick(app)}
-              style={{ textAlign: 'left', padding: '10px 8px', background: 'none', border: 'none', borderRadius: radius.input }}
+              style={{ textAlign: 'start', padding: '10px 8px', background: 'none', border: 'none', borderRadius: radius.input }}
             >
               {app.label}
             </button>
@@ -410,7 +366,7 @@ function PickAppDialog({
         </div>
       )}
       <div style={{ marginTop: 16 }}>
-        <SproutGhostButton onClick={onDismiss}>Cancel</SproutGhostButton>
+        <SproutGhostButton onClick={onDismiss}>{t('common.cancel')}</SproutGhostButton>
       </div>
     </Modal>
   );
@@ -427,15 +383,16 @@ function EditLimitDialog({
   onSave: (minutes: number) => void;
   onRemove: () => void;
 }) {
+  const { t } = useTranslation();
   const [unlimited, setUnlimited] = useState(target.defaultMinutes === UNLIMITED);
   const [minutes, setMinutes] = useState(Math.max(0, target.defaultMinutes));
 
   return (
     <Modal onClose={onDismiss}>
-      <h2 style={{ ...typography.headline, margin: '0 0 8px' }}>Edit limit</h2>
+      <h2 style={{ ...typography.headline, margin: '0 0 8px' }}>{t('limits.editLimitTitle')}</h2>
       <p style={{ ...typography.caption, color: colors.inkMuted, margin: '0 0 8px' }}>{target.displayName}</p>
       <p style={{ ...typography.title, color: colors.ink, margin: '0 0 8px' }}>
-        {unlimited ? 'Always allowed' : formatLimitLabel(minutes)}
+        {unlimited ? t('limits.alwaysAllowed') : formatLimitLabel(minutes)}
       </p>
       {!unlimited && (
         <>
@@ -462,16 +419,16 @@ function EditLimitDialog({
             setMinutes(0);
           }}
         >
-          Block
+          {t('limits.block')}
         </SproutGhostButton>
-        <SproutGhostButton onClick={() => setUnlimited(true)}>Always allow</SproutGhostButton>
+        <SproutGhostButton onClick={() => setUnlimited(true)}>{t('limits.alwaysAllow')}</SproutGhostButton>
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', gap: 8 }}>
-          <SproutDangerButton onClick={onRemove}>Remove</SproutDangerButton>
-          <SproutGhostButton onClick={onDismiss}>Cancel</SproutGhostButton>
+          <SproutDangerButton onClick={onRemove}>{t('common.remove')}</SproutDangerButton>
+          <SproutGhostButton onClick={onDismiss}>{t('common.cancel')}</SproutGhostButton>
         </div>
-        <SproutPrimaryButton onClick={() => onSave(unlimited ? UNLIMITED : minutes)}>Save</SproutPrimaryButton>
+        <SproutPrimaryButton onClick={() => onSave(unlimited ? UNLIMITED : minutes)}>{t('common.save')}</SproutPrimaryButton>
       </div>
     </Modal>
   );
@@ -486,17 +443,16 @@ function EditOverallLimitDialog({
   onDismiss: () => void;
   onSave: (minutes: number) => void;
 }) {
+  const { t } = useTranslation();
   const [unlimited, setUnlimited] = useState(currentMinutes === UNLIMITED);
   const [minutes, setMinutes] = useState(Math.max(0, currentMinutes));
 
   return (
     <Modal onClose={onDismiss}>
-      <h2 style={{ ...typography.headline, margin: '0 0 8px' }}>Overall daily limit</h2>
-      <p style={{ ...typography.caption, color: colors.inkMuted, margin: '0 0 8px' }}>
-        Once today's total usage across all apps reaches this, the TV blocks no matter which app is open.
-      </p>
+      <h2 style={{ ...typography.headline, margin: '0 0 8px' }}>{t('limits.overallLimitTitle')}</h2>
+      <p style={{ ...typography.caption, color: colors.inkMuted, margin: '0 0 8px' }}>{t('limits.overallLimitBody')}</p>
       <p style={{ ...typography.title, color: colors.ink, margin: '0 0 8px' }}>
-        {unlimited ? 'No overall limit' : formatLimitLabel(minutes)}
+        {unlimited ? t('limits.noOverallLimit') : formatLimitLabel(minutes)}
       </p>
       {!unlimited && (
         <>
@@ -523,60 +479,13 @@ function EditOverallLimitDialog({
             setMinutes(0);
           }}
         >
-          Block all
+          {t('limits.blockAll')}
         </SproutGhostButton>
-        <SproutGhostButton onClick={() => setUnlimited(true)}>No limit</SproutGhostButton>
+        <SproutGhostButton onClick={() => setUnlimited(true)}>{t('limits.noLimitAction')}</SproutGhostButton>
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
-        <SproutGhostButton onClick={onDismiss}>Cancel</SproutGhostButton>
-        <SproutPrimaryButton onClick={() => onSave(unlimited ? UNLIMITED : minutes)}>Save</SproutPrimaryButton>
-      </div>
-    </Modal>
-  );
-}
-
-function EditLockoutDialog({
-  current,
-  onDismiss,
-  onSave,
-}: {
-  current: LockoutSettings;
-  onDismiss: () => void;
-  onSave: (minutes: number, mode: LockoutMode) => void;
-}) {
-  const [minutes, setMinutes] = useState(current.durationMinutes);
-  const [mode, setMode] = useState<LockoutMode>(current.mode);
-
-  return (
-    <Modal onClose={onDismiss}>
-      <h2 style={{ ...typography.headline, margin: '0 0 8px' }}>Code lockout</h2>
-      <p style={{ ...typography.caption, color: colors.inkMuted }}>
-        After 5 incorrect codes within 1 minute, the TV's code entry will:
-      </p>
-      <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <input type="radio" checked={mode === 'TIMER'} onChange={() => setMode('TIMER')} />
-        Lock for a set time
-      </label>
-      <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <input type="radio" checked={mode === 'PARENT_UNLOCK'} onChange={() => setMode('PARENT_UNLOCK')} />
-        Require a parent to unlock
-      </label>
-      {mode === 'TIMER' && (
-        <>
-          <p style={{ ...typography.title, color: colors.ink }}>{formatLimitLabel(minutes)}</p>
-          <input
-            type="range"
-            min={5}
-            max={60}
-            value={minutes}
-            onChange={(e) => setMinutes(Number(e.target.value))}
-            style={{ width: '100%' }}
-          />
-        </>
-      )}
-      <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
-        <SproutGhostButton onClick={onDismiss}>Cancel</SproutGhostButton>
-        <SproutPrimaryButton onClick={() => onSave(minutes, mode)}>Save</SproutPrimaryButton>
+        <SproutGhostButton onClick={onDismiss}>{t('common.cancel')}</SproutGhostButton>
+        <SproutPrimaryButton onClick={() => onSave(unlimited ? UNLIMITED : minutes)}>{t('common.save')}</SproutPrimaryButton>
       </div>
     </Modal>
   );

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import * as repo from '../firebase/firestoreRepository';
+import { describeFunctionsError } from '../i18n/functionsErrors';
+import i18n from '../i18n/i18n';
 import type { PairedDevice } from '../models/PairedDevice';
 
 export interface PairTvUiState {
@@ -26,8 +28,14 @@ export function usePairedDevices(familyId: string | null) {
     setState({ busy: true, success: false, message: null });
     repo
       .claimPairing(code, familyIdArg)
-      .then((ok) => setState({ busy: false, success: ok, message: ok ? 'TV paired.' : 'Invalid or expired code.' }))
-      .catch((e: unknown) => setState({ busy: false, success: false, message: (e as Error).message ?? 'Failed.' }));
+      .then((ok) =>
+        setState({
+          busy: false,
+          success: ok,
+          message: ok ? i18n.t('errors.tvPaired') : i18n.t('errors.invalidOrExpiredCode'),
+        }),
+      )
+      .catch((e: unknown) => setState({ busy: false, success: false, message: describeFunctionsError(e) }));
   }, []);
 
   const reset = useCallback(() => setState(initialState), []);

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { colors } from '../theme/colors';
 import { useAuthState } from '../hooks/useAuthState';
 import { SignInScreen } from '../screens/auth/SignInScreen';
@@ -5,6 +6,7 @@ import { FamilyOnboardingScreen } from '../screens/onboarding/FamilyOnboardingSc
 import { AppShell } from './AppShell';
 
 export function AuthGate() {
+  const { t } = useTranslation();
   const state = useAuthState();
 
   switch (state.status) {
@@ -12,7 +14,7 @@ export function AuthGate() {
       return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
           <div
-            aria-label="Loading"
+            aria-label={t('common.loading')}
             style={{
               width: 40,
               height: 40,

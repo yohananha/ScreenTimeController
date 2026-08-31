@@ -1,17 +1,18 @@
+import { useTranslation } from 'react-i18next';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 
 export interface NavTabDef {
   route: string;
-  label: string;
+  labelKey: string;
   icon: string;
 }
 
 export const NAV_TABS: NavTabDef[] = [
-  { route: 'limits', label: 'Limits', icon: '🕐' },
-  { route: 'requests', label: 'Requests', icon: '🔔' },
-  { route: 'codes', label: 'Codes', icon: '⌨' },
-  { route: 'family', label: 'Family', icon: '👪' },
+  { route: 'limits', labelKey: 'nav.limits', icon: '🕐' },
+  { route: 'requests', labelKey: 'nav.requests', icon: '🔔' },
+  { route: 'codes', labelKey: 'nav.codes', icon: '⌨' },
+  { route: 'settings', labelKey: 'nav.settings', icon: '⚙️' },
 ];
 
 export function SproutBottomNavBar({
@@ -23,6 +24,7 @@ export function SproutBottomNavBar({
   pendingCount: number;
   onTabClick: (route: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div style={{ width: '100%', borderTop: `1px solid ${colors.outline}`, background: colors.surface }}>
       <div
@@ -69,7 +71,7 @@ export function SproutBottomNavBar({
                     style={{
                       position: 'absolute',
                       top: -4,
-                      right: 4,
+                      insetInlineEnd: 4,
                       minWidth: 16,
                       minHeight: 16,
                       borderRadius: 999,
@@ -94,7 +96,7 @@ export function SproutBottomNavBar({
                   color: selected ? colors.ink : colors.inkMuted,
                 }}
               >
-                {tab.label}
+                {t(tab.labelKey)}
               </span>
             </button>
           );

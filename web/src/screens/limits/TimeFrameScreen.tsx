@@ -1,19 +1,18 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/colors';
 import { radius } from '../../theme/radius';
 import { typography } from '../../theme/typography';
 import { useResponsivePadding } from '../../theme/breakpoints';
 import { SproutPrimaryButton, SproutGhostButton } from '../../components/SproutButton';
 import { Modal } from '../../components/Modal';
+import { BackChevron } from '../../components/Chevron';
 import { useTimeFrame } from '../../hooks/useTimeFrame';
 import { DAYS_OF_WEEK, dayOfWeekFromDate, type DayOfWeek, type TimeFrameWindow } from '../../models/TimeFrameSchedule';
-import { isAllDayWindow, toTimeLabel, windowsSummary } from './format';
-
-function dayDisplayName(day: DayOfWeek): string {
-  return day.charAt(0) + day.slice(1).toLowerCase();
-}
+import { dayDisplayName, isAllDayWindow, toTimeLabel, windowsSummary } from '../../i18n/format';
 
 export function TimeFrameScreen({ familyId, onBack }: { familyId: string; onBack: () => void }) {
+  const { t } = useTranslation();
   const { state, setEnabled, setWindows, copyToWeekdays, copyToWeekend, save } = useTimeFrame(familyId);
   const [editingDay, setEditingDay] = useState<DayOfWeek | null>(null);
   const hPad = useResponsivePadding();
@@ -25,31 +24,29 @@ export function TimeFrameScreen({ familyId, onBack }: { familyId: string; onBack
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 12 }}>
           <button
             onClick={onBack}
-            aria-label="Back"
+            aria-label={t('timeframe.backAria')}
             style={{ width: 38, height: 38, borderRadius: '50%', background: colors.surface, border: 'none' }}
           >
-            ←
+            <BackChevron />
           </button>
           <div>
-            <div style={{ ...typography.title, color: colors.ink }}>Allowed hours</div>
-            <div style={{ ...typography.caption, color: colors.inkMuted }}>When the TV is allowed to be on</div>
+            <div style={{ ...typography.title, color: colors.ink }}>{t('timeframe.title')}</div>
+            <div style={{ ...typography.caption, color: colors.inkMuted }}>{t('timeframe.subtitle')}</div>
           </div>
         </div>
 
         <div style={{ background: colors.surface, borderRadius: radius.card, padding: '14px 16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ ...typography.headline, color: colors.ink }}>Enforce a schedule</span>
+            <span style={{ ...typography.headline, color: colors.ink }}>{t('timeframe.enforceSchedule')}</span>
             <input
               type="checkbox"
               checked={state.schedule.enabled}
               onChange={(e) => setEnabled(e.target.checked)}
-              aria-label="Enforce a schedule"
+              aria-label={t('timeframe.enforceSchedule')}
             />
           </div>
           {state.schedule.enabled && (
-            <p style={{ ...typography.caption, color: colors.inkMuted, marginTop: 6 }}>
-              Outside these hours the TV is blocked. Bonus codes still work.
-            </p>
+            <p style={{ ...typography.caption, color: colors.inkMuted, marginTop: 6 }}>{t('timeframe.enforceBody')}</p>
           )}
         </div>
 
@@ -68,10 +65,10 @@ export function TimeFrameScreen({ familyId, onBack }: { familyId: string; onBack
             ))}
             <div style={{ display: 'flex', gap: 8, padding: '8px 12px' }}>
               <SproutGhostButton onClick={() => copyToWeekdays('MONDAY')} style={{ padding: '8px 12px' }}>
-                Copy Mon to weekdays
+                {t('timeframe.copyMonToWeekdays')}
               </SproutGhostButton>
               <SproutGhostButton onClick={() => copyToWeekend('SATURDAY')} style={{ padding: '8px 12px' }}>
-                Copy Sat to weekend
+                {t('timeframe.copySatToWeekend')}
               </SproutGhostButton>
             </div>
           </div>
@@ -82,7 +79,7 @@ export function TimeFrameScreen({ familyId, onBack }: { familyId: string; onBack
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, padding: '24px 16px', display: 'flex', justifyContent: 'center' }}>
           <div style={{ width: '100%', maxWidth: 600 - hPad * 2 }}>
             <SproutPrimaryButton onClick={save} disabled={state.saving} style={{ width: '100%' }}>
-              {state.saving ? 'Saving…' : 'Save schedule'}
+              {state.saving ? t('timeframe.saving') : t('timeframe.saveSchedule')}
             </SproutPrimaryButton>
           </div>
         </div>
@@ -114,6 +111,7 @@ function DayRow({
   windows: TimeFrameWindow[];
   onClick: () => void;
 }) {
+  const { t } = useTranslation();
   const color = windows.length === 0 ? colors.overText : isAllDayWindow(windows) ? colors.positiveText : colors.inkMuted;
   return (
     <div
@@ -132,7 +130,7 @@ function DayRow({
               padding: '3px 8px',
             }}
           >
-            Today
+            {t('timeframe.today')}
           </span>
         )}
       </div>
@@ -152,6 +150,7 @@ function DayEditSheet({
   onDismiss: () => void;
   onSave: (windows: TimeFrameWindow[]) => void;
 }) {
+  const { t } = useTranslation();
   const [localWindows, setLocalWindows] = useState<TimeFrameWindow[]>(windows);
   const [adding, setAdding] = useState(false);
 
@@ -159,17 +158,15 @@ function DayEditSheet({
     <Modal onClose={onDismiss}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <span style={{ ...typography.title, color: colors.ink }}>{dayDisplayName(day)}</span>
-        <button onClick={onDismiss} aria-label="Close" style={{ width: 32, height: 32, borderRadius: '50%', background: colors.background, border: 'none' }}>
+        <button onClick={onDismiss} aria-label={t('timeframe.closeAria')} style={{ width: 32, height: 32, borderRadius: '50%', background: colors.background, border: 'none' }}>
           ✕
         </button>
       </div>
 
       {localWindows.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
-          <div style={{ ...typography.headline, color: colors.ink }}>Blocked all day on {dayDisplayName(day)}s</div>
-          <div style={{ ...typography.caption, color: colors.inkMuted, marginTop: 8 }}>
-            Add a window to allow some screen time.
-          </div>
+          <div style={{ ...typography.headline, color: colors.ink }}>{t('timeframe.blockedAllDayOn', { day: dayDisplayName(day) })}</div>
+          <div style={{ ...typography.caption, color: colors.inkMuted, marginTop: 8 }}>{t('timeframe.addWindowToAllow')}</div>
         </div>
       ) : (
         localWindows.map((window, index) => (
@@ -190,7 +187,7 @@ function DayEditSheet({
             </span>
             <button
               onClick={() => setLocalWindows(localWindows.filter((_, i) => i !== index))}
-              aria-label="Remove window"
+              aria-label={t('timeframe.removeWindowAria')}
               style={{ width: 32, height: 32, borderRadius: '50%', background: colors.overContainer, border: 'none', color: colors.overText }}
             >
               ✕
@@ -201,12 +198,12 @@ function DayEditSheet({
 
       <div style={{ marginTop: 8 }}>
         <SproutGhostButton onClick={() => setAdding(true)} style={{ width: '100%' }}>
-          + Add window
+          {t('timeframe.addWindow')}
         </SproutGhostButton>
       </div>
       <div style={{ marginTop: 8 }}>
         <SproutPrimaryButton onClick={() => onSave(localWindows)} style={{ width: '100%' }}>
-          Done
+          {t('common.done')}
         </SproutPrimaryButton>
       </div>
 
@@ -230,6 +227,7 @@ function AddWindowDialog({
   onDismiss: () => void;
   onAdd: (window: TimeFrameWindow) => void;
 }) {
+  const { t } = useTranslation();
   const [start, setStart] = useState('16:00');
   const [end, setEnd] = useState('20:00');
   const [error, setError] = useState<string | null>(null);
@@ -241,30 +239,30 @@ function AddWindowDialog({
 
   return (
     <Modal onClose={onDismiss}>
-      <h2 style={{ ...typography.headline, margin: '0 0 12px' }}>Add window</h2>
+      <h2 style={{ ...typography.headline, margin: '0 0 12px' }}>{t('timeframe.addWindowTitle')}</h2>
       <label style={{ display: 'block', marginBottom: 12 }}>
-        <span style={{ ...typography.caption, color: colors.inkMuted }}>Start time</span>
+        <span style={{ ...typography.caption, color: colors.inkMuted }}>{t('timeframe.startTime')}</span>
         <input type="time" value={start} onChange={(e) => setStart(e.target.value)} style={{ display: 'block', width: '100%', padding: 10, marginTop: 4, borderRadius: radius.input, border: `1px solid ${colors.outline}` }} />
       </label>
       <label style={{ display: 'block' }}>
-        <span style={{ ...typography.caption, color: colors.inkMuted }}>End time</span>
+        <span style={{ ...typography.caption, color: colors.inkMuted }}>{t('timeframe.endTime')}</span>
         <input type="time" value={end} onChange={(e) => setEnd(e.target.value)} style={{ display: 'block', width: '100%', padding: 10, marginTop: 4, borderRadius: radius.input, border: `1px solid ${colors.outline}` }} />
       </label>
       {error && <p style={{ ...typography.caption, color: colors.warningText }}>{error}</p>}
       <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
-        <SproutGhostButton onClick={onDismiss}>Cancel</SproutGhostButton>
+        <SproutGhostButton onClick={onDismiss}>{t('common.cancel')}</SproutGhostButton>
         <SproutPrimaryButton
           onClick={() => {
             const startMin = toMinutes(start);
             const endMin = toMinutes(end);
             if (endMin <= startMin) {
-              setError('End must be after start');
+              setError(t('timeframe.endAfterStart'));
               return;
             }
             onAdd({ startMinute: startMin, endMinute: endMin });
           }}
         >
-          Add
+          {t('timeframe.add')}
         </SproutPrimaryButton>
       </div>
     </Modal>

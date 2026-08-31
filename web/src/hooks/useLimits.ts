@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import * as repo from '../firebase/firestoreRepository';
+import { describeFunctionsError } from '../i18n/functionsErrors';
 import type { AppLimit } from '../models/Limits';
 import { DEFAULT_OVERALL_MINUTES } from '../models/Limits';
 import type { InstalledApp } from '../models/InstalledApp';
@@ -88,7 +89,7 @@ export function useLimits(familyId: string | null) {
 
   const write = useCallback(
     (fn: () => Promise<void>) => {
-      fn().catch((e: unknown) => setWriteError(e instanceof Error ? e.message : 'Something went wrong.'));
+      fn().catch((e: unknown) => setWriteError(describeFunctionsError(e)));
     },
     [],
   );

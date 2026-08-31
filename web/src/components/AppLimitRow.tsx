@@ -3,6 +3,7 @@ import { radius } from '../theme/radius';
 import { typography } from '../theme/typography';
 import { StatusBadge, statusColorFor, type Status } from './StatusBadge';
 import { ProgressBar } from './ProgressBar';
+import { Chevron } from './Chevron';
 
 export function AppLimitRow({
   appName,
@@ -63,7 +64,7 @@ export function AppLimitRow({
         {!paused && <ProgressBar progress={progress} fill={statusColorFor(status)} track={colors.outline} height={8} />}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <StatusBadge status={paused ? 'Paused' : status} />
-          <span style={{ color: colors.inkFaint }}>{'›'}</span>
+          <Chevron style={{ color: colors.inkFaint }} />
         </div>
       </div>
     </div>

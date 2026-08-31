@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import * as repo from '../firebase/firestoreRepository';
+import { describeFunctionsError } from '../i18n/functionsErrors';
+import i18n from '../i18n/i18n';
 import type { Family, FamilyRole } from '../models/Family';
 
 export interface FamilyUiState {
@@ -23,7 +25,7 @@ export function useFamily(familyId: string | null) {
   }, [familyId]);
 
   const createFamily = useCallback((uid: string) => {
-    repo.createFamily(uid).catch((e: unknown) => setState((prev) => ({ ...prev, error: (e as Error).message })));
+    repo.createFamily(uid).catch((e: unknown) => setState((prev) => ({ ...prev, error: describeFunctionsError(e) })));
   }, []);
 
   const generateInvite = useCallback(() => {
@@ -31,7 +33,7 @@ export function useFamily(familyId: string | null) {
     repo
       .generateInvite(familyId)
       .then((code) => setState((prev) => ({ ...prev, inviteCode: code, error: null })))
-      .catch((e: unknown) => setState((prev) => ({ ...prev, error: (e as Error).message })));
+      .catch((e: unknown) => setState((prev) => ({ ...prev, error: describeFunctionsError(e) })));
   }, [familyId]);
 
   const joinByCode = useCallback((code: string) => {
@@ -42,16 +44,16 @@ export function useFamily(familyId: string | null) {
         setState((prev) => ({
           ...prev,
           joining: false,
-          error: joined === null ? 'Invalid or expired code.' : null,
+          error: joined === null ? i18n.t('errors.invalidOrExpiredCode') : null,
         }));
       })
-      .catch((e: unknown) => setState((prev) => ({ ...prev, joining: false, error: (e as Error).message })));
+      .catch((e: unknown) => setState((prev) => ({ ...prev, joining: false, error: describeFunctionsError(e) })));
   }, []);
 
   const setMemberRole = useCallback(
     (uid: string, role: FamilyRole) => {
       if (!familyId) return;
-      repo.setMemberRole(familyId, uid, role).catch((e: unknown) => setState((prev) => ({ ...prev, error: (e as Error).message })));
+      repo.setMemberRole(familyId, uid, role).catch((e: unknown) => setState((prev) => ({ ...prev, error: describeFunctionsError(e) })));
     },
     [familyId],
   );
@@ -59,7 +61,7 @@ export function useFamily(familyId: string | null) {
   const removeMember = useCallback(
     (uid: string) => {
       if (!familyId) return;
-      repo.removeMember(familyId, uid).catch((e: unknown) => setState((prev) => ({ ...prev, error: (e as Error).message })));
+      repo.removeMember(familyId, uid).catch((e: unknown) => setState((prev) => ({ ...prev, error: describeFunctionsError(e) })));
     },
     [familyId],
   );

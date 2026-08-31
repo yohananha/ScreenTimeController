@@ -1,14 +1,17 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/colors';
 import { radius } from '../../theme/radius';
 import { typography } from '../../theme/typography';
 import { useResponsivePadding } from '../../theme/breakpoints';
 import { SproutPrimaryButton } from '../../components/SproutButton';
 import { CodeSlotInput } from '../../components/CodeSlotInput';
+import { Chevron } from '../../components/Chevron';
 import { useFamily } from '../../hooks/useFamily';
 import { useCurrentUid } from '../../hooks/useCurrentUid';
 
 export function FamilyOnboardingScreen() {
+  const { t } = useTranslation();
   const { state, createFamily, joinByCode } = useFamily(null);
   const uid = useCurrentUid();
   const [joinExpanded, setJoinExpanded] = useState(false);
@@ -33,7 +36,7 @@ export function FamilyOnboardingScreen() {
             >
               <div style={{ width: 12, height: 12, borderRadius: '50%', background: colors.ink }} />
             </div>
-            <span style={{ ...typography.headline, color: colors.ink }}>ScreenTime</span>
+            <span style={{ ...typography.headline, color: colors.ink }}>{t('onboarding.appName')}</span>
           </div>
           <div
             style={{
@@ -53,11 +56,9 @@ export function FamilyOnboardingScreen() {
         </div>
 
         <h1 style={{ ...typography.display, color: colors.ink, marginTop: 24, marginBottom: 7 }}>
-          Set up your family
+          {t('onboarding.title')}
         </h1>
-        <p style={{ ...typography.bodyStrong, color: colors.inkMuted, margin: 0 }}>
-          Create a new family or join one a co-parent set up.
-        </p>
+        <p style={{ ...typography.bodyStrong, color: colors.inkMuted, margin: 0 }}>{t('onboarding.subtitle')}</p>
 
         <div
           onClick={() => uid && createFamily(uid)}
@@ -88,10 +89,10 @@ export function FamilyOnboardingScreen() {
             +
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ ...typography.headline, color: colors.ink }}>Create a family</div>
-            <div style={{ ...typography.body, color: colors.inkMuted }}>Start fresh. You'll be the owner.</div>
+            <div style={{ ...typography.headline, color: colors.ink }}>{t('onboarding.createTitle')}</div>
+            <div style={{ ...typography.body, color: colors.inkMuted }}>{t('onboarding.createSubtitle')}</div>
           </div>
-          <span style={{ color: colors.primary }}>{'›'}</span>
+          <Chevron style={{ color: colors.primary }} />
         </div>
 
         <div style={{ marginTop: 14, background: colors.surface, borderRadius: radius.card, padding: 20 }}>
@@ -117,16 +118,14 @@ export function FamilyOnboardingScreen() {
               🔑
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ ...typography.headline, color: colors.ink }}>Join a family</div>
-              <div style={{ ...typography.body, color: colors.inkMuted }}>
-                Use the invite code from your co-parent.
-              </div>
+              <div style={{ ...typography.headline, color: colors.ink }}>{t('onboarding.joinTitle')}</div>
+              <div style={{ ...typography.body, color: colors.inkMuted }}>{t('onboarding.joinSubtitle')}</div>
             </div>
-            <span style={{ color: colors.primary }}>{'›'}</span>
+            <Chevron style={{ color: colors.primary }} />
           </div>
           {joinExpanded && (
             <div style={{ marginTop: 18 }}>
-              <div style={{ ...typography.label, color: colors.inkFaint }}>ENTER THE 6-DIGIT INVITE CODE</div>
+              <div style={{ ...typography.label, color: colors.inkFaint }}>{t('onboarding.inviteCodeLabel')}</div>
               <div style={{ marginTop: 10 }}>
                 <CodeSlotInput value={code} onValueChange={setCode} />
               </div>
@@ -136,7 +135,7 @@ export function FamilyOnboardingScreen() {
                   disabled={code.length !== 6 || state.joining}
                   style={{ width: '100%' }}
                 >
-                  {state.joining ? 'Joining…' : 'Continue'}
+                  {state.joining ? t('onboarding.joining') : t('onboarding.continue')}
                 </SproutPrimaryButton>
               </div>
             </div>

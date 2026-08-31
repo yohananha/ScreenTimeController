@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
+import { formatRelativeTime } from '../../i18n/format';
 import { colors } from '../../theme/colors';
 import { radius } from '../../theme/radius';
 import { typography } from '../../theme/typography';
@@ -16,14 +18,8 @@ function appLabelFor(pkg: string): string {
   return last.charAt(0).toUpperCase() + last.slice(1);
 }
 
-function formatRelativeTime(createdAt: Date): string {
-  const seconds = Math.floor((Date.now() - createdAt.getTime()) / 1000);
-  if (seconds < 60) return 'just now';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  return `${Math.floor(seconds / 3600)}h ago`;
-}
-
 export function RequestsScreen({ familyId }: { familyId: string }) {
+  const { t } = useTranslation();
   const { state, approve, deny } = useRequests(familyId);
   const [selectedAmounts, setSelectedAmounts] = useState<Record<string, number>>({});
   const hPad = useResponsivePadding();
@@ -31,20 +27,18 @@ export function RequestsScreen({ familyId }: { familyId: string }) {
   return (
     <div style={{ minHeight: '100%', background: colors.background, display: 'flex', justifyContent: 'center' }}>
       <div style={{ width: '100%', maxWidth: 600, padding: `0 ${hPad}px 24px`, display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <TopHeader familyName="Family" parentInitial="P" />
+        <TopHeader familyName={t('topHeader.family')} parentInitial="P" />
         <div style={{ paddingTop: 4, paddingBottom: 6 }}>
-          <h1 style={{ ...typography.display, color: colors.ink, margin: 0 }}>Requests</h1>
-          <p style={{ ...typography.caption, color: colors.inkMuted, marginTop: 5 }}>
-            Approve or deny extra time the TV asks for.
-          </p>
+          <h1 style={{ ...typography.display, color: colors.ink, margin: 0 }}>{t('requests.title')}</h1>
+          <p style={{ ...typography.caption, color: colors.inkMuted, marginTop: 5 }}>{t('requests.subtitle')}</p>
         </div>
 
         {state.pending.length === 0 && state.active.length === 0 ? (
           <EmptyState
             icon={<span style={{ fontSize: 36, color: colors.positiveText }}>✓</span>}
             iconBg={colors.positiveContainer}
-            title="You're all caught up"
-            subtitle="No pending requests right now."
+            title={t('requests.caughtUpTitle')}
+            subtitle={t('requests.caughtUpSubtitle')}
           />
         ) : (
           <>
@@ -60,7 +54,7 @@ export function RequestsScreen({ familyId }: { familyId: string }) {
             ))}
             {state.active.length > 0 && (
               <>
-                <div style={{ ...typography.title, color: colors.ink, paddingTop: 12 }}>Active</div>
+                <div style={{ ...typography.title, color: colors.ink, paddingTop: 12 }}>{t('requests.active')}</div>
                 {state.active.map((req) => (
                   <ActiveGrantRow key={req.id} request={req} />
                 ))}
@@ -86,6 +80,7 @@ function PendingCard({
   onApprove: () => void;
   onDeny: () => void;
 }) {
+  const { t } = useTranslation();
   const appLabel = appLabelFor(request.appPackage);
   const clampedSelected = Math.min(60, Math.max(15, selectedAmount));
 
@@ -96,7 +91,7 @@ function PendingCard({
           📺
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ ...typography.headline, color: colors.ink }}>Living Room TV</div>
+          <div style={{ ...typography.headline, color: colors.ink }}>{t('requests.livingRoomTv')}</div>
           <div style={{ ...typography.caption, color: colors.inkMuted }}>{formatRelativeTime(request.createdAt)}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: colors.accentContainer, borderRadius: radius.pill, padding: '6px 10px' }}>
@@ -107,16 +102,20 @@ function PendingCard({
         </div>
       </div>
       <p style={{ ...typography.title, margin: 0 }}>
-        Wants <span style={{ color: colors.overDisplay }}>{request.requestedMinutes}m</span> more
+        <Trans
+          i18nKey="requests.wantsMore"
+          values={{ minutes: request.requestedMinutes }}
+          components={[<span key="0" style={{ color: colors.overDisplay }} />]}
+        />
       </p>
-      <span style={{ ...typography.label, color: colors.inkFaint }}>GRANT HOW LONG?</span>
+      <span style={{ ...typography.label, color: colors.inkFaint }}>{t('requests.grantHowLong')}</span>
       <ChipGroup options={[15, 30, 60]} selected={clampedSelected} onSelect={onAmountChange} label={(m) => `${m}m`} />
       <div style={{ display: 'flex', gap: 10 }}>
         <SproutPrimaryButton onClick={onApprove} style={{ flex: 1 }}>
-          Approve {selectedAmount}m
+          {t('requests.approve', { minutes: selectedAmount })}
         </SproutPrimaryButton>
         <SproutGhostButton onClick={onDeny} style={{ flex: 1 }}>
-          Deny
+          {t('requests.deny')}
         </SproutGhostButton>
       </div>
     </div>
@@ -124,6 +123,7 @@ function PendingCard({
 }
 
 function ActiveGrantRow({ request }: { request: TimeRequest }) {
+  const { t, i18n } = useTranslation();
   const granted = request.approvedMinutes ?? request.requestedMinutes;
   const appLabel = appLabelFor(request.appPackage);
   const expiry = grantExpiresAt(request);
@@ -134,11 +134,13 @@ function ActiveGrantRow({ request }: { request: TimeRequest }) {
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ ...typography.bodyStrong, color: colors.ink }}>
-          Approved {granted}m on {appLabel}
+          {t('requests.approvedOn', { minutes: granted, app: appLabel })}
         </div>
         {expiry && (
           <div style={{ ...typography.caption, color: colors.inkMuted }}>
-            Active until {expiry.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+            {t('requests.activeUntil', {
+              time: expiry.toLocaleTimeString(i18n.language, { hour: 'numeric', minute: '2-digit' }),
+            })}
           </div>
         )}
       </div>

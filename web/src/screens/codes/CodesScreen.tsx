@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { formatCountdown } from '../../i18n/format';
 import { colors } from '../../theme/colors';
 import { radius } from '../../theme/radius';
 import { typography } from '../../theme/typography';
@@ -14,13 +16,8 @@ function secondsUntil(date: Date): number {
   return Math.max(0, Math.floor((date.getTime() - Date.now()) / 1000));
 }
 
-function formatRemaining(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
-
 export function CodesScreen({ familyId }: { familyId: string }) {
+  const { t } = useTranslation();
   const { state, generate, dismiss } = useCodes(familyId);
   const [selectedMinutes, setSelectedMinutes] = useState(30);
   const hPad = useResponsivePadding();
@@ -28,12 +25,10 @@ export function CodesScreen({ familyId }: { familyId: string }) {
   return (
     <div style={{ minHeight: '100%', background: colors.background, display: 'flex', justifyContent: 'center' }}>
       <div style={{ width: '100%', maxWidth: 600, padding: `0 ${hPad}px 24px`, display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <TopHeader familyName="Family" parentInitial="P" />
+        <TopHeader familyName={t('topHeader.family')} parentInitial="P" />
         <div style={{ paddingTop: 4, paddingBottom: 6 }}>
-          <h1 style={{ ...typography.display, color: colors.ink, margin: 0 }}>Unlock codes</h1>
-          <p style={{ ...typography.caption, color: colors.inkMuted, marginTop: 5 }}>
-            Single-use codes your child types on the TV.
-          </p>
+          <h1 style={{ ...typography.display, color: colors.ink, margin: 0 }}>{t('codes.title')}</h1>
+          <p style={{ ...typography.caption, color: colors.inkMuted, marginTop: 5 }}>{t('codes.subtitle')}</p>
         </div>
 
         {state.active ? (
@@ -72,6 +67,7 @@ function ActiveCodeHero({
   expiresAt: Date;
   onDismiss: () => void;
 }) {
+  const { t } = useTranslation();
   const [remaining, setRemaining] = useState(() => secondsUntil(expiresAt));
   useEffect(() => {
     setRemaining(secondsUntil(expiresAt));
@@ -83,28 +79,29 @@ function ActiveCodeHero({
     <HeroCard>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ ...typography.label, color: colors.darkMutedText }}>UNLOCK CODE</span>
+          <span style={{ ...typography.label, color: colors.darkMutedText }}>{t('codes.unlockCode')}</span>
           <span style={{ background: colors.accent, color: colors.ink, borderRadius: radius.pill, padding: '4px 10px', ...typography.caption }}>
-            Single-use
+            {t('codes.singleUse')}
           </span>
         </div>
         <CodeTilesRow code={code} />
         <span style={{ ...typography.bodyStrong, color: colors.background }}>
-          Unlocks Everything for {extraMinutes} min
+          {t('codes.unlocksFor', { minutes: extraMinutes })}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: colors.darkSurface, borderRadius: radius.pill, padding: '7px 13px', width: 'fit-content' }}>
           <span>⏱</span>
           <span style={{ ...typography.label, color: colors.background }}>
-            {remaining > 0 ? `Expires in ${formatRemaining(remaining)}` : 'Expired'}
+            {remaining > 0 ? t('codes.expiresIn', { time: formatCountdown(remaining) }) : t('codes.expired')}
           </span>
         </div>
-        <SproutPrimaryButton onClick={onDismiss}>Done</SproutPrimaryButton>
+        <SproutPrimaryButton onClick={onDismiss}>{t('codes.done')}</SproutPrimaryButton>
       </div>
     </HeroCard>
   );
 }
 
 function NoCodeHero() {
+  const { t } = useTranslation();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, background: colors.surface, borderRadius: radius.large, padding: 22 }}>
       <div style={{ display: 'flex', gap: 11, width: '100%' }}>
@@ -127,7 +124,7 @@ function NoCodeHero() {
           </div>
         ))}
       </div>
-      <span style={{ ...typography.body, color: colors.inkMuted }}>Generate a code below.</span>
+      <span style={{ ...typography.body, color: colors.inkMuted }}>{t('codes.generateBelow')}</span>
     </div>
   );
 }
@@ -143,18 +140,19 @@ function SettingsCard({
   isGenerating: boolean;
   onGenerate: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div style={{ background: colors.surface, borderRadius: radius.card, padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <span style={{ ...typography.headline, color: colors.ink }}>What it unlocks</span>
-      <span style={{ ...typography.label, color: colors.inkFaint }}>HOW MUCH TIME</span>
+      <span style={{ ...typography.headline, color: colors.ink }}>{t('codes.whatItUnlocks')}</span>
+      <span style={{ ...typography.label, color: colors.inkFaint }}>{t('codes.howMuchTime')}</span>
       <ChipGroup
         options={[15, 30, 60, -1]}
         selected={selectedMinutes}
         onSelect={onSelectMinutes}
-        label={(m) => (m === -1 ? 'Rest of day' : `${m} min`)}
+        label={(m) => (m === -1 ? t('codes.restOfDay') : t('codes.minutesShort', { count: m }))}
       />
       <SproutPrimaryButton onClick={onGenerate} disabled={isGenerating} style={{ width: '100%' }}>
-        {isGenerating ? 'Generating…' : 'Generate code'}
+        {isGenerating ? t('codes.generating') : t('codes.generateCode')}
       </SproutPrimaryButton>
     </div>
   );

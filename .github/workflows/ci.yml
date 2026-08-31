@@ -96,6 +96,9 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      - name: Hardcoded-string regression guard (web)
+        working-directory: .
+        run: bash scripts/check-hardcoded-strings-web.sh
 
   lint:
     name: Android lint

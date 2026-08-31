@@ -59,7 +59,9 @@ export function TopHeader({
           background: colors.surface,
           border: `1px solid ${colors.outline}`,
           borderRadius: 999,
-          padding: '5px 12px 5px 5px',
+          paddingBlock: 5,
+          paddingInlineStart: 5,
+          paddingInlineEnd: 12,
           cursor: onFamilyClick ? 'pointer' : undefined,
         }}
       >

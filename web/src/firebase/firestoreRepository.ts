@@ -322,6 +322,42 @@ export async function clearLockout(familyId: string): Promise<void> {
   );
 }
 
+// ── language ────────────────────────────────────────────────────────────────
+// What the TV (and server-rendered push) render — same families/{id}/settings/language
+// doc the mobile app writes. Bare "en"/"he" only; see functions/src/strings.ts.
+
+export function subscribeLanguage(familyId: string, cb: (tag: 'en' | 'he' | null) => void): Unsubscribe {
+  return onSnapshot(
+    doc(db, 'families', familyId, 'settings', 'language'),
+    (snap) => {
+      const tag = snap.data()?.code as string | undefined;
+      cb(tag === 'en' || tag === 'he' ? tag : null);
+    },
+    () => cb(null),
+  );
+}
+
+export async function setLanguage(familyId: string, tag: 'en' | 'he'): Promise<void> {
+  await setDoc(doc(db, 'families', familyId, 'settings', 'language'), { code: tag }, { merge: true });
+}
+
+/** The signed-in user's own portable language preference; null = follow device. */
+export function subscribeUserLanguage(uid: string, cb: (tag: 'en' | 'he' | null) => void): Unsubscribe {
+  return onSnapshot(
+    doc(db, 'users', uid),
+    (snap) => {
+      const tag = snap.data()?.language as string | undefined;
+      cb(tag === 'en' || tag === 'he' ? tag : null);
+    },
+    () => cb(null),
+  );
+}
+
+/** null clears the preference (back to "follow device"); always merges so familyId/fcmTokens survive. */
+export async function setUserLanguage(uid: string, tag: 'en' | 'he' | null): Promise<void> {
+  await setDoc(doc(db, 'users', uid), { language: tag ?? deleteField() }, { merge: true });
+}
+
 // ── usage ───────────────────────────────────────────────────────────────────
 
 export function subscribeUsage(
