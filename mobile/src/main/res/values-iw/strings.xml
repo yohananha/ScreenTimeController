@@ -206,6 +206,15 @@
     <string name="settings_language_hint">גם קובע את השפה בטלוויזיות המחוברות שלכם.</string>
     <string name="settings_about_title">אודות</string>
     <string name="settings_about_version">גרסה %1$s</string>
+    <string name="update_check_button">בדיקת עדכונים</string>
+    <string name="update_checking">בודק…</string>
+    <string name="update_up_to_date">מותקנת אצלכם הגרסה העדכנית ביותר</string>
+    <string name="update_available">גרסה %1$s זמינה</string>
+    <string name="update_download_button">הורדת העדכון</string>
+    <string name="update_downloading">מוריד את העדכון…</string>
+    <string name="update_install_button">התקנת העדכון</string>
+    <string name="update_install_permission_needed">אשרו ל-ScreenTime להתקין עדכונים, ואז הקישו שוב על התקנה</string>
+    <string name="update_failed">בדיקת העדכונים נכשלה: %1$s</string>
 
     <string name="tab_limits">מגבלות</string>
     <string name="tab_requests">בקשות</string>

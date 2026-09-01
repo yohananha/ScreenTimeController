@@ -24,6 +24,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.screentime.mobile.R
+import com.screentime.mobile.ui.components.SproutGhostButton
+import com.screentime.mobile.ui.components.SproutPrimaryButton
 import com.screentime.mobile.ui.components.TopHeader
 import com.screentime.mobile.ui.family.PairTvSection
 import com.screentime.mobile.ui.theme.Sprout
@@ -114,24 +116,82 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun AboutSection() {
+private fun AboutSection(viewModel: UpdateViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val versionName = remember {
         runCatching {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName
         }.getOrNull() ?: "—"
     }
+    val updateState by viewModel.state.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Sprout.colors.surface, Sprout.radius.card)
             .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text(stringResource(R.string.settings_about_title), style = Sprout.typography.headline, color = Sprout.colors.ink)
-        Text(
-            stringResource(R.string.settings_about_version, versionName),
-            style = Sprout.typography.caption,
-            color = Sprout.colors.inkMuted,
-        )
+        Column {
+            Text(stringResource(R.string.settings_about_title), style = Sprout.typography.headline, color = Sprout.colors.ink)
+            Text(
+                stringResource(R.string.settings_about_version, versionName),
+                style = Sprout.typography.caption,
+                color = Sprout.colors.inkMuted,
+            )
+        }
+
+        when (val state = updateState) {
+            is UpdateUiState.Idle ->
+                SproutGhostButton(text = stringResource(R.string.update_check_button), onClick = viewModel::checkForUpdate)
+
+            is UpdateUiState.Checking ->
+                Text(stringResource(R.string.update_checking), style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
+
+            is UpdateUiState.UpToDate ->
+                Text(stringResource(R.string.update_up_to_date), style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
+
+            is UpdateUiState.Available -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    stringResource(R.string.update_available, state.versionName),
+                    style = Sprout.typography.bodyStrong,
+                    color = Sprout.colors.ink,
+                )
+                SproutPrimaryButton(
+                    text = stringResource(R.string.update_download_button),
+                    onClick = { viewModel.startDownload(state.downloadUrl, state.versionName) },
+                )
+            }
+
+            is UpdateUiState.Downloading ->
+                Text(stringResource(R.string.update_downloading), style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
+
+            is UpdateUiState.ReadyToInstall -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (!viewModel.canRequestInstall()) {
+                    Text(
+                        stringResource(R.string.update_install_permission_needed),
+                        style = Sprout.typography.caption,
+                        color = Sprout.colors.inkMuted,
+                    )
+                }
+                SproutPrimaryButton(
+                    text = stringResource(R.string.update_install_button),
+                    onClick = {
+                        if (viewModel.canRequestInstall()) {
+                            viewModel.installIntent(state.downloadId)?.let { context.startActivity(it) }
+                        } else {
+                            context.startActivity(viewModel.requestInstallPermissionIntent())
+                        }
+                    },
+                )
+            }
+
+            is UpdateUiState.Failed ->
+                Text(
+                    stringResource(R.string.update_failed, state.message),
+                    style = Sprout.typography.caption,
+                    color = Sprout.colors.overText,
+                )
+        }
     }
 }

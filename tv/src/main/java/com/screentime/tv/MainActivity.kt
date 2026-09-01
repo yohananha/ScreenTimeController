@@ -1,5 +1,6 @@
 package com.screentime.tv
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -47,6 +48,8 @@ import com.screentime.tv.ui.components.TvStepDots
 import com.screentime.tv.ui.pairing.PairingScreen
 import com.screentime.tv.ui.theme.ScreenTimeTvTheme
 import com.screentime.tv.ui.theme.Sprout
+import com.screentime.tv.update.UpdateUiState
+import com.screentime.tv.update.UpdateViewModel
 import com.screentime.tv.usage.InstalledAppsReporter
 import com.screentime.tv.R
 import dagger.hilt.android.AndroidEntryPoint
@@ -147,17 +150,26 @@ private fun RootScreen(familyVm: FamilyIdViewModel = hiltViewModel()) {
                 headline = stringResource(R.string.permission_accessibility_headline),
                 body = stringResource(R.string.permission_accessibility_body),
                 primary = stringResource(R.string.permission_open_settings),
-                onPrimary = {
-                    context.startActivity(
-                        Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                    )
-                },
+                onPrimary = { openAccessibilitySettings(context) },
             )
             familyId == null -> PairingScreen()
             else -> OperationalScreen()
         }
     }
+}
+
+/**
+ * There's no public framework intent to deep-link straight to a specific
+ * accessibility service's toggle on Android TV (the private fragment-args
+ * extras that work on phone Settings aren't honored by the leanback/Google TV
+ * Settings app), so this opens the top-level accessibility list. The
+ * permission_accessibility_body copy tells the user where to look from there.
+ */
+private fun openAccessibilitySettings(context: Context) {
+    context.startActivity(
+        Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+    )
 }
 
 @HiltViewModel
@@ -202,7 +214,78 @@ private fun OperationalScreen(@Suppress("UNUSED_PARAMETER") viewModel: Operation
                     textAlign = TextAlign.Center,
                     modifier = Modifier.widthIn(max = 550.dp),
                 )
+                UpdateSection()
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun UpdateSection(viewModel: UpdateViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    val state by viewModel.state.collectAsState()
+
+    Column(
+        modifier = Modifier.padding(top = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        when (val s = state) {
+            is UpdateUiState.Idle ->
+                TvGhostButton(text = stringResource(R.string.update_check_button), onClick = viewModel::checkForUpdate)
+
+            is UpdateUiState.Checking ->
+                Text(stringResource(R.string.update_checking), style = Sprout.typography.bodyLarge, color = Sprout.colors.tvMutedText)
+
+            is UpdateUiState.UpToDate ->
+                Text(stringResource(R.string.update_up_to_date), style = Sprout.typography.bodyLarge, color = Sprout.colors.tvMutedText)
+
+            is UpdateUiState.Available -> {
+                Text(
+                    stringResource(R.string.update_available, s.versionName),
+                    style = Sprout.typography.bodyLarge,
+                    color = Sprout.colors.tvCream,
+                    textAlign = TextAlign.Center,
+                )
+                TvPrimaryButton(
+                    text = stringResource(R.string.update_download_button),
+                    onClick = { viewModel.startDownload(s.downloadUrl, s.versionName) },
+                )
+            }
+
+            is UpdateUiState.Downloading ->
+                Text(stringResource(R.string.update_downloading), style = Sprout.typography.bodyLarge, color = Sprout.colors.tvMutedText)
+
+            is UpdateUiState.ReadyToInstall -> {
+                if (!viewModel.canRequestInstall()) {
+                    Text(
+                        stringResource(R.string.update_install_permission_needed),
+                        style = Sprout.typography.bodyLarge,
+                        color = Sprout.colors.tvMutedText,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.widthIn(max = 550.dp),
+                    )
+                }
+                TvPrimaryButton(
+                    text = stringResource(R.string.update_install_button),
+                    onClick = {
+                        if (viewModel.canRequestInstall()) {
+                            viewModel.installIntent(s.downloadId)?.let { context.startActivity(it) }
+                        } else {
+                            context.startActivity(viewModel.requestInstallPermissionIntent())
+                        }
+                    },
+                )
+            }
+
+            is UpdateUiState.Failed ->
+                Text(
+                    stringResource(R.string.update_failed, s.message),
+                    style = Sprout.typography.bodyLarge,
+                    color = Sprout.colors.tvMutedText,
+                    textAlign = TextAlign.Center,
+                )
         }
     }
 }

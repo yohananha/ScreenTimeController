@@ -20,10 +20,17 @@ class InstalledAppsReporter @Inject constructor(
 ) {
     suspend fun sync(familyId: String) {
         val pm = context.packageManager
-        val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER)
 
+        // Most TV apps expose CATEGORY_LEANBACK_LAUNCHER, but sideloaded or
+        // phone-ported apps often only declare the standard CATEGORY_LAUNCHER
+        // (or lack a leanback banner entirely). Query both and merge so the
+        // limits list matches what's actually installed on the device.
         @Suppress("DEPRECATION")
-        val apps = pm.queryIntentActivities(intent, PackageManager.MATCH_ALL)
+        val apps = listOf(Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER)
+            .flatMap { category ->
+                val intent = Intent(Intent.ACTION_MAIN).addCategory(category)
+                pm.queryIntentActivities(intent, PackageManager.MATCH_ALL)
+            }
             .associate { it.activityInfo.packageName to it.loadLabel(pm).toString() }
 
         Log.d(TAG, "Syncing ${apps.size} TV apps for family $familyId")

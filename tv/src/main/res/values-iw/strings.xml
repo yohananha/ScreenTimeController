@@ -8,11 +8,20 @@
     <string name="permission_overlay_headline">עוד הגדרה אחת</string>
     <string name="permission_overlay_body">ל-ScreenTime צריך הרשאה כדי להציג את מסך התזכורת כשנגמר הזמן.</string>
     <string name="permission_accessibility_headline">כמעט סיימנו!</string>
-    <string name="permission_accessibility_body">הפעילו את שירות הנגישות של ScreenTime כדי שיוכל לדעת איזו אפליקציה פתוחה ולהתערב רק כשצריך.</string>
+    <string name="permission_accessibility_body">הפעילו את שירות הנגישות של ScreenTime כדי שיוכל לדעת איזו אפליקציה פתוחה ולהתערב רק כשצריך. אם המסך לא מגיע ישירות לשם, חפשו את \"ScreenTime\" תחת נגישות ← שירותים שהורדו.</string>
     <string name="permission_open_settings">פתיחת הגדרות אנדרואיד</string>
     <string name="permission_why_needed">למה זה נחוץ?</string>
     <string name="operational_title">הכול מוכן!</string>
     <string name="operational_body">ScreenTime פועל ברקע. נופיע רק כשמגיעים למגבלה — מבטיחים.</string>
+    <string name="update_check_button">בדיקת עדכונים</string>
+    <string name="update_checking">בודק…</string>
+    <string name="update_up_to_date">מותקנת אצלכם הגרסה העדכנית ביותר</string>
+    <string name="update_available">גרסה %1$s זמינה</string>
+    <string name="update_download_button">הורדת העדכון</string>
+    <string name="update_downloading">מוריד את העדכון…</string>
+    <string name="update_install_button">התקנת העדכון</string>
+    <string name="update_install_permission_needed">אשרו ל-ScreenTime להתקין עדכונים, ואז בחרו שוב בהתקנה</string>
+    <string name="update_failed">בדיקת העדכונים נכשלה: %1$s</string>
 
     <string name="pairing_headline">חיבור לטלפון של הורה</string>
     <string name="pairing_instructions">באפליקציית ScreenTime: הגדרות, ואז חיבור טלוויזיה. הזינו את הקוד הזה.</string>

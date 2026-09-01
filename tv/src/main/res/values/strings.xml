@@ -10,11 +10,20 @@
     <string name="permission_overlay_headline">One more setting</string>
     <string name="permission_overlay_body">ScreenTime needs \"Display over other apps\" so it can show the gentle reminder when time\'s up.</string>
     <string name="permission_accessibility_headline">Almost there!</string>
-    <string name="permission_accessibility_body">Turn on the ScreenTime accessibility service so it can tell which app is open and step in only when needed.</string>
+    <string name="permission_accessibility_body">Turn on the ScreenTime accessibility service so it can tell which app is open and step in only when needed. If Android doesn\'t take you straight there, look for \"ScreenTime\" under Accessibility → Downloaded services.</string>
     <string name="permission_open_settings">Open Android settings</string>
     <string name="permission_why_needed">Why do you need this?</string>
     <string name="operational_title">You\'re all set!</string>
     <string name="operational_body">ScreenTime is running in the background. We\'ll only show up when a limit hits — promise.</string>
+    <string name="update_check_button">Check for updates</string>
+    <string name="update_checking">Checking…</string>
+    <string name="update_up_to_date">You\'re on the latest version</string>
+    <string name="update_available">Version %1$s is available</string>
+    <string name="update_download_button">Download update</string>
+    <string name="update_downloading">Downloading update…</string>
+    <string name="update_install_button">Install update</string>
+    <string name="update_install_permission_needed">Allow ScreenTime to install updates, then select Install again</string>
+    <string name="update_failed">Couldn\'t check for updates: %1$s</string>
 
     <!-- ui/pairing/PairingScreen.kt -->
     <string name="pairing_headline">Pair with a parent\'s phone</string>
