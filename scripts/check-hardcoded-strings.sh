@@ -43,7 +43,9 @@ echo "Hardcoded-string literal count: $count (baseline: $BASELINE)"
 if [ "$count" -gt "$BASELINE" ]; then
   echo ""
   echo "New hardcoded string literal(s) found in Compose UI code. If this is" >&2
-  echo "real user-facing copy, move it to strings.xml (+ values-he) and use" >&2
+  echo "real user-facing copy, move it to strings.xml (+ values-iw for Hebrew" >&2
+  echo "- not values-he, Android's runtime locale matching for Hebrew keys off" >&2
+  echo "the legacy ISO-639 code) and use" >&2
   echo "stringResource(...) instead. If it's genuinely non-translatable (a" >&2
   echo "brand name, a single glyph/placeholder), raise BASELINE in" >&2
   echo "scripts/check-hardcoded-strings.sh to match and say why inline." >&2

@@ -17,8 +17,8 @@ android {
         applicationId = "com.screentime.tv"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.1.1"
+        versionCode = 3
+        versionName = "0.1.2"
     }
 
     buildTypes {
@@ -66,7 +66,7 @@ android {
         // MissingTranslation/ExtraTranslation are ERROR by default already —
         // this pins that intent explicitly against a future change, and adds
         // the checks that catch the most common real translation bug: a
-        // values-he entry with the wrong number or type of %n$s placeholder.
+        // values-iw entry with the wrong number or type of %n$s placeholder.
         error += setOf(
             "MissingTranslation",
             "ExtraTranslation",

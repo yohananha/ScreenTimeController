@@ -1,10 +1,12 @@
 package com.screentime.shared.format
 
 import android.content.Context
+import android.content.res.Configuration
 import android.content.res.Resources
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.screentime.shared.model.Limits
+import java.util.Locale
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -22,6 +24,12 @@ class DurationFormatTest {
     private val format = DurationFormat()
     private val resources: Resources
         get() = ApplicationProvider.getApplicationContext<Context>().resources
+    private val hebrewResources: Resources
+        get() {
+            val base = ApplicationProvider.getApplicationContext<Context>()
+            val config = Configuration(base.resources.configuration).apply { setLocale(Locale("he")) }
+            return base.createConfigurationContext(config).resources
+        }
 
     @Test
     fun `minutes formats hours and minutes together`() {
@@ -51,19 +59,32 @@ class DurationFormatTest {
         assertThat(format.minutes(resources, -5)).contains("0m")
     }
 
-    // Hebrew-content assertions for this class are NOT covered here. Confirmed
-    // against a real build (not just read) that neither
-    // @Config(qualifiers = "he") nor RuntimeEnvironment.setQualifiers("he")
-    // switches this :shared library module's test target onto
-    // src/main/res/values-he — both return the English string unchanged,
-    // even though the merged values-he.xml is present and correct in
-    // shared/build/intermediates/.../mergeDebugUnitTestResources/. This is a
-    // Robolectric 4.13 + AGP 9.2.1 resource-qualifier-switching limitation
-    // specific to library-module test targets, not a bug in DurationFormat.
-    // Real Hebrew rendering is exercised on an actual Android runtime by
-    // tv's BlockOverlayContentTest.mainView_hebrewLocale_showsHebrewWrapUpMessage,
-    // which drives the same values-he resources through a real
-    // createConfigurationContext() instead of Robolectric's qualifier switch.
+    // Earlier note here blamed a "Robolectric + AGP resource-qualifier-switching
+    // limitation" and pointed to tv's BlockOverlayContentTest as proof Hebrew
+    // rendering worked on a real device. Both were wrong: the actual bug was
+    // that Android's runtime locale matching for Hebrew keys off the legacy
+    // ISO-639 code "iw", not the modern "he" — a resource folder named
+    // values-he/ is silently invisible to it (confirmed with a real
+    // createConfigurationContext(), not just Robolectric's qualifier switch).
+    // The TV test "passed" only because it derived its expected string via
+    // the exact same broken getString(..., locale=he) call it was meant to
+    // exercise, so both sides silently fell back to English. Fixed by
+    // renaming every values-he/ directory to values-iw/ (mobile, tv, shared)
+    // and switching that TV test to a hardcoded literal. See git history for
+    // the diagnostic trail (Robolectric qualifiers="he" reproduced it too).
+
+    @Test
+    fun `minutes formats hours and minutes in Hebrew`() {
+        assertThat(format.minutes(hebrewResources, 90)).contains("1 שע׳")
+        assertThat(format.minutes(hebrewResources, 90)).contains("30 דק׳")
+    }
+
+    @Test
+    fun `quantityMinutes uses the Hebrew CLDR two-bucket`() {
+        assertThat(format.quantityMinutes(hebrewResources, 1)).contains("דקה אחת")
+        assertThat(format.quantityMinutes(hebrewResources, 2)).contains("שתי דקות")
+        assertThat(format.quantityMinutes(hebrewResources, 5)).contains("5 דקות")
+    }
 
     @Test
     fun `countdown pads seconds to two digits`() {
@@ -80,7 +101,4 @@ class DurationFormatTest {
         assertThat(format.quantityMinutes(resources, 1)).contains("1 minute")
         assertThat(format.quantityMinutes(resources, 5)).contains("5 minutes")
     }
-
-    // The Hebrew "two" CLDR bucket (שתי דקות vs the "other" %d דקות form) is
-    // exercised the same way — see the note above `countdown pads seconds`.
 }

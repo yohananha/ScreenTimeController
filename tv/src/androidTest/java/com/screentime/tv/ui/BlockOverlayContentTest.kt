@@ -169,11 +169,14 @@ class BlockOverlayContentTest {
                 }
             }
         }
-        val hebrewResources = targetContext.createConfigurationContext(
-            Configuration(targetContext.resources.configuration).apply {
-                setLocale(Locale.forLanguageTag("he"))
-            },
-        ).resources
-        composeRule.onNodeWithText(hebrewResources.getString(R.string.overlay_main_title)).assertIsDisplayed()
+        // Hardcoded literal, not re-derived via getString(R.string.overlay_main_title,
+        // locale = he): that lookup goes through the exact same resource-resolution
+        // path this test exists to catch, so a regression there would silently
+        // make both sides of the comparison fall back to the English string and
+        // the assertion would still pass. See values-iw/ vs values-he/ note on
+        // that resource directory for why "he" alone doesn't resolve on this
+        // toolchain — Android's runtime locale matching for Hebrew keys off the
+        // legacy ISO-639 code "iw", not the modern "he".
+        composeRule.onNodeWithText("זהו, סיימנו להיום!").assertIsDisplayed()
     }
 }
