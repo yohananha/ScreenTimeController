@@ -143,6 +143,12 @@
     <string name="limits_allowed_hours_title">שעות מותרות</string>
     <string name="limits_schedule_none">לא הוגדר לוח זמנים</string>
     <string name="limits_schedule_on_no_windows">לוח הזמנים פעיל — לא הוגדרו חלונות זמן</string>
+    <plurals name="limits_more_days">
+        <item quantity="one">עוד יום אחד</item>
+        <item quantity="two">עוד יומיים</item>
+        <item quantity="many">עוד %d ימים</item>
+        <item quantity="other">עוד %d ימים</item>
+    </plurals>
 
     <string name="pairtv_section_title">טלוויזיות</string>
     <string name="pairtv_none_paired">לא מחוברת אף טלוויזיה</string>

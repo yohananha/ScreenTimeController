@@ -162,6 +162,10 @@
     <string name="limits_allowed_hours_title">Allowed hours</string>
     <string name="limits_schedule_none">No schedule set</string>
     <string name="limits_schedule_on_no_windows">Schedule on — no windows set</string>
+    <plurals name="limits_more_days">
+        <item quantity="one">%d more day</item>
+        <item quantity="other">%d more days</item>
+    </plurals>
 
     <!-- family/PairTvSection.kt -->
     <string name="pairtv_section_title">TVs</string>

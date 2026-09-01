@@ -729,12 +729,8 @@ private fun summarizeSchedule(schedule: TimeFrameSchedule): String {
         val lastDay = clock.dayName(sorted.last().key, TextStyle.SHORT)
         "${clock.range(resources, firstDay, lastDay)}, $windowStr"
     } else {
-        // The "$more more days" pluralization here is a Stage 2 concern
-        // (externalizing to <plurals>), not part of the formatter dedup —
-        // left as-is for now, only the day name and time-range lookups are
-        // routed through the shared, locale-aware ClockFormat.
         val dayShort = clock.dayName(sorted.first().key, TextStyle.SHORT)
         val more = sorted.size - 1
-        "$dayShort: $windowStr" + if (more > 0) " · $more more ${if (more == 1) "day" else "days"}" else ""
+        "$dayShort: $windowStr" + if (more > 0) " · ${pluralStringResource(R.plurals.limits_more_days, more, more)}" else ""
     }
 }

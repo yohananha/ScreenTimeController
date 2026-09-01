@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -55,6 +57,7 @@ fun HeroCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DailyTotalHero(
     usedLabel: String,
@@ -85,17 +88,21 @@ fun DailyTotalHero(
                 )
                 StatusBadge(status = status)
             }
-            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
                 Text(
                     usedLabel,
                     style = Sprout.typography.display.copy(fontSize = 46.sp, fontWeight = FontWeight.SemiBold),
                     color = Sprout.colors.background,
+                    modifier = Modifier.align(Alignment.Bottom),
                 )
                 Text(
                     ofLabel,
                     style = Sprout.typography.bodyL,
                     color = Sprout.colors.darkMutedText,
-                    modifier = Modifier.padding(bottom = 8.dp),
+                    modifier = Modifier.align(Alignment.Bottom).padding(bottom = 8.dp),
                 )
             }
             ProgressBar(progress = progress.coerceIn(0f, 1f), fill = statusColor, track = Sprout.colors.darkSurface)
