@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
@@ -62,23 +65,29 @@ fun SproutBottomNavBar(
                 .height(1.dp)
                 .background(Sprout.colors.outline)
         )
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Sprout.colors.surface)
-                .padding(start = 6.dp, end = 6.dp, top = 8.dp, bottom = 10.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically,
+                .windowInsetsPadding(WindowInsets.navigationBars),
         ) {
-            NavTab.entries.forEach { tab ->
-                val selected = selectedRoute == tab.route ||
-                    (tab == NavTab.Limits && selectedRoute == "history")
-                NavItem(
-                    tab = tab,
-                    selected = selected,
-                    pendingCount = if (tab == NavTab.Requests) pendingCount else 0,
-                    onClick = { onTabClick(tab) },
-                )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 6.dp, end = 6.dp, top = 8.dp, bottom = 10.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                NavTab.entries.forEach { tab ->
+                    val selected = selectedRoute == tab.route ||
+                        (tab == NavTab.Limits && selectedRoute == "history")
+                    NavItem(
+                        tab = tab,
+                        selected = selected,
+                        pendingCount = if (tab == NavTab.Requests) pendingCount else 0,
+                        onClick = { onTabClick(tab) },
+                    )
+                }
             }
         }
     }

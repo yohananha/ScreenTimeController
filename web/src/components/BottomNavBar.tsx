@@ -26,13 +26,22 @@ export function SproutBottomNavBar({
 }) {
   const { t } = useTranslation();
   return (
-    <div style={{ width: '100%', borderTop: `1px solid ${colors.outline}`, background: colors.surface }}>
+    <div
+      style={{
+        width: '100%',
+        borderTop: `1px solid ${colors.outline}`,
+        background: colors.surface,
+        position: 'sticky',
+        bottom: 0,
+        flexShrink: 0,
+      }}
+    >
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-around',
           alignItems: 'center',
-          padding: '8px 6px 10px',
+          padding: '8px 6px calc(10px + env(safe-area-inset-bottom))',
         }}
       >
         {NAV_TABS.map((tab) => {
