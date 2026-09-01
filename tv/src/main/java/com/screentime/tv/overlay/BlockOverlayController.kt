@@ -34,14 +34,15 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.screentime.shared.limits.LimitsProvider
-import com.screentime.shared.room.UsageRepository
 import com.screentime.shared.model.Limits
+import com.screentime.tv.usage.UsageTracker
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
 @Singleton
@@ -50,7 +51,7 @@ class BlockOverlayController @Inject constructor(
     private val codeRedeemer: CodeRedeemer,
     private val requestController: RequestController,
     private val limitsProvider: LimitsProvider,
-    private val usage: UsageRepository,
+    private val usageTracker: UsageTracker,
     private val localeController: TvLocaleController,
 ) {
     private val windowManager: WindowManager =
@@ -125,7 +126,9 @@ class BlockOverlayController @Inject constructor(
                                 var usedMillis by remember(currentPackage.value) { mutableStateOf(0L) }
                                 LaunchedEffect(currentPackage.value, limits) {
                                     currentPackage.value?.let { pkg ->
-                                        usedMillis = usage.millisForToday(pkg)
+                                        usedMillis = withContext(Dispatchers.Default) {
+                                            usageTracker.millisPerPackage()[pkg] ?: 0L
+                                        }
                                     }
                                 }
 

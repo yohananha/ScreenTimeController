@@ -1,14 +1,15 @@
 package com.screentime.tv.service
 
 import android.accessibilityservice.AccessibilityService
+import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.screentime.shared.format.ClockFormat
 import com.screentime.shared.limits.BonusStore
 import com.screentime.shared.limits.LimitsProvider
 import com.screentime.shared.model.Limits
-import com.screentime.shared.room.UsageRepository
 import com.screentime.tv.overlay.BlockOverlayController
+import com.screentime.tv.usage.UsageTracker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +32,7 @@ import javax.inject.Inject
 class EnforcementAccessibilityService : AccessibilityService() {
 
     @Inject lateinit var limitsProvider: LimitsProvider
-    @Inject lateinit var usage: UsageRepository
+    @Inject lateinit var usageTracker: UsageTracker
     @Inject lateinit var overlay: BlockOverlayController
     @Inject lateinit var bonusStore: BonusStore
     @Inject lateinit var clockFormat: ClockFormat
@@ -39,6 +40,21 @@ class EnforcementAccessibilityService : AccessibilityService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val foregroundPackage = MutableStateFlow<String?>(null)
     private val currentLimits = MutableStateFlow(Limits())
+
+    // The package we last force-backgrounded via GLOBAL_ACTION_HOME because it
+    // was blocked. While set, the launcher's own window-state event (a direct
+    // side effect of that action) is suppressed in onAccessibilityEvent so it
+    // doesn't overwrite foregroundPackage and cause the launcher — which is
+    // never itself over-limit — to evaluate as unblocked and dismiss the
+    // overlay for the app we just paused.
+    private var sentHomeFor: String? = null
+
+    private val homeLauncherPackage: String? by lazy {
+        packageManager.resolveActivity(
+            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME),
+            0,
+        )?.activityInfo?.packageName
+    }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -88,6 +104,10 @@ class EnforcementAccessibilityService : AccessibilityService() {
         if (type != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         val pkg = event.packageName?.toString() ?: return
         if (pkg == packageName) return
+        if (pkg == homeLauncherPackage && sentHomeFor != null) {
+            Log.d(TAG, "Ignoring launcher window from our own block of $sentHomeFor")
+            return
+        }
         foregroundPackage.value = pkg
     }
 
@@ -106,20 +126,20 @@ class EnforcementAccessibilityService : AccessibilityService() {
         // Parent-initiated instant lock — absolute override, nothing pierces it.
         if (limits.instantLocked) {
             Log.d(TAG, "Eval $pkg: instant lock active")
-            overlay.show(pkg, BlockReason.InstantLocked)
+            block(pkg, BlockReason.InstantLocked)
             return
         }
 
         // Parent toggled "Allow all day" for today — nothing blocks.
         if (limits.allowAllDayDate == LocalDate.now().toString()) {
             Log.d(TAG, "Eval $pkg: allow-all-day active")
-            overlay.hide()
+            unblock()
             return
         }
 
         // "Always allow" — this app is exempt from per-app and overall limits.
         if (perAppLimit?.dailyLimitMinutes == Limits.UNLIMITED) {
-            overlay.hide()
+            unblock()
             return
         }
 
@@ -127,7 +147,7 @@ class EnforcementAccessibilityService : AccessibilityService() {
         // bypassing both daily limits and time-frame schedule.
         if (bonusStore.isActive(pkg)) {
             Log.d(TAG, "Eval $pkg: bonus active until ${bonusStore.expiryFor(pkg)}")
-            overlay.hide()
+            unblock()
             return
         }
 
@@ -137,15 +157,20 @@ class EnforcementAccessibilityService : AccessibilityService() {
             val nextLabel = limits.timeFrame.nextAllowedMinute(now)
                 ?.let { clockFormat.timeOfDay(it.toLocalTime()) }
             Log.d(TAG, "Eval $pkg: outside time-frame schedule, next=$nextLabel")
-            overlay.show(pkg, BlockReason.OutsideHours, nextLabel)
+            block(pkg, BlockReason.OutsideHours, nextLabel)
             return
         }
 
-        val usedMillis = usage.millisForToday(pkg)
+        // Computed live from UsageStatsManager rather than the Room cache,
+        // which UsageWorker only refreshes every 15 minutes (WorkManager's
+        // periodic-work floor) — reading that cache here would let a limit
+        // run over by up to 15 minutes before this catches it.
+        val perPackage = usageTracker.millisPerPackage()
+        val usedMillis = perPackage[pkg] ?: 0L
         val perAppExceeded = perAppLimit != null &&
             usedMillis >= perAppLimit.dailyLimitMinutes * 60_000L
 
-        val totalMillis = usage.totalMillisForToday()
+        val totalMillis = perPackage.values.sum()
         val overallExceeded = limits.overallDailyMinutes != Limits.UNLIMITED &&
             totalMillis >= limits.overallDailyMinutes * 60_000L
 
@@ -156,10 +181,29 @@ class EnforcementAccessibilityService : AccessibilityService() {
         )
 
         if (perAppExceeded || overallExceeded) {
-            overlay.show(pkg, BlockReason.DailyLimitReached)
+            block(pkg, BlockReason.DailyLimitReached)
         } else {
-            overlay.hide()
+            unblock()
         }
+    }
+
+    // Backgrounds the blocked app (so playback actually pauses instead of
+    // just being visually covered by the overlay) before showing the block
+    // screen. Only fires once per block activation — the minute-ticker
+    // re-evaluates the same blocked pkg every 60s, and repeating
+    // GLOBAL_ACTION_HOME on every tick would be redundant and could yank the
+    // user out of the launcher's own menus if they're navigating it.
+    private fun block(pkg: String, reason: BlockReason, nextWindow: String? = null) {
+        if (sentHomeFor != pkg && pkg != homeLauncherPackage) {
+            performGlobalAction(GLOBAL_ACTION_HOME)
+            sentHomeFor = pkg
+        }
+        overlay.show(pkg, reason, nextWindow)
+    }
+
+    private fun unblock() {
+        sentHomeFor = null
+        overlay.hide()
     }
 
     private fun minuteTicker() = flow<Unit> {
