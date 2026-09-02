@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.functions.FirebaseFunctions
@@ -28,7 +29,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.time.Instant
 import java.time.LocalDate
@@ -670,25 +670,57 @@ class FirestoreRepository @Inject constructor(
     /**
      * Watches /families/{id}.devices (paired TV device ids) and resolves
      * each device's display name from /devices/{deviceId}.
+     *
+     * Each device doc gets its own listener: a rename only touches
+     * /devices/{deviceId}, so watching the family doc alone would never
+     * re-emit and the list would keep showing the old name.
      */
     fun pairedDevicesFlow(familyId: String): Flow<List<PairedDevice>> = callbackFlow {
-        val ref = db.collection("families").document(familyId)
-        val registration = ref.addSnapshotListener { snap, error ->
-            if (error != null) {
-                Log.e(TAG, "pairedDevicesFlow($familyId) listener failed", error)
-                trySend(emptyList())
-                return@addSnapshotListener
-            }
-            val ids = (snap?.get(FIELD_DEVICES) as? List<*>).orEmpty().filterIsInstance<String>()
-            launch {
-                val devices = ids.map { id ->
-                    val doc = runCatching { db.collection("devices").document(id).get().await() }.getOrNull()
-                    PairedDevice(id, doc?.getString(FIELD_DEVICE_NAME) ?: PairedDevice.DEFAULT_NAME)
-                }
-                trySend(devices)
-            }
+        var ids = emptyList<String>()
+        val names = mutableMapOf<String, String>()
+        val deviceRegistrations = mutableMapOf<String, ListenerRegistration>()
+
+        fun emitDevices() {
+            trySend(ids.map { PairedDevice(it, names[it] ?: PairedDevice.DEFAULT_NAME) })
         }
-        awaitClose { registration.remove() }
+
+        val registration = db.collection("families").document(familyId)
+            .addSnapshotListener { snap, error ->
+                if (error != null) {
+                    Log.e(TAG, "pairedDevicesFlow($familyId) listener failed", error)
+                    ids = emptyList()
+                    deviceRegistrations.values.forEach { it.remove() }
+                    deviceRegistrations.clear()
+                    names.clear()
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                ids = (snap?.get(FIELD_DEVICES) as? List<*>).orEmpty().filterIsInstance<String>()
+
+                (deviceRegistrations.keys - ids.toSet()).forEach { id ->
+                    deviceRegistrations.remove(id)?.remove()
+                    names.remove(id)
+                }
+                ids.filterNot { it in deviceRegistrations }.forEach { id ->
+                    deviceRegistrations[id] = db.collection("devices").document(id)
+                        .addSnapshotListener { deviceSnap, deviceError ->
+                            if (deviceError != null) {
+                                Log.e(TAG, "pairedDevicesFlow($familyId) device $id listener failed", deviceError)
+                            }
+                            names[id] = deviceSnap?.getString(FIELD_DEVICE_NAME)
+                                ?: PairedDevice.DEFAULT_NAME
+                            emitDevices()
+                        }
+                }
+                // Devices we haven't heard from yet emit as soon as their own
+                // listener fires, so we don't flash the default name first.
+                if (ids.all { it in names }) emitDevices()
+            }
+
+        awaitClose {
+            registration.remove()
+            deviceRegistrations.values.forEach { it.remove() }
+        }
     }
 
     /** Renames a paired TV as shown on the mobile pairing screen. */
