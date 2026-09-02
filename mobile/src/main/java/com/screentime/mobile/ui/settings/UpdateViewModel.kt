@@ -40,23 +40,33 @@ class UpdateViewModel @Inject constructor(
     val state: StateFlow<UpdateUiState> = _state.asStateFlow()
 
     private var pollJob: Job? = null
+    private var resetJob: Job? = null
 
     fun checkForUpdate() {
+        resetJob?.cancel()
         _state.value = UpdateUiState.Checking
         viewModelScope.launch {
             val currentVersion = runCatching {
                 context.packageManager.getPackageInfo(context.packageName, 0).versionName
             }.getOrNull() ?: "0"
-            _state.value = when (val result = checker.check(currentVersion)) {
+            val newState = when (val result = checker.check(currentVersion)) {
                 is UpdateCheckResult.Available ->
                     UpdateUiState.Available(result.versionName, result.downloadUrl, result.sizeBytes)
                 UpdateCheckResult.UpToDate -> UpdateUiState.UpToDate
                 is UpdateCheckResult.Error -> UpdateUiState.Failed(result.message)
             }
+            _state.value = newState
+            // Nothing to act on for these two — drop back to the plain
+            // "Check for updates" button on its own instead of leaving the
+            // stale result on screen until the user force-closes the app.
+            if (newState is UpdateUiState.UpToDate || newState is UpdateUiState.Failed) {
+                scheduleReset()
+            }
         }
     }
 
     fun startDownload(downloadUrl: String, versionName: String) {
+        resetJob?.cancel()
         val id = installer.enqueueDownload(downloadUrl, "screentime-mobile-$versionName.apk")
         _state.value = UpdateUiState.Downloading(id)
         pollJob?.cancel()
@@ -77,10 +87,23 @@ class UpdateViewModel @Inject constructor(
 
     fun dismiss() {
         pollJob?.cancel()
+        resetJob?.cancel()
         _state.value = UpdateUiState.Idle
+    }
+
+    private fun scheduleReset() {
+        resetJob = viewModelScope.launch {
+            delay(RESET_DELAY_MS)
+            _state.value = UpdateUiState.Idle
+        }
     }
 
     override fun onCleared() {
         pollJob?.cancel()
+        resetJob?.cancel()
+    }
+
+    private companion object {
+        const val RESET_DELAY_MS = 4_000L
     }
 }
