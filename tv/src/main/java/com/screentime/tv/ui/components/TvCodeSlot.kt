@@ -6,8 +6,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -29,7 +30,6 @@ fun TvCodeSlot(
     digit: Char?,
     state: TvCodeSlotState,
     modifier: Modifier = Modifier,
-    width: Int = 60,
     height: Int = 75,
 ) {
     val (bg, borderColor) = when (state) {
@@ -43,7 +43,6 @@ fun TvCodeSlot(
     val outerShape = RoundedCornerShape(15.dp)
     Box(
         modifier = modifier
-            .width(width.dp)
             .height(height.dp)
             .background(bg, shape)
             .border(BorderStroke(if (state == TvCodeSlotState.Active) 2.dp else 0.75.dp, borderColor), shape)
@@ -72,7 +71,7 @@ fun TvCodeSlotsRow(
     modifier: Modifier = Modifier,
 ) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-        Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+        Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
             repeat(slots) { i ->
                 val state = when {
                     errored -> TvCodeSlotState.Error
@@ -80,7 +79,7 @@ fun TvCodeSlotsRow(
                     i == code.length -> TvCodeSlotState.Active
                     else -> TvCodeSlotState.Empty
                 }
-                TvCodeSlot(digit = code.getOrNull(i), state = state)
+                TvCodeSlot(digit = code.getOrNull(i), state = state, modifier = Modifier.weight(1f))
             }
         }
     }

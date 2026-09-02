@@ -32,7 +32,7 @@
 
     <string name="tv_remote_hint">◀ ▶ ▲ ▼  +  אישור</string>
 
-    <string name="keypad_clear">נ</string>
+    <string name="keypad_clear">C</string>
 
     <string name="overlay_instant_locked_title">הטלוויזיה נעולה</string>
     <string name="overlay_instant_locked_body">הורה נעל את הטלוויזיה מהאפליקציה. בקשו מהם לפתוח כשתהיו מוכנים.</string>
