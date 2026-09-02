@@ -5,7 +5,9 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.screentime.shared.limits.BonusStore
 import com.screentime.tv.locale.TvLocaleController
+import com.screentime.tv.usage.CountablePackages
 import com.screentime.tv.usage.DailyResetWorker
+import com.screentime.tv.usage.PackageChangeReceiver
 import com.screentime.tv.usage.UsageWorker
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -22,6 +24,8 @@ class ScreenTimeTvApp : Application(), Configuration.Provider {
     // needs to call it directly.
     @Inject lateinit var localeController: TvLocaleController
 
+    @Inject lateinit var countablePackages: CountablePackages
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -29,6 +33,9 @@ class ScreenTimeTvApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        // Keeps the set of apps that count as screen time fresh when the
+        // child (or the parent) installs something new.
+        PackageChangeReceiver(countablePackages).register(this)
         // WorkManager's minimum periodic interval is 15 min. Real-time
         // enforcement runs in the AccessibilityService.
         UsageWorker.schedule(this, intervalMinutes = 15L)

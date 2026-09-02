@@ -19,4 +19,13 @@ interface UsageDao {
 
     @Query("DELETE FROM usage WHERE date < :cutoffDate")
     suspend fun deleteOlderThan(cutoffDate: String)
+
+    /**
+     * Removes rows for [date] whose package is no longer counted. [upsertAll]
+     * only ever replaces keys it is given, so without this a package that used
+     * to accrue time — the launcher, before it was excluded — would keep its
+     * stale row and inflate the day's total forever.
+     */
+    @Query("DELETE FROM usage WHERE date = :date AND packageName IN (:packages)")
+    suspend fun deleteForDate(date: String, packages: List<String>)
 }

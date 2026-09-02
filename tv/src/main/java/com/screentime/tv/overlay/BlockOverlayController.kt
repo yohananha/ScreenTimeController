@@ -127,7 +127,9 @@ class BlockOverlayController @Inject constructor(
                                 LaunchedEffect(currentPackage.value, limits) {
                                     currentPackage.value?.let { pkg ->
                                         usedMillis = withContext(Dispatchers.Default) {
-                                            usageTracker.millisPerPackage()[pkg] ?: 0L
+                                            usageTracker.millisPerPackage(
+                                                alwaysCount = limits.perApp.keys,
+                                            )[pkg] ?: 0L
                                         }
                                     }
                                 }

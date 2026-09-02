@@ -404,15 +404,23 @@ class FirestoreRepository @Inject constructor(
      * Merge-writes per-package millis. The map under [FIELD_PER_APP_MILLIS]
      * is keyed by package name; we set each entry rather than overwriting
      * the whole map so concurrent updates from multiple TV samples coexist.
+     * [removedPackages] are deleted from that map — see the note inline.
      */
     suspend fun recordUsage(
         familyId: String,
         date: LocalDate,
         perPackageMillis: Map<String, Long>,
+        removedPackages: Set<String> = emptySet(),
     ) {
-        if (perPackageMillis.isEmpty()) return
+        if (perPackageMillis.isEmpty() && removedPackages.isEmpty()) return
+        // Because the write merges, a key we simply stop sending would linger.
+        // Packages that no longer count get an explicit delete sentinel — map
+        // keys are taken literally here, so the dots in a package name are not
+        // parsed as a field path.
+        val entries: Map<String, Any> = perPackageMillis +
+            removedPackages.associateWith { FieldValue.delete() }
         val payload = mapOf(
-            FIELD_PER_APP_MILLIS to perPackageMillis,
+            FIELD_PER_APP_MILLIS to entries,
             "updatedAt" to FieldValue.serverTimestamp(),
         )
         db.collection("families").document(familyId)
