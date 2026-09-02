@@ -136,7 +136,7 @@ The TV app asks for three permissions on first launch; all three are required fo
 
 | Permission | Why |
 |---|---|
-| Usage access (`PACKAGE_USAGE_STATS`) | Reads foreground time per app every 30 seconds |
+| Usage access (`PACKAGE_USAGE_STATS`) | Reads foreground time per app — live on every app switch, recorded once a minute, with a 15-minute WorkManager backstop for when the accessibility service isn't running. Only apps with a launcher entry count toward limits: idle time on the home screen, in Settings, in the screensaver or in this app is not screen use |
 | Draw over other apps (`SYSTEM_ALERT_WINDOW`) | Displays the block overlay on top of everything |
 | Accessibility service | Detects when a blocked app comes to the foreground |
 

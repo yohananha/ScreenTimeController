@@ -1,7 +1,6 @@
 package com.screentime.tv.service
 
 import android.accessibilityservice.AccessibilityService
-import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.screentime.shared.format.ClockFormat
@@ -9,6 +8,9 @@ import com.screentime.shared.limits.BonusStore
 import com.screentime.shared.limits.LimitsProvider
 import com.screentime.shared.model.Limits
 import com.screentime.tv.overlay.BlockOverlayController
+import com.screentime.tv.usage.CountablePackages
+import com.screentime.tv.usage.UsagePermission
+import com.screentime.tv.usage.UsageRecorder
 import com.screentime.tv.usage.UsageTracker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -33,6 +35,8 @@ class EnforcementAccessibilityService : AccessibilityService() {
 
     @Inject lateinit var limitsProvider: LimitsProvider
     @Inject lateinit var usageTracker: UsageTracker
+    @Inject lateinit var countablePackages: CountablePackages
+    @Inject lateinit var usageRecorder: UsageRecorder
     @Inject lateinit var overlay: BlockOverlayController
     @Inject lateinit var bonusStore: BonusStore
     @Inject lateinit var clockFormat: ClockFormat
@@ -49,12 +53,8 @@ class EnforcementAccessibilityService : AccessibilityService() {
     // overlay for the app we just paused.
     private var sentHomeFor: String? = null
 
-    private val homeLauncherPackage: String? by lazy {
-        packageManager.resolveActivity(
-            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME),
-            0,
-        )?.activityInfo?.packageName
-    }
+    private val homeLauncherPackage: String?
+        get() = countablePackages.homeLauncherPackage()
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -91,10 +91,15 @@ class EnforcementAccessibilityService : AccessibilityService() {
             }
         }
         // Tick every minute so time-frame windows activate/deactivate without
-        // needing an app switch event.
+        // needing an app switch event, and so the parent's view of usage is
+        // roughly a minute fresh. WorkManager's periodic floor is 15 minutes,
+        // so UsageWorker cannot do this — it stays on as the backstop for when
+        // this service isn't running.
         scope.launch {
             minuteTicker().collect {
-                foregroundPackage.value?.let { pkg -> evaluate(pkg) }
+                val perPackage = sample()
+                if (perPackage != null) usageRecorder.record(LocalDate.now(), perPackage)
+                foregroundPackage.value?.let { pkg -> evaluate(pkg, perPackage) }
             }
         }
     }
@@ -119,7 +124,17 @@ class EnforcementAccessibilityService : AccessibilityService() {
         overlay.hide()
     }
 
-    private suspend fun evaluate(pkg: String) {
+    /**
+     * One usage read, shared by the minute ticker between recording and
+     * evaluation so the tick costs a single UsageStatsManager query rather
+     * than two. Null when usage access hasn't been granted.
+     */
+    private fun sample(): Map<String, Long>? {
+        if (!UsagePermission.isGranted(this)) return null
+        return usageTracker.millisPerPackage(alwaysCount = currentLimits.value.perApp.keys)
+    }
+
+    private suspend fun evaluate(pkg: String, sampled: Map<String, Long>? = null) {
         val limits = currentLimits.value
         val perAppLimit = limits.perApp[pkg]
 
@@ -161,11 +176,13 @@ class EnforcementAccessibilityService : AccessibilityService() {
             return
         }
 
-        // Computed live from UsageStatsManager rather than the Room cache,
-        // which UsageWorker only refreshes every 15 minutes (WorkManager's
-        // periodic-work floor) — reading that cache here would let a limit
-        // run over by up to 15 minutes before this catches it.
-        val perPackage = usageTracker.millisPerPackage()
+        // Computed live from UsageStatsManager rather than read back from the
+        // Room cache: the cache is only ever as fresh as the last sample, and
+        // an app switch has to be evaluated against the current second, not
+        // the last tick. On the minute ticker [sampled] is that tick's own
+        // read, so the cadence costs one query rather than two.
+        val perPackage = sampled
+            ?: usageTracker.millisPerPackage(alwaysCount = limits.perApp.keys)
         val usedMillis = perPackage[pkg] ?: 0L
         val perAppExceeded = perAppLimit != null &&
             usedMillis >= perAppLimit.dailyLimitMinutes * 60_000L

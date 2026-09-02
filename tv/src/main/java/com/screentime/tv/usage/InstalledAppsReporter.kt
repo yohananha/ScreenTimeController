@@ -1,38 +1,25 @@
 package com.screentime.tv.usage
 
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.util.Log
 import com.screentime.shared.firestore.FirestoreRepository
-import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Enumerates the apps shown on the TV's launcher and mirrors them to
- * /families/{id}/tvApps so the mobile app can offer them as limit targets.
+ * Mirrors the apps that can accrue screen time to /families/{id}/tvApps so the
+ * mobile app can offer them as limit targets.
+ *
+ * The list comes from [CountablePackages], so the parent is never offered a
+ * limit on something that will never accrue time — the home launcher, this
+ * app, or a system package with no launcher entry.
  */
 @Singleton
 class InstalledAppsReporter @Inject constructor(
-    @ApplicationContext private val context: Context,
+    private val countablePackages: CountablePackages,
     private val firestore: FirestoreRepository,
 ) {
     suspend fun sync(familyId: String) {
-        val pm = context.packageManager
-
-        // Most TV apps expose CATEGORY_LEANBACK_LAUNCHER, but sideloaded or
-        // phone-ported apps often only declare the standard CATEGORY_LAUNCHER
-        // (or lack a leanback banner entirely). Query both and merge so the
-        // limits list matches what's actually installed on the device.
-        @Suppress("DEPRECATION")
-        val apps = listOf(Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER)
-            .flatMap { category ->
-                val intent = Intent(Intent.ACTION_MAIN).addCategory(category)
-                pm.queryIntentActivities(intent, PackageManager.MATCH_ALL)
-            }
-            .associate { it.activityInfo.packageName to it.loadLabel(pm).toString() }
-
+        val apps = countablePackages.labels()
         Log.d(TAG, "Syncing ${apps.size} TV apps for family $familyId")
         firestore.syncInstalledApps(familyId, apps)
     }
