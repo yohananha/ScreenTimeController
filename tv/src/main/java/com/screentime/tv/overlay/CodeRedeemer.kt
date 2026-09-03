@@ -54,7 +54,7 @@ class CodeRedeemer @Inject constructor(
             return false
         }
         if (currentlyBlocked != null) {
-            bonusStore.addBonus(currentlyBlocked, minutes * 60_000L)
+            bonusStore.addBonus(minutes * 60_000L)
         }
         return true
     }

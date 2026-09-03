@@ -35,7 +35,7 @@ class CodeRedeemerTest {
         val r = newRedeemer()
         val ok = r.redeem("111111", currentlyBlocked = "com.x")
         assertThat(ok).isTrue()
-        coVerify { bonusStore.addBonus("com.x", 30 * 60_000L) }
+        coVerify { bonusStore.addBonus(30 * 60_000L) }
     }
 
     @Test fun `redeem without currentlyBlocked does not call bonusStore`() = runTest {
@@ -43,7 +43,7 @@ class CodeRedeemerTest {
         val r = newRedeemer()
         val ok = r.redeem("111111", currentlyBlocked = null)
         assertThat(ok).isTrue()
-        coVerify(exactly = 0) { bonusStore.addBonus(any(), any()) }
+        coVerify(exactly = 0) { bonusStore.addBonus(any()) }
     }
 
     @Test fun `redeem returns false when server throws FirebaseFunctionsException`() = runTest {

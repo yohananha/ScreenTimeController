@@ -58,10 +58,10 @@ class RequestController @Inject constructor(
                         // and re-block the app between the dismiss and the
                         // bonus showing up in BonusStore.
                         val granted = request.approvedMinutes ?: request.requestedMinutes
-                        bonusStore.addBonus(appPackage, granted * 60_000L)
+                        bonusStore.addBonus(granted * 60_000L)
                         _approvedMinutes.value = granted
                         _requestStatus.value = request.status
-                        Log.i(TAG, "Request $requestId approved for $granted min on $appPackage")
+                        Log.i(TAG, "Request $requestId approved for $granted min (device-wide), triggered by $appPackage")
                     }
                     TimeRequest.Status.Denied -> {
                         _requestStatus.value = request.status

@@ -79,10 +79,10 @@ class EnforcementAccessibilityService : AccessibilityService() {
         // again when that bonus expires, so the block returns without
         // needing an app switch.
         scope.launch {
-            bonusStore.bonuses.collectLatest { expiries ->
+            bonusStore.bonuses.collectLatest { expiresAt ->
                 val pkg = foregroundPackage.value ?: return@collectLatest
                 evaluate(pkg)
-                val expiresAt = expiries[pkg] ?: return@collectLatest
+                expiresAt ?: return@collectLatest
                 val remaining = Duration.between(Instant.now(), expiresAt).toMillis()
                 if (remaining > 0) {
                     delay(remaining)
@@ -152,6 +152,15 @@ class EnforcementAccessibilityService : AccessibilityService() {
             return
         }
 
+        // The home launcher is never itself blocked outside an instant lock —
+        // it's what's already on screen after backgrounding a blocked app,
+        // not something the child chose to open, so it must not trigger its
+        // own bonus/request flow on top of whatever app sent them here.
+        if (pkg == homeLauncherPackage) {
+            unblock()
+            return
+        }
+
         // "Always allow" — this app is exempt from per-app and overall limits.
         if (perAppLimit?.dailyLimitMinutes == Limits.UNLIMITED) {
             unblock()
@@ -159,9 +168,9 @@ class EnforcementAccessibilityService : AccessibilityService() {
         }
 
         // A code redemption or approved request grants N minutes from now,
-        // bypassing both daily limits and time-frame schedule.
-        if (bonusStore.isActive(pkg)) {
-            Log.d(TAG, "Eval $pkg: bonus active until ${bonusStore.expiryFor(pkg)}")
+        // device-wide, bypassing both daily limits and time-frame schedule.
+        if (bonusStore.isActive()) {
+            Log.d(TAG, "Eval $pkg: device bonus active until ${bonusStore.expiryFor()}")
             unblock()
             return
         }

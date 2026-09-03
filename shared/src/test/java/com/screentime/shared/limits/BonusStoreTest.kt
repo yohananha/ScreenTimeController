@@ -35,33 +35,33 @@ class BonusStoreTest {
     @After fun tearDown() = db.close()
 
     @Test fun `addBonus extends expiry from now`() = runTest {
-        store.addBonus("com.x", 60_000L)
+        store.addBonus(60_000L)
         // Give the launched coroutine a moment to settle the in-memory state.
         delay(50)
-        assertThat(store.isActive("com.x")).isTrue()
-        val expiry = store.expiryFor("com.x")!!
+        assertThat(store.isActive()).isTrue()
+        val expiry = store.expiryFor()!!
         assertThat(expiry.toEpochMilli()).isGreaterThan(System.currentTimeMillis())
     }
 
     @Test fun `second addBonus stacks on top of the existing expiry`() = runTest {
-        store.addBonus("com.x", 60_000L)
+        store.addBonus(60_000L)
         delay(20)
-        val first = store.expiryFor("com.x")!!
-        store.addBonus("com.x", 60_000L)
+        val first = store.expiryFor()!!
+        store.addBonus(60_000L)
         delay(20)
-        val second = store.expiryFor("com.x")!!
+        val second = store.expiryFor()!!
         assertThat(second.toEpochMilli()).isAtLeast(first.toEpochMilli() + 60_000L - 100)
     }
 
-    @Test fun `isActive returns false for unknown package`() {
-        assertThat(store.isActive("com.unknown")).isFalse()
+    @Test fun `isActive returns false with no bonus granted`() {
+        assertThat(store.isActive()).isFalse()
     }
 
-    @Test fun `clear empties the in-memory map`() = runTest {
-        store.addBonus("com.x", 60_000L)
+    @Test fun `clear empties the in-memory state`() = runTest {
+        store.addBonus(60_000L)
         delay(20)
         store.clear()
-        assertThat(store.isActive("com.x")).isFalse()
-        assertThat(store.expiryFor("com.x")).isNull()
+        assertThat(store.isActive()).isFalse()
+        assertThat(store.expiryFor()).isNull()
     }
 }

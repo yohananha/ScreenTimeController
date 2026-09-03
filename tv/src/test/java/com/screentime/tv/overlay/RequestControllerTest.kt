@@ -65,7 +65,7 @@ class RequestControllerTest {
             var status = awaitItem()
             while (status != TimeRequest.Status.Approved) status = awaitItem()
             assertThat(rc.approvedMinutes.value).isEqualTo(12)
-            coVerify { bonusStore.addBonus("com.x", 12 * 60_000L) }
+            coVerify { bonusStore.addBonus(12 * 60_000L) }
         }
     }
 
@@ -83,7 +83,7 @@ class RequestControllerTest {
             var status = awaitItem()
             while (status != TimeRequest.Status.Denied) status = awaitItem()
             assertThat(rc.approvedMinutes.value).isNull()
-            coVerify(exactly = 0) { bonusStore.addBonus(any(), any()) }
+            coVerify(exactly = 0) { bonusStore.addBonus(any()) }
         }
     }
 }
