@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Icon
@@ -28,9 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.screentime.mobile.R
 import com.screentime.shared.R as SharedR
@@ -166,23 +163,7 @@ private fun NoCodeHero() {
         verticalArrangement = Arrangement.spacedBy(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
-            repeat(4) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(Sprout.colors.surfaceSunken, RoundedCornerShape(18.dp))
-                        .padding(vertical = 26.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        "–",
-                        style = Sprout.typography.display.copy(fontSize = 40.sp, fontWeight = FontWeight.SemiBold),
-                        color = Sprout.colors.inkFaint,
-                    )
-                }
-            }
-        }
+        CodeTilesRow(code = "")
         Text(
             stringResource(R.string.codes_generate_below),
             style = Sprout.typography.body,
