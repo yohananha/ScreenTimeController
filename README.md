@@ -15,8 +15,8 @@ A parental control system built from two clients that talk to each other through
 | App | Download |
 |---|---|
 | Web (parent, any device) | **[screen-time-controller-a653e.web.app](https://screen-time-controller-a653e.web.app)** — sign in with Google |
-| Mobile (parent phone, legacy) | [ScreenTime-Mobile-debug.apk](https://github.com/yohananha/ScreenTimeController/releases/download/v0.1.9-beta/mobile-debug.apk) |
-| TV | [ScreenTime-TV-debug.apk](https://github.com/yohananha/ScreenTimeController/releases/download/v0.1.9-beta/tv-debug.apk) |
+| Mobile (parent phone, legacy) | [ScreenTime-Mobile-debug.apk](https://github.com/yohananha/ScreenTimeController/releases/download/v0.1.10-beta/mobile-debug.apk) |
+| TV | [ScreenTime-TV-debug.apk](https://github.com/yohananha/ScreenTimeController/releases/download/v0.1.10-beta/tv-debug.apk) |
 
 All releases: [github.com/yohananha/ScreenTimeController/releases](https://github.com/yohananha/ScreenTimeController/releases)
 
