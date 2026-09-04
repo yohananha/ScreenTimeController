@@ -12,6 +12,7 @@ import { useFamily } from '../../hooks/useFamily';
 import { usePairedDevices } from '../../hooks/usePairedDevices';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useLockout } from '../../hooks/useLockout';
+import { useNotificationStatus, type NotificationStatus } from '../../hooks/useNotifications';
 import { isAdmin, isOwner, type Family, type FamilyRole } from '../../models/Family';
 import type { PairedDevice } from '../../models/PairedDevice';
 import type { LockoutMode, LockoutSettings } from '../../models/LockoutSettings';
@@ -23,6 +24,7 @@ export function SettingsScreen({ familyId, uid }: { familyId: string; uid: strin
   const { state, removeMember, generateInvite } = useFamily(familyId);
   const { select, current } = useLanguage(uid, familyId);
   const { lockout, setLockoutConfig, unlockNow } = useLockout(familyId);
+  const notifications = useNotificationStatus(familyId);
   const [editingLockout, setEditingLockout] = useState(false);
   const hPad = useResponsivePadding();
 
@@ -36,6 +38,8 @@ export function SettingsScreen({ familyId, uid }: { familyId: string; uid: strin
         </div>
 
         <LanguageSection current={current} onSelect={select} />
+
+        <NotificationsSection status={notifications.status} enabling={notifications.enabling} onEnable={notifications.enable} />
 
         {state.family && (
           <MembersSection
@@ -91,6 +95,44 @@ function LanguageSection({ current, onSelect }: { current: LangTag | null; onSel
         ))}
       </div>
       <span style={{ ...typography.caption, color: colors.inkMuted }}>{t('settings.languageHint')}</span>
+    </div>
+  );
+}
+
+function NotificationsSection({
+  status,
+  enabling,
+  onEnable,
+}: {
+  status: NotificationStatus;
+  enabling: boolean;
+  onEnable: () => void;
+}) {
+  const { t } = useTranslation();
+  const statusText =
+    status === 'granted'
+      ? t('settings.notificationsOn')
+      : status === 'denied'
+        ? t('settings.notificationsBlocked')
+        : status === 'unsupported'
+          ? t('settings.notificationsUnsupported')
+          : t('settings.notificationsOff');
+
+  return (
+    <div style={{ background: colors.surface, borderRadius: radius.card, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ ...typography.headline, color: colors.ink }}>{t('settings.notifications')}</span>
+      </div>
+      <span style={{ ...typography.caption, color: colors.inkMuted }}>{t('settings.notificationsHint')}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+        <span style={{ ...typography.body, color: status === 'denied' ? colors.overText : colors.ink }}>{statusText}</span>
+        {status === 'default' && (
+          <SproutPrimaryButton onClick={onEnable} disabled={enabling} style={{ padding: '8px 16px' }}>
+            {enabling ? t('notifications.enabling') : t('notifications.enable')}
+          </SproutPrimaryButton>
+        )}
+      </div>
+      {status === 'denied' && <span style={{ ...typography.caption, color: colors.overText }}>{t('settings.notificationsBlockedHint')}</span>}
     </div>
   );
 }

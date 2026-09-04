@@ -19,7 +19,8 @@
   "notifications": {
     "prompt": "הפעילו התראות כדי לשמוע מיד על בקשות זמן.",
     "notNow": "לא עכשיו",
-    "enable": "הפעלה"
+    "enable": "הפעלה",
+    "enabling": "מפעיל…"
   },
   "format": {
     "durationHM": "{{h}} שע׳ {{m}} דק׳",
@@ -123,12 +124,17 @@
     "closeAria": "סגירה",
     "blockedAllDayOn": "חסום כל היום ב{{day}}",
     "addWindowToAllow": "הוסיפו חלון זמן כדי לאפשר קצת זמן מסך.",
+    "allowAllDay": "אפשר כל היום",
+    "allowAllDayActive": "מותר כל היום ✓",
     "removeWindowAria": "הסרה",
+    "editWindowAria": "ערוך חלון זמן",
     "addWindow": "+ הוספת חלון זמן",
     "addWindowTitle": "הוספת חלון זמן",
+    "editWindowTitle": "עריכת חלון זמן",
     "startTime": "שעת התחלה",
     "endTime": "שעת סיום",
     "endAfterStart": "שעת הסיום חייבת להיות אחרי ההתחלה",
+    "overlapsExisting": "זה חופף לחלון זמן קיים",
     "add": "הוספה"
   },
   "requests": {
@@ -183,6 +189,13 @@
     "languageEnglish": "English",
     "languageHebrew": "עברית",
     "languageHint": "גם קובע את השפה בטלוויזיות המחוברות שלכם.",
+    "notifications": "התראות",
+    "notificationsHint": "קבל התראה ברגע שמגיעה בקשת זמן מהטלוויזיה.",
+    "notificationsOn": "פעיל במכשיר זה",
+    "notificationsOff": "כבוי",
+    "notificationsBlocked": "חסום",
+    "notificationsBlockedHint": "ההתראות חסומות בהגדרות הדפדפן עבור אתר זה.",
+    "notificationsUnsupported": "לא נתמך בדפדפן זה",
     "parents": "הורים",
     "membersCount_one": "בן משפחה אחד",
     "membersCount_two": "שני בני משפחה",
