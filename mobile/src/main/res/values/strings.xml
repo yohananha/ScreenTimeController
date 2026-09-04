@@ -109,6 +109,10 @@
     <string name="timeframe_action_next">Next</string>
     <string name="timeframe_blocked_all_day">Blocked all day</string>
     <string name="timeframe_all_day">All day</string>
+    <string name="timeframe_allow_all_day">Allow all day</string>
+    <string name="timeframe_allow_all_day_active">Allowed all day ✓</string>
+    <string name="timeframe_edit_window">Edit window</string>
+    <string name="timeframe_overlap_error">This overlaps a window you already have</string>
 
     <!-- limits/LimitsScreen.kt -->
     <string name="limits_history_action">History</string>
@@ -229,6 +233,12 @@
     <string name="settings_language_en" translatable="false">English</string>
     <string name="settings_language_he" translatable="false">עברית</string>
     <string name="settings_language_hint">Also sets the language on your paired TVs.</string>
+    <string name="settings_notifications_title">Notifications</string>
+    <string name="settings_notifications_hint">Get notified the moment a time request comes in from the TV.</string>
+    <string name="settings_notifications_on">On for this device</string>
+    <string name="settings_notifications_off">Off</string>
+    <string name="settings_notifications_enable">Enable</string>
+    <string name="settings_notifications_open_settings">Notification settings</string>
     <string name="settings_about_title">About</string>
     <string name="settings_about_version">Version %1$s</string>
     <string name="update_check_button">Check for updates</string>

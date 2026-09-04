@@ -91,6 +91,10 @@
     <string name="timeframe_action_next">הבא</string>
     <string name="timeframe_blocked_all_day">חסום כל היום</string>
     <string name="timeframe_all_day">כל היום</string>
+    <string name="timeframe_allow_all_day">אפשר כל היום</string>
+    <string name="timeframe_allow_all_day_active">מותר כל היום ✓</string>
+    <string name="timeframe_edit_window">עריכת חלון זמן</string>
+    <string name="timeframe_overlap_error">זה חופף לחלון זמן קיים</string>
 
     <string name="limits_history_action">היסטוריה</string>
     <string name="limits_title">מגבלות</string>
@@ -210,6 +214,12 @@
     <string name="settings_language_section_title">שפה</string>
     <string name="settings_language_system">שימוש בשפת המכשיר</string>
     <string name="settings_language_hint">גם קובע את השפה בטלוויזיות המחוברות שלכם.</string>
+    <string name="settings_notifications_title">התראות</string>
+    <string name="settings_notifications_hint">קבל התראה ברגע שמגיעה בקשת זמן מהטלוויזיה.</string>
+    <string name="settings_notifications_on">פעיל במכשיר זה</string>
+    <string name="settings_notifications_off">כבוי</string>
+    <string name="settings_notifications_enable">הפעלה</string>
+    <string name="settings_notifications_open_settings">הגדרות התראות</string>
     <string name="settings_about_title">אודות</string>
     <string name="settings_about_version">גרסה %1$s</string>
     <string name="update_check_button">בדיקת עדכונים</string>

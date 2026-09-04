@@ -77,6 +77,8 @@ fun SettingsScreen(
 
             item { LanguageSection() }
 
+            item { NotificationsSection() }
+
             item {
                 Column(modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)) {
                     Text(stringResource(R.string.family_devices_title), style = Sprout.typography.title, color = Sprout.colors.ink)
