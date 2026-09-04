@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -51,6 +52,7 @@ import com.screentime.mobile.ui.theme.Sprout
 import com.screentime.mobile.ui.theme.rememberScreenPadding
 import com.screentime.shared.model.TimeFrameSchedule
 import com.screentime.shared.model.TimeFrameWindow
+import com.screentime.shared.model.overlaps
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -257,6 +259,12 @@ private fun DayRow(
     }
 }
 
+/** Either adding a brand-new window, or editing the window at [index] in-place. */
+private sealed interface DialogState {
+    data object Add : DialogState
+    data class Edit(val index: Int) : DialogState
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DayEditSheet(
@@ -267,7 +275,8 @@ private fun DayEditSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var localWindows by remember(windows) { mutableStateOf(windows.toMutableList()) }
-    var addingWindow by remember { mutableStateOf(false) }
+    var dialogState by remember { mutableStateOf<DialogState?>(null) }
+    val allDay = localWindows.isAllDay()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -303,6 +312,15 @@ private fun DayEditSheet(
                 }
             }
 
+            SproutGhostButton(
+                text = stringResource(
+                    if (allDay) R.string.timeframe_allow_all_day_active else R.string.timeframe_allow_all_day,
+                ),
+                onClick = { localWindows = mutableListOf(TimeFrameWindow.ALL_DAY) },
+                enabled = !allDay,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
             if (localWindows.isEmpty()) {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
@@ -330,8 +348,11 @@ private fun DayEditSheet(
                 }
             } else {
                 localWindows.forEachIndexed { index, window ->
+                    val onEditClick: (() -> Unit)? =
+                        if (window.isAllDay()) null else ({ dialogState = DialogState.Edit(index) })
                     WindowRow(
                         window = window,
+                        onEdit = onEditClick,
                         onDelete = {
                             localWindows = localWindows.toMutableList().also { it.removeAt(index) }
                         },
@@ -341,7 +362,7 @@ private fun DayEditSheet(
 
             SproutGhostButton(
                 text = stringResource(R.string.timeframe_add_window_action),
-                onClick = { addingWindow = true },
+                onClick = { dialogState = DialogState.Add },
                 modifier = Modifier.fillMaxWidth(),
             )
 
@@ -353,12 +374,23 @@ private fun DayEditSheet(
         }
     }
 
-    if (addingWindow) {
-        AddWindowDialog(
-            onDismiss = { addingWindow = false },
-            onAdd = { window ->
-                localWindows = localWindows.toMutableList().also { it.add(window) }
-                addingWindow = false
+    dialogState?.let { state ->
+        val editIndex = (state as? DialogState.Edit)?.index
+        WindowDialog(
+            initial = editIndex?.let { localWindows[it] },
+            existingWindows = if (editIndex != null) {
+                localWindows.filterIndexed { i, _ -> i != editIndex }
+            } else {
+                localWindows
+            },
+            onDismiss = { dialogState = null },
+            onSave = { window ->
+                localWindows = if (editIndex != null) {
+                    localWindows.toMutableList().also { it[editIndex] = window }
+                } else {
+                    localWindows.toMutableList().also { it.add(window) }
+                }
+                dialogState = null
             },
         )
     }
@@ -367,6 +399,7 @@ private fun DayEditSheet(
 @Composable
 private fun WindowRow(
     window: TimeFrameWindow,
+    onEdit: (() -> Unit)?,
     onDelete: () -> Unit,
 ) {
     Row(
@@ -388,40 +421,73 @@ private fun WindowRow(
                 modifier = Modifier.size(18.dp),
             )
             Text(
-                LocalFormats.current.clock.range(LocalContext.current.resources, window.startMinute.toTimeLabel(), window.endMinute.toTimeLabel()),
+                if (window.isAllDay()) {
+                    stringResource(R.string.timeframe_all_day)
+                } else {
+                    LocalFormats.current.clock.range(LocalContext.current.resources, window.startMinute.toTimeLabel(), window.endMinute.toTimeLabel())
+                },
                 style = Sprout.typography.bodyStrong,
                 color = Sprout.colors.ink,
             )
         }
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .background(Sprout.colors.overContainer, Sprout.radius.pill)
-                .clickable(onClick = onDelete),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                Icons.Filled.Delete,
-                contentDescription = stringResource(SharedR.string.action_remove),
-                tint = Sprout.colors.overText,
-                modifier = Modifier.size(16.dp),
-            )
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (onEdit != null) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(Sprout.colors.accentContainer, Sprout.radius.pill)
+                        .clickable(onClick = onEdit),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Icons.Filled.Edit,
+                        contentDescription = stringResource(R.string.timeframe_edit_window),
+                        tint = Sprout.colors.ink,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(Sprout.colors.overContainer, Sprout.radius.pill)
+                    .clickable(onClick = onDelete),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Filled.Delete,
+                    contentDescription = stringResource(SharedR.string.action_remove),
+                    tint = Sprout.colors.overText,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddWindowDialog(
+private fun WindowDialog(
+    initial: TimeFrameWindow?,
+    existingWindows: List<TimeFrameWindow>,
     onDismiss: () -> Unit,
-    onAdd: (TimeFrameWindow) -> Unit,
+    onSave: (TimeFrameWindow) -> Unit,
 ) {
+    val isEdit = initial != null
     var pickingEnd by remember { mutableStateOf(false) }
     // Respect the device's 12h/24h setting rather than hardcoding 12h — most
     // Hebrew-locale (and many English-locale) users expect 24-hour.
     val is24Hour = android.text.format.DateFormat.is24HourFormat(LocalContext.current)
-    val startState = rememberTimePickerState(initialHour = 16, initialMinute = 0, is24Hour = is24Hour)
-    val endState = rememberTimePickerState(initialHour = 20, initialMinute = 0, is24Hour = is24Hour)
+    val startState = rememberTimePickerState(
+        initialHour = (initial?.startMinute ?: 960) / 60,
+        initialMinute = (initial?.startMinute ?: 960) % 60,
+        is24Hour = is24Hour,
+    )
+    val endState = rememberTimePickerState(
+        initialHour = (initial?.endMinute ?: 1200) / 60,
+        initialMinute = (initial?.endMinute ?: 1200) % 60,
+        is24Hour = is24Hour,
+    )
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
@@ -443,8 +509,14 @@ private fun AddWindowDialog(
         },
         confirmButton = {
             val endAfterStartError = stringResource(R.string.timeframe_end_after_start)
+            val overlapError = stringResource(R.string.timeframe_overlap_error)
+            val confirmLabel = when {
+                !pickingEnd -> stringResource(R.string.timeframe_action_next)
+                isEdit -> stringResource(SharedR.string.action_save)
+                else -> stringResource(R.string.timeframe_action_add)
+            }
             SproutPrimaryButton(
-                text = if (pickingEnd) stringResource(R.string.timeframe_action_add) else stringResource(R.string.timeframe_action_next),
+                text = confirmLabel,
                 onClick = {
                     if (!pickingEnd) {
                         pickingEnd = true
@@ -452,10 +524,13 @@ private fun AddWindowDialog(
                     } else {
                         val startMin = startState.hour * 60 + startState.minute
                         val endMin = endState.hour * 60 + endState.minute
+                        val candidate = TimeFrameWindow(startMin, endMin)
                         if (endMin <= startMin) {
                             errorMessage = endAfterStartError
+                        } else if (existingWindows.any { it.overlaps(candidate) }) {
+                            errorMessage = overlapError
                         } else {
-                            onAdd(TimeFrameWindow(startMin, endMin))
+                            onSave(candidate)
                         }
                     }
                 },
@@ -503,4 +578,7 @@ private fun List<TimeFrameWindow>.windowsSummary(): String {
 }
 
 private fun List<TimeFrameWindow>.isAllDay(): Boolean =
-    size == 1 && first().startMinute == 0 && first().endMinute >= 1440
+    size == 1 && first().isAllDay()
+
+private fun TimeFrameWindow.isAllDay(): Boolean =
+    startMinute == 0 && endMinute >= 1440

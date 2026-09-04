@@ -6,7 +6,16 @@ import java.time.LocalDateTime
 data class TimeFrameWindow(
     val startMinute: Int, // minutes from midnight, 0..1439
     val endMinute: Int,   // exclusive, 1..1440
-)
+) {
+    companion object {
+        /** A single window spanning the entire day — the "allow all day" shortcut. */
+        val ALL_DAY = TimeFrameWindow(startMinute = 0, endMinute = 1440)
+    }
+}
+
+/** True if two windows share any minute. Adjacent windows (one ends where the other starts) don't overlap. */
+fun TimeFrameWindow.overlaps(other: TimeFrameWindow): Boolean =
+    startMinute < other.endMinute && other.startMinute < endMinute
 
 data class TimeFrameSchedule(
     val enabled: Boolean = false,
