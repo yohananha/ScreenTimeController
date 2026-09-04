@@ -81,10 +81,10 @@ android {
 
     packaging {
         // JUnit 5 jars pulled in transitively for androidTest each ship their
-        // own META-INF/LICENSE.md, which collide when AGP merges resources
-        // into the test APK.
+        // own META-INF/*.md (LICENSE.md, LICENSE-notice.md, ...), which
+        // collide when AGP merges resources into the test APK.
         resources {
-            excludes += "META-INF/LICENSE.md"
+            excludes += "META-INF/*.md"
         }
     }
 }
