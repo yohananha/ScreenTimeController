@@ -19,7 +19,8 @@
   "notifications": {
     "prompt": "Turn on notifications to hear about time requests right away.",
     "notNow": "Not now",
-    "enable": "Enable"
+    "enable": "Enable",
+    "enabling": "Enabling…"
   },
   "format": {
     "durationHM": "{{h}}h {{m}}m",
@@ -119,12 +120,17 @@
     "closeAria": "Close",
     "blockedAllDayOn": "Blocked all day on {{day}}",
     "addWindowToAllow": "Add a window to allow some screen time.",
+    "allowAllDay": "Allow all day",
+    "allowAllDayActive": "Allowed all day ✓",
     "removeWindowAria": "Remove window",
+    "editWindowAria": "Edit window",
     "addWindow": "+ Add window",
     "addWindowTitle": "Add window",
+    "editWindowTitle": "Edit window",
     "startTime": "Start time",
     "endTime": "End time",
     "endAfterStart": "End must be after start",
+    "overlapsExisting": "This overlaps a window you already have",
     "add": "Add"
   },
   "requests": {
@@ -179,6 +185,13 @@
     "languageEnglish": "English",
     "languageHebrew": "עברית",
     "languageHint": "Also sets the language on your paired TVs.",
+    "notifications": "Notifications",
+    "notificationsHint": "Get notified the moment a time request comes in from the TV.",
+    "notificationsOn": "On for this device",
+    "notificationsOff": "Off",
+    "notificationsBlocked": "Blocked",
+    "notificationsBlockedHint": "Notifications are blocked in your browser settings for this site.",
+    "notificationsUnsupported": "Not supported in this browser",
     "parents": "Parents",
     "membersCount_one": "{{count}} member",
     "membersCount_other": "{{count}} members",

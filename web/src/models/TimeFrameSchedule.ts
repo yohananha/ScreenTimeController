@@ -40,6 +40,14 @@ export interface TimeFrameWindow {
   endMinute: number;
 }
 
+/** A single window spanning the entire day — the "allow all day" shortcut. */
+export const ALL_DAY_WINDOW: TimeFrameWindow = { startMinute: 0, endMinute: 1440 };
+
+/** True if two windows share any minute. Adjacent windows (one ends where the other starts) don't overlap. */
+export function windowsOverlap(a: TimeFrameWindow, b: TimeFrameWindow): boolean {
+  return a.startMinute < b.endMinute && b.startMinute < a.endMinute;
+}
+
 export interface TimeFrameSchedule {
   enabled: boolean;
   windowsByDay: Partial<Record<DayOfWeek, TimeFrameWindow[]>>;

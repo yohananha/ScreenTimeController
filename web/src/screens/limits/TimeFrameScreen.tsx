@@ -8,8 +8,22 @@ import { SproutPrimaryButton, SproutGhostButton } from '../../components/SproutB
 import { Modal } from '../../components/Modal';
 import { BackChevron } from '../../components/Chevron';
 import { useTimeFrame } from '../../hooks/useTimeFrame';
-import { DAYS_OF_WEEK, dayOfWeekFromDate, type DayOfWeek, type TimeFrameWindow } from '../../models/TimeFrameSchedule';
+import {
+  ALL_DAY_WINDOW,
+  DAYS_OF_WEEK,
+  dayOfWeekFromDate,
+  windowsOverlap,
+  type DayOfWeek,
+  type TimeFrameWindow,
+} from '../../models/TimeFrameSchedule';
 import { dayDisplayName, isAllDayWindow, toTimeLabel, windowsSummary } from '../../i18n/format';
+
+/** "HH:MM" (24h, locale-invariant) for pre-filling an <input type="time">. */
+function toInputTime(minutes: number): string {
+  const h = Math.floor(minutes / 60) % 24;
+  const m = minutes % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
 
 export function TimeFrameScreen({ familyId, onBack }: { familyId: string; onBack: () => void }) {
   const { t } = useTranslation();
@@ -139,6 +153,9 @@ function DayRow({
   );
 }
 
+/** Either adding a brand-new window, or editing the window at `index` in-place. */
+type DialogState = { mode: 'add' } | { mode: 'edit'; index: number };
+
 function DayEditSheet({
   day,
   windows,
@@ -152,7 +169,8 @@ function DayEditSheet({
 }) {
   const { t } = useTranslation();
   const [localWindows, setLocalWindows] = useState<TimeFrameWindow[]>(windows);
-  const [adding, setAdding] = useState(false);
+  const [dialogState, setDialogState] = useState<DialogState | null>(null);
+  const allDay = isAllDayWindow(localWindows);
 
   return (
     <Modal onClose={onDismiss}>
@@ -161,6 +179,16 @@ function DayEditSheet({
         <button onClick={onDismiss} aria-label={t('timeframe.closeAria')} style={{ width: 32, height: 32, borderRadius: '50%', background: colors.background, border: 'none' }}>
           ✕
         </button>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <SproutGhostButton
+          onClick={() => setLocalWindows([ALL_DAY_WINDOW])}
+          disabled={allDay}
+          style={{ width: '100%' }}
+        >
+          {allDay ? t('timeframe.allowAllDayActive') : t('timeframe.allowAllDay')}
+        </SproutGhostButton>
       </div>
 
       {localWindows.length === 0 ? (
@@ -183,21 +211,32 @@ function DayEditSheet({
             }}
           >
             <span style={{ ...typography.bodyStrong, color: colors.ink }}>
-              {toTimeLabel(window.startMinute)} — {toTimeLabel(window.endMinute)}
+              {isAllDayWindow([window]) ? t('limits.allDay') : `${toTimeLabel(window.startMinute)} — ${toTimeLabel(window.endMinute)}`}
             </span>
-            <button
-              onClick={() => setLocalWindows(localWindows.filter((_, i) => i !== index))}
-              aria-label={t('timeframe.removeWindowAria')}
-              style={{ width: 32, height: 32, borderRadius: '50%', background: colors.overContainer, border: 'none', color: colors.overText }}
-            >
-              ✕
-            </button>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {!isAllDayWindow([window]) && (
+                <button
+                  onClick={() => setDialogState({ mode: 'edit', index })}
+                  aria-label={t('timeframe.editWindowAria')}
+                  style={{ width: 32, height: 32, borderRadius: '50%', background: colors.accentContainer, border: 'none' }}
+                >
+                  ✎
+                </button>
+              )}
+              <button
+                onClick={() => setLocalWindows(localWindows.filter((_, i) => i !== index))}
+                aria-label={t('timeframe.removeWindowAria')}
+                style={{ width: 32, height: 32, borderRadius: '50%', background: colors.overContainer, border: 'none', color: colors.overText }}
+              >
+                ✕
+              </button>
+            </div>
           </div>
         ))
       )}
 
       <div style={{ marginTop: 8 }}>
-        <SproutGhostButton onClick={() => setAdding(true)} style={{ width: '100%' }}>
+        <SproutGhostButton onClick={() => setDialogState({ mode: 'add' })} style={{ width: '100%' }}>
           {t('timeframe.addWindow')}
         </SproutGhostButton>
       </div>
@@ -207,12 +246,18 @@ function DayEditSheet({
         </SproutPrimaryButton>
       </div>
 
-      {adding && (
-        <AddWindowDialog
-          onDismiss={() => setAdding(false)}
-          onAdd={(window) => {
-            setLocalWindows([...localWindows, window]);
-            setAdding(false);
+      {dialogState && (
+        <WindowDialog
+          initial={dialogState.mode === 'edit' ? localWindows[dialogState.index] : undefined}
+          existingWindows={dialogState.mode === 'edit' ? localWindows.filter((_, i) => i !== dialogState.index) : localWindows}
+          onDismiss={() => setDialogState(null)}
+          onSave={(window) => {
+            setLocalWindows(
+              dialogState.mode === 'edit'
+                ? localWindows.map((w, i) => (i === dialogState.index ? window : w))
+                : [...localWindows, window],
+            );
+            setDialogState(null);
           }}
         />
       )}
@@ -220,16 +265,23 @@ function DayEditSheet({
   );
 }
 
-function AddWindowDialog({
+function WindowDialog({
+  initial,
+  existingWindows,
   onDismiss,
-  onAdd,
+  onSave,
 }: {
+  /** Present when editing an existing window; absent when adding a new one. */
+  initial?: TimeFrameWindow;
+  /** The day's other windows — the candidate is rejected if it overlaps any of these. */
+  existingWindows: TimeFrameWindow[];
   onDismiss: () => void;
-  onAdd: (window: TimeFrameWindow) => void;
+  onSave: (window: TimeFrameWindow) => void;
 }) {
   const { t } = useTranslation();
-  const [start, setStart] = useState('16:00');
-  const [end, setEnd] = useState('20:00');
+  const isEdit = initial !== undefined;
+  const [start, setStart] = useState(initial ? toInputTime(initial.startMinute) : '16:00');
+  const [end, setEnd] = useState(initial ? toInputTime(initial.endMinute) : '20:00');
   const [error, setError] = useState<string | null>(null);
 
   const toMinutes = (hhmm: string): number => {
@@ -239,7 +291,7 @@ function AddWindowDialog({
 
   return (
     <Modal onClose={onDismiss}>
-      <h2 style={{ ...typography.headline, margin: '0 0 12px' }}>{t('timeframe.addWindowTitle')}</h2>
+      <h2 style={{ ...typography.headline, margin: '0 0 12px' }}>{isEdit ? t('timeframe.editWindowTitle') : t('timeframe.addWindowTitle')}</h2>
       <label style={{ display: 'block', marginBottom: 12 }}>
         <span style={{ ...typography.caption, color: colors.inkMuted }}>{t('timeframe.startTime')}</span>
         <input type="time" value={start} onChange={(e) => setStart(e.target.value)} style={{ display: 'block', width: '100%', padding: 10, marginTop: 4, borderRadius: radius.input, border: `1px solid ${colors.outline}` }} />
@@ -259,10 +311,15 @@ function AddWindowDialog({
               setError(t('timeframe.endAfterStart'));
               return;
             }
-            onAdd({ startMinute: startMin, endMinute: endMin });
+            const candidate: TimeFrameWindow = { startMinute: startMin, endMinute: endMin };
+            if (existingWindows.some((w) => windowsOverlap(w, candidate))) {
+              setError(t('timeframe.overlapsExisting'));
+              return;
+            }
+            onSave(candidate);
           }}
         >
-          {t('timeframe.add')}
+          {isEdit ? t('common.save') : t('timeframe.add')}
         </SproutPrimaryButton>
       </div>
     </Modal>

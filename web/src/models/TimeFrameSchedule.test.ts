@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { dayOfWeekFromDate, isAllowedAt, nextAllowedMinute, type TimeFrameSchedule } from './TimeFrameSchedule';
+import {
+  ALL_DAY_WINDOW,
+  dayOfWeekFromDate,
+  isAllowedAt,
+  nextAllowedMinute,
+  windowsOverlap,
+  type TimeFrameSchedule,
+} from './TimeFrameSchedule';
 
 describe('dayOfWeekFromDate', () => {
   it('maps JS Date.getDay() (0=Sunday) to the Kotlin DayOfWeek name Firestore stores', () => {
@@ -56,5 +63,29 @@ describe('nextAllowedMinute', () => {
     const from = new Date('2026-01-05T09:00:00'); // Monday 9am
     const next = nextAllowedMinute(schedule, from);
     expect(next).toEqual(new Date('2026-01-06T08:00:00'));
+  });
+});
+
+describe('windowsOverlap', () => {
+  it('detects overlapping windows', () => {
+    expect(windowsOverlap({ startMinute: 480, endMinute: 600 }, { startMinute: 540, endMinute: 660 })).toBe(true);
+  });
+
+  it('treats a window fully containing another as overlapping', () => {
+    expect(windowsOverlap({ startMinute: 0, endMinute: 1440 }, { startMinute: 480, endMinute: 600 })).toBe(true);
+  });
+
+  it('does not flag adjacent windows (one ends exactly where the other starts)', () => {
+    expect(windowsOverlap({ startMinute: 480, endMinute: 600 }, { startMinute: 600, endMinute: 660 })).toBe(false);
+  });
+
+  it('does not flag disjoint windows', () => {
+    expect(windowsOverlap({ startMinute: 480, endMinute: 600 }, { startMinute: 700, endMinute: 800 })).toBe(false);
+  });
+});
+
+describe('ALL_DAY_WINDOW', () => {
+  it('spans the full day', () => {
+    expect(ALL_DAY_WINDOW).toEqual({ startMinute: 0, endMinute: 1440 });
   });
 });
