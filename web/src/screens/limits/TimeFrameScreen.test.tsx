@@ -43,7 +43,9 @@ describe('TimeFrameScreen', () => {
     fireEvent.click(screen.getByText('Monday'));
     fireEvent.click(screen.getByLabelText('Edit window'));
 
-    const [startInput, endInput] = screen.getAllByDisplayValue(/^\d{2}:\d{2}$/) as HTMLInputElement[];
+    const inputs = screen.getAllByDisplayValue(/^\d{2}:\d{2}$/) as HTMLInputElement[];
+    const startInput = inputs[0]!;
+    const endInput = inputs[1]!;
     expect(startInput.value).toBe('08:00');
     expect(endInput.value).toBe('10:00');
     fireEvent.change(endInput, { target: { value: '11:00' } });
