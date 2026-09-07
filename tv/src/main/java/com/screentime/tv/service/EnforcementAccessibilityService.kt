@@ -145,8 +145,9 @@ class EnforcementAccessibilityService : AccessibilityService() {
             return
         }
 
-        // Parent toggled "Allow all day" for today — nothing blocks.
-        if (limits.allowAllDayDate == LocalDate.now().toString()) {
+        // Parent toggled "Allow all day" for today, or turned on "keep
+        // allowing every day" — nothing blocks.
+        if (limits.allowAllDayIndefinite || limits.allowAllDayDate == LocalDate.now().toString()) {
             Log.d(TAG, "Eval $pkg: allow-all-day active")
             unblock()
             return

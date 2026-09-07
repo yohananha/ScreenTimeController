@@ -140,6 +140,8 @@
     <string name="limits_mode_default_caption">לוח הזמנים ומגבלות האפליקציות של היום חלים</string>
     <string name="limits_mode_allow_title">אפשר כל היום</string>
     <string name="limits_mode_allow_caption">כל המגבלות מושהות עד חצות</string>
+    <string name="limits_mode_allow_caption_indefinite">מותר עד שתכבו את זה</string>
+    <string name="limits_mode_allow_keep_daily">להמשיך לאפשר כל יום</string>
     <string name="limits_mode_segment_lock">נעילה</string>
     <string name="limits_mode_segment_default">ברירת מחדל</string>
     <string name="limits_mode_segment_allow">אפשור</string>
@@ -237,4 +239,9 @@
     <string name="tab_codes">קודים</string>
 
     <string name="error_no_family_linked">עדיין לא מחוברים למשפחה.</string>
+
+    <string name="whats_new_dismiss">הבנתי</string>
+    <string name="whats_new_v0_1_13_title">מה חדש</string>
+    <string name="whats_new_v0_1_13_bullet_1">תופיע כאן תקציר קצר כמו זה בכל פעם שהאפליקציה מתעדכנת.</string>
+    <string name="whats_new_v0_1_13_bullet_2">מצב \"אפשור\" יכול עכשיו להישאר פעיל כל יום במקום להתאפס בחצות — חפשו \"להמשיך לאפשר כל יום\" בכרטיסיית המגבלות.</string>
 </resources>

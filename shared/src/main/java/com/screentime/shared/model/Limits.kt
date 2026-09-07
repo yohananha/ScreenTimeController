@@ -7,6 +7,8 @@ data class Limits(
     val timeFrame: TimeFrameSchedule = TimeFrameSchedule.DEFAULT,
     /** yyyy-MM-dd date string. When it matches today, all limits and schedule are bypassed. */
     val allowAllDayDate: String? = null,
+    /** When true, "Allow" stays active every day instead of resetting at midnight. */
+    val allowAllDayIndefinite: Boolean = false,
     /** When true the TV is immediately blocked regardless of schedule, limits, or bonus time. */
     val instantLocked: Boolean = false,
 ) {

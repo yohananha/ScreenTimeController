@@ -29,6 +29,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -159,7 +161,7 @@ fun LimitsScreen(
                 LimitModeCard(
                     mode = when {
                         state.instantLocked -> LimitMode.Lock
-                        state.allowAllDayActive -> LimitMode.Allow
+                        state.allowAllDayActive || state.allowAllDayIndefinite -> LimitMode.Allow
                         else -> LimitMode.Default
                     },
                     onSelect = { selected ->
@@ -169,6 +171,8 @@ fun LimitsScreen(
                             LimitMode.Allow -> viewModel.selectAllowAllDay()
                         }
                     },
+                    allowAllDayIndefinite = state.allowAllDayIndefinite,
+                    onToggleIndefinite = viewModel::setAllowAllDayIndefinite,
                 )
             }
             item {
@@ -509,6 +513,8 @@ private enum class LimitMode { Lock, Default, Allow }
 private fun LimitModeCard(
     mode: LimitMode,
     onSelect: (LimitMode) -> Unit,
+    allowAllDayIndefinite: Boolean = false,
+    onToggleIndefinite: (Boolean) -> Unit = {},
 ) {
     val (bg, titleColor, iconBg, iconTint, icon, title, caption) = when (mode) {
         LimitMode.Lock -> LimitModeVisuals(
@@ -536,7 +542,9 @@ private fun LimitModeCard(
             iconTint = Sprout.colors.positiveDisplay,
             icon = Icons.Filled.WbSunny,
             title = stringResource(R.string.limits_mode_allow_title),
-            caption = stringResource(R.string.limits_mode_allow_caption),
+            caption = stringResource(
+                if (allowAllDayIndefinite) R.string.limits_mode_allow_caption_indefinite else R.string.limits_mode_allow_caption,
+            ),
         )
     }
     Column(
@@ -570,6 +578,32 @@ private fun LimitModeCard(
             }
         }
         LimitModeSegmented(selected = mode, onSelect = onSelect)
+        if (mode == LimitMode.Allow) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    stringResource(R.string.limits_mode_allow_keep_daily),
+                    style = Sprout.typography.caption,
+                    color = Sprout.colors.positiveText,
+                )
+                Switch(
+                    checked = allowAllDayIndefinite,
+                    onCheckedChange = onToggleIndefinite,
+                    thumbContent = { Box(Modifier.size(24.dp)) },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Sprout.colors.surface,
+                        checkedTrackColor = Sprout.colors.positiveDisplay,
+                        checkedBorderColor = Color.Transparent,
+                        uncheckedThumbColor = Sprout.colors.surface,
+                        uncheckedTrackColor = Color(0xFFC9BCD0),
+                        uncheckedBorderColor = Color.Transparent,
+                    ),
+                )
+            }
+        }
     }
 }
 

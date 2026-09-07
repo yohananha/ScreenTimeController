@@ -1,6 +1,7 @@
 package com.screentime.shared.room
 
 import com.screentime.shared.auth.FamilyIdProvider
+import com.screentime.shared.firestore.AllowAllDayState
 import com.screentime.shared.firestore.FirestoreRepository
 import com.screentime.shared.model.InstalledApp
 import com.screentime.shared.model.Limits
@@ -77,13 +78,13 @@ class LimitsRepository @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun observeAllowAllDay(): Flow<String?> = familyIdProvider.familyId.flatMapLatest { id ->
-        if (id == null) flowOf(null) else firestore.allowAllDayFlow(id)
+    fun observeAllowAllDay(): Flow<AllowAllDayState> = familyIdProvider.familyId.flatMapLatest { id ->
+        if (id == null) flowOf(AllowAllDayState(date = null, indefinite = false)) else firestore.allowAllDayFlow(id)
     }
 
-    suspend fun setAllowAllDay(date: String?) {
+    suspend fun setAllowAllDay(date: String?, indefinite: Boolean = false) {
         val id = familyIdProvider.familyId.value ?: return
-        firestore.setAllowAllDay(id, date)
+        firestore.setAllowAllDay(id, date, indefinite)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
