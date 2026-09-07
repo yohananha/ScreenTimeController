@@ -159,6 +159,8 @@
     <string name="limits_mode_default_caption">Today\'s schedule and app limits apply</string>
     <string name="limits_mode_allow_title">Allow all day</string>
     <string name="limits_mode_allow_caption">All limits paused until midnight</string>
+    <string name="limits_mode_allow_caption_indefinite">Allowed until you turn this off</string>
+    <string name="limits_mode_allow_keep_daily">Keep allowing every day</string>
     <string name="limits_mode_segment_lock">Lock</string>
     <string name="limits_mode_segment_default">Default</string>
     <string name="limits_mode_segment_allow">Allow</string>
@@ -260,4 +262,11 @@
     <!-- Client-side precondition errors (not from a caught exception, so
          :shared's FunctionsErrors.toErrorRes() doesn't cover these). -->
     <string name="error_no_family_linked">No family linked yet.</string>
+
+    <!-- whatsnew/WhatsNewDialog.kt -->
+    <string name="whats_new_dismiss">Got it</string>
+    <!-- whatsnew/WhatsNewRegistry.kt — one title + bullet set per release. -->
+    <string name="whats_new_v0_1_13_title">What\'s new</string>
+    <string name="whats_new_v0_1_13_bullet_1">See a short summary like this one whenever the app updates.</string>
+    <string name="whats_new_v0_1_13_bullet_2">Allow mode can now stay on every day instead of resetting at midnight — look for \"Keep allowing every day\" on the Limits tab.</string>
 </resources>

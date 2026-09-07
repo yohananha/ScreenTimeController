@@ -36,6 +36,8 @@ import com.screentime.mobile.ui.requests.RequestsScreen
 import com.screentime.mobile.ui.settings.SettingsScreen
 import com.screentime.mobile.ui.theme.ScreenTimeTheme
 import com.screentime.mobile.ui.theme.Sprout
+import com.screentime.mobile.whatsnew.WhatsNewDialog
+import com.screentime.mobile.whatsnew.WhatsNewViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -72,11 +74,19 @@ private fun AuthGate(viewModel: AuthViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun AppShell(familyId: String, badgeViewModel: RequestsBadgeViewModel = hiltViewModel()) {
+private fun AppShell(
+    familyId: String,
+    badgeViewModel: RequestsBadgeViewModel = hiltViewModel(),
+    whatsNewViewModel: WhatsNewViewModel = hiltViewModel(),
+) {
     val nav = rememberNavController()
     val current by nav.currentBackStackEntryAsState()
     val pendingRequestsCount by badgeViewModel.pendingCount.collectAsState()
     val currentRoute = current?.destination?.route ?: NavTab.Limits.route
+    val whatsNewEntry by whatsNewViewModel.entryToShow.collectAsState()
+    whatsNewEntry?.let { entry ->
+        WhatsNewDialog(entry = entry, onDismiss = whatsNewViewModel::dismiss)
+    }
     Scaffold(
         containerColor = Sprout.colors.background,
         bottomBar = {

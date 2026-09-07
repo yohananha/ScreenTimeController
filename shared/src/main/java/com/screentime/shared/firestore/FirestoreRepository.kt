@@ -36,6 +36,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.random.Random
 
+/** State of the `limits/allDay` doc — see [FirestoreRepository.setAllowAllDay]. */
+data class AllowAllDayState(val date: String?, val indefinite: Boolean)
+
 /**
  * Single entry point for all Firestore reads/writes under each family doc.
  *
@@ -56,13 +59,14 @@ class FirestoreRepository @Inject constructor(
         timeFrameFlow(familyId),
         allowAllDayFlow(familyId),
         instantLockFlow(familyId),
-    ) { overallMinutes, perApp, timeFrame, allowAllDayDate, instantLocked ->
+    ) { overallMinutes, perApp, timeFrame, allowAllDay, instantLocked ->
         Limits(
-            overallDailyMinutes = overallMinutes,
-            perApp              = perApp,
-            timeFrame           = timeFrame,
-            allowAllDayDate     = allowAllDayDate,
-            instantLocked       = instantLocked,
+            overallDailyMinutes    = overallMinutes,
+            perApp                 = perApp,
+            timeFrame              = timeFrame,
+            allowAllDayDate        = allowAllDay.date,
+            allowAllDayIndefinite  = allowAllDay.indefinite,
+            instantLocked          = instantLocked,
         )
     }
 
@@ -160,27 +164,41 @@ class FirestoreRepository @Inject constructor(
             .await()
     }
 
-    fun allowAllDayFlow(familyId: String): Flow<String?> = callbackFlow {
+    fun allowAllDayFlow(familyId: String): Flow<AllowAllDayState> = callbackFlow {
         val ref = db.collection("families").document(familyId)
             .collection("limits").document("allDay")
         val registration = ref.addSnapshotListener { snap, error ->
             if (error != null) {
                 Log.e(TAG, "allowAllDayFlow($familyId) listener failed", error)
-                trySend(null)
+                trySend(AllowAllDayState(date = null, indefinite = false))
                 return@addSnapshotListener
             }
-            trySend(snap?.getString(FIELD_ALLDAY_DATE))
+            trySend(
+                AllowAllDayState(
+                    date = snap?.getString(FIELD_ALLDAY_DATE),
+                    indefinite = snap?.getBoolean(FIELD_ALLDAY_INDEFINITE) ?: false,
+                ),
+            )
         }
         awaitClose { registration.remove() }
     }
 
-    suspend fun setAllowAllDay(familyId: String, date: String?) {
+    /**
+     * [indefinite] = true means "Allow" stays active every day instead of
+     * resetting at midnight; [date] is still stamped alongside it so a
+     * client only reading [AllowAllDayState.date] (or an older client)
+     * still sees today's grant.
+     */
+    suspend fun setAllowAllDay(familyId: String, date: String?, indefinite: Boolean = false) {
         val ref = db.collection("families").document(familyId)
             .collection("limits").document("allDay")
-        if (date == null) {
-            ref.set(mapOf(FIELD_ALLDAY_DATE to FieldValue.delete()), SetOptions.merge()).await()
+        if (date == null && !indefinite) {
+            ref.set(
+                mapOf(FIELD_ALLDAY_DATE to FieldValue.delete(), FIELD_ALLDAY_INDEFINITE to FieldValue.delete()),
+                SetOptions.merge(),
+            ).await()
         } else {
-            ref.set(mapOf(FIELD_ALLDAY_DATE to date)).await()
+            ref.set(mapOf(FIELD_ALLDAY_DATE to date, FIELD_ALLDAY_INDEFINITE to indefinite)).await()
         }
     }
 
@@ -789,6 +807,7 @@ class FirestoreRepository @Inject constructor(
         const val FIELD_TF_START = "start"
         const val FIELD_TF_END = "end"
         const val FIELD_ALLDAY_DATE = "date"
+        const val FIELD_ALLDAY_INDEFINITE = "indefinite"
         const val FIELD_INSTANT_LOCKED = "locked"
         const val FIELD_LANGUAGE_CODE = "code"
         const val FIELD_USER_LANGUAGE = "language"

@@ -34,6 +34,7 @@ data class LimitsUiState(
     val lockout: LockoutSettings = LockoutSettings(),
     val timeFrame: TimeFrameSchedule = TimeFrameSchedule.DEFAULT,
     val allowAllDayActive: Boolean = false,
+    val allowAllDayIndefinite: Boolean = false,
     val instantLocked: Boolean = false,
     val usagePerApp: Map<String, Long> = emptyMap(),
     val totalUsageMillis: Long = 0L,
@@ -66,14 +67,15 @@ open class LimitsViewModel @Inject constructor(
             Triple(tf, allDay, lock)
         },
         _todayUsage,
-    ) { (limits, apps, lockout), (timeFrame, allDayDate, instantLocked), usage ->
+    ) { (limits, apps, lockout), (timeFrame, allDay, instantLocked), usage ->
         LimitsUiState(
             limits = limits.perApp.values.sortedBy { it.packageName },
             overallDailyMinutes = limits.overallDailyMinutes,
             availableApps = apps,
             lockout = lockout,
             timeFrame = timeFrame,
-            allowAllDayActive = allDayDate == LocalDate.now().toString(),
+            allowAllDayActive = allDay.date == LocalDate.now().toString(),
+            allowAllDayIndefinite = allDay.indefinite,
             instantLocked = instantLocked,
             usagePerApp = usage.perAppMillis,
             totalUsageMillis = usage.totalMillis(),
@@ -105,6 +107,15 @@ open class LimitsViewModel @Inject constructor(
     fun selectDefaultLimits() = write {
         repo.setInstantLock(false)
         repo.setAllowAllDay(null)
+    }
+
+    /**
+     * Toggles "keep allowing every day" while in Allow mode. Always
+     * (re)stamps today's date too, so switching this on/off can't
+     * accidentally drop out of Allow mode.
+     */
+    fun setAllowAllDayIndefinite(indefinite: Boolean) = write {
+        repo.setAllowAllDay(LocalDate.now().toString(), indefinite)
     }
 
     private fun write(block: suspend () -> Unit) {
