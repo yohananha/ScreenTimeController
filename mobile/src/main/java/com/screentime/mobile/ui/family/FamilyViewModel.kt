@@ -9,10 +9,13 @@ import com.screentime.shared.firestore.toErrorRes
 import com.screentime.shared.model.Family
 import com.screentime.shared.model.FamilyRole
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,6 +26,8 @@ data class FamilyUiState(
     val error: Int? = null,
     val family: Family? = null,
     val currentUid: String? = null,
+    /** uid -> Google account display name, for members who have signed in since this shipped. */
+    val displayNames: Map<String, String> = emptyMap(),
 )
 
 @HiltViewModel
@@ -36,15 +41,21 @@ class FamilyViewModel @Inject constructor(
 
     private var observingFamilyId: String? = null
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun observeFamily(familyId: String) {
         if (observingFamilyId == familyId) return
         observingFamilyId = familyId
         viewModelScope.launch {
             val session = auth.currentSession.first() ?: return@launch
             _state.value = _state.value.copy(currentUid = session.uid)
-            firestore.familyFlow(familyId).collect { family ->
-                _state.value = _state.value.copy(family = family)
-            }
+            firestore.familyFlow(familyId)
+                .flatMapLatest { family ->
+                    firestore.memberDisplayNamesFlow(family?.members?.keys?.toList().orEmpty())
+                        .map { names -> family to names }
+                }
+                .collect { (family, names) ->
+                    _state.value = _state.value.copy(family = family, displayNames = names)
+                }
         }
     }
 

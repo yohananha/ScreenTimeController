@@ -9,9 +9,17 @@ export interface FamilyUiState {
   joining: boolean;
   error: string | null;
   family: Family | null;
+  /** uid -> Google account display name, for members who have signed in since this shipped. */
+  displayNames: Record<string, string>;
 }
 
-const initialState: FamilyUiState = { inviteCode: null, joining: false, error: null, family: null };
+const initialState: FamilyUiState = {
+  inviteCode: null,
+  joining: false,
+  error: null,
+  family: null,
+  displayNames: {},
+};
 
 export function useFamily(familyId: string | null) {
   const [state, setState] = useState<FamilyUiState>(initialState);
@@ -23,6 +31,16 @@ export function useFamily(familyId: string | null) {
     }
     return repo.subscribeFamily(familyId, (family) => setState((prev) => ({ ...prev, family })));
   }, [familyId]);
+
+  const memberUidsKey = state.family ? Object.keys(state.family.members).sort().join(',') : '';
+  useEffect(() => {
+    const uids = memberUidsKey ? memberUidsKey.split(',') : [];
+    if (uids.length === 0) {
+      setState((prev) => ({ ...prev, displayNames: {} }));
+      return;
+    }
+    return repo.subscribeMemberDisplayNames(uids, (displayNames) => setState((prev) => ({ ...prev, displayNames })));
+  }, [memberUidsKey]);
 
   const createFamily = useCallback((uid: string) => {
     repo.createFamily(uid).catch((e: unknown) => setState((prev) => ({ ...prev, error: describeFunctionsError(e) })));

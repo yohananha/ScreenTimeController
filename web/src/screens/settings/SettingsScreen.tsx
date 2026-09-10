@@ -45,6 +45,7 @@ export function SettingsScreen({ familyId, uid }: { familyId: string; uid: strin
           <MembersSection
             family={state.family}
             currentUid={uid}
+            displayNames={state.displayNames}
             onRemove={(memberUid) => removeMember(memberUid)}
             onGenerateInvite={generateInvite}
             inviteCode={state.inviteCode}
@@ -220,12 +221,14 @@ function EditLockoutDialog({
 function MembersSection({
   family,
   currentUid,
+  displayNames,
   onRemove,
   onGenerateInvite,
   inviteCode,
 }: {
   family: Family;
   currentUid: string;
+  displayNames: Record<string, string>;
   onRemove: (uid: string) => void;
   onGenerateInvite: () => void;
   inviteCode: string | null;
@@ -248,20 +251,23 @@ function MembersSection({
         </span>
       </div>
 
-      {members.map(([memberUid, role], index) => (
-        <div key={memberUid}>
-          {index > 0 && <div style={{ height: 1, background: colors.outline }} />}
-          <MemberRow
-            initial={memberUid === currentUid ? 'P' : 'C'}
-            displayName={memberUid === currentUid ? t('settings.you') : t('settings.coParent')}
-            isOwner={isOwner(family, memberUid)}
-            isSelf={memberUid === currentUid}
-            role={role}
-            showActions={currentIsAdmin && memberUid !== currentUid && !isOwner(family, memberUid)}
-            onRemove={() => onRemove(memberUid)}
-          />
-        </div>
-      ))}
+      {members.map(([memberUid, role], index) => {
+        const coParentName = displayNames[memberUid];
+        return (
+          <div key={memberUid}>
+            {index > 0 && <div style={{ height: 1, background: colors.outline }} />}
+            <MemberRow
+              initial={memberUid === currentUid ? 'P' : (coParentName?.[0]?.toUpperCase() ?? 'C')}
+              displayName={memberUid === currentUid ? t('settings.you') : (coParentName ?? t('settings.coParent'))}
+              isOwner={isOwner(family, memberUid)}
+              isSelf={memberUid === currentUid}
+              role={role}
+              showActions={currentIsAdmin && memberUid !== currentUid && !isOwner(family, memberUid)}
+              onRemove={() => onRemove(memberUid)}
+            />
+          </div>
+        );
+      })}
 
       <div style={{ height: 1, background: colors.outline }} />
       <div

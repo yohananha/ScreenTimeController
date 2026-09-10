@@ -16,6 +16,7 @@ import {
   deleteDoc,
   deleteField,
   doc,
+  documentId,
   getDoc,
   onSnapshot,
   orderBy,
@@ -25,6 +26,7 @@ import {
   setDoc,
   Timestamp,
   updateDoc,
+  where,
   writeBatch,
   type DocumentData,
   type QueryDocumentSnapshot,
@@ -482,6 +484,35 @@ export function subscribeFamily(familyId: string, cb: (family: Family | null) =>
     familyRef(familyId),
     (snap) => cb(snap.exists() ? snapToFamily(snap) : null),
     () => cb(null),
+  );
+}
+
+/**
+ * Resolves each family member's Google account display name from
+ * users/{uid}, for showing a real name in place of "Co-parent" in the member
+ * list. Members who never signed in since this shipped are simply absent
+ * from the map — callers fall back to the generic label.
+ */
+export function subscribeMemberDisplayNames(
+  uids: string[],
+  cb: (names: Record<string, string>) => void,
+): Unsubscribe {
+  if (uids.length === 0) {
+    cb({});
+    return () => {};
+  }
+  const q = query(collection(db, 'users'), where(documentId(), 'in', uids));
+  return onSnapshot(
+    q,
+    (snap) => {
+      const names: Record<string, string> = {};
+      snap.docs.forEach((d) => {
+        const name = d.data().displayName as string | undefined;
+        if (name) names[d.id] = name;
+      });
+      cb(names);
+    },
+    () => cb({}),
   );
 }
 

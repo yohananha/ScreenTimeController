@@ -72,6 +72,19 @@ describe("/users/{uid}", () => {
       setDoc(doc(ctx(STRANGER), "users", USER), { familyId: FAM }),
     );
   });
+  it("a fellow family member can read (but not write) your doc; a stranger still cannot", async () => {
+    await env.withSecurityRulesDisabled(async (adminCtx) => {
+      await setDoc(doc(adminCtx.firestore(), "users", USER), {
+        familyId: FAM,
+        displayName: "Jamie",
+      });
+    });
+    await assertSucceeds(getDoc(doc(ctx(ADMIN2), "users", USER)));
+    await assertFails(
+      setDoc(doc(ctx(ADMIN2), "users", USER), { familyId: FAM, displayName: "Hijacked" }),
+    );
+    await assertFails(getDoc(doc(ctx(STRANGER), "users", USER)));
+  });
 });
 
 describe("/families/{id}", () => {

@@ -627,6 +627,34 @@ class FirestoreRepository @Inject constructor(
         awaitClose { registration.remove() }
     }
 
+    /**
+     * Resolves each family member's Google account display name from
+     * /users/{uid}, for showing a real name in place of "Co-parent" in the
+     * member list. Missing/never-signed-in-since-this-shipped members are
+     * simply absent from the map — callers fall back to the generic label.
+     */
+    fun memberDisplayNamesFlow(uids: List<String>): Flow<Map<String, String>> = callbackFlow {
+        if (uids.isEmpty()) {
+            trySend(emptyMap())
+            awaitClose {}
+            return@callbackFlow
+        }
+        val registration = db.collection("users")
+            .whereIn(com.google.firebase.firestore.FieldPath.documentId(), uids)
+            .addSnapshotListener { snap, error ->
+                if (error != null) {
+                    Log.e(TAG, "memberDisplayNamesFlow($uids) listener failed", error)
+                    trySend(emptyMap())
+                    return@addSnapshotListener
+                }
+                val names = snap?.documents.orEmpty()
+                    .mapNotNull { doc -> doc.getString("displayName")?.let { doc.id to it } }
+                    .toMap()
+                trySend(names)
+            }
+        awaitClose { registration.remove() }
+    }
+
     /** Admin-only: promote/demote a member. Rules forbid touching the owner. */
     suspend fun setMemberRole(familyId: String, uid: String, role: FamilyRole) {
         db.collection("families").document(familyId)

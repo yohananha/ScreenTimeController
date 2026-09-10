@@ -68,6 +68,7 @@ fun FamilyMembersSection(
         MembersSection(
             family = family,
             currentUid = currentUid,
+            displayNames = state.displayNames,
             onSetRole = { uid, role -> viewModel.setMemberRole(familyId, uid, role) },
             onRemove = { uid -> viewModel.removeMember(familyId, uid) },
             onGenerateInvite = { viewModel.generateInvite(familyId) },
@@ -93,6 +94,7 @@ fun FamilyMembersSection(
 private fun MembersSection(
     family: Family,
     currentUid: String,
+    displayNames: Map<String, String>,
     onSetRole: (uid: String, role: FamilyRole) -> Unit,
     onRemove: (uid: String) -> Unit,
     onGenerateInvite: () -> Unit,
@@ -139,9 +141,14 @@ private fun MembersSection(
                             .background(Sprout.colors.outline),
                     )
                 }
+                val coParentName = displayNames[uid]
                 MemberRow(
-                    initial = if (uid == currentUid) "P" else "C",
-                    displayName = if (uid == currentUid) stringResource(R.string.family_you) else stringResource(R.string.family_role_co_parent),
+                    initial = if (uid == currentUid) "P" else coParentName?.firstOrNull()?.uppercase() ?: "C",
+                    displayName = if (uid == currentUid) {
+                        stringResource(R.string.family_you)
+                    } else {
+                        coParentName ?: stringResource(R.string.family_role_co_parent)
+                    },
                     isOwner = family.isOwner(uid),
                     isSelf = uid == currentUid,
                     role = role,

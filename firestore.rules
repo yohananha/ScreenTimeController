@@ -46,8 +46,15 @@ service cloud.firestore {
 
     // ---- /users/{uid} ------------------------------------------------------
     // Each signed-in user owns their own doc, which points at their familyId.
+    // Other members of that same family may also read it (display name only,
+    // shown next to them in the family/member list) — mirrors how paired TV
+    // device docs are readable by every family member.
     match /users/{uid} {
-      allow read, write: if signedIn() && request.auth.uid == uid;
+      allow get, list: if signedIn() && (
+        request.auth.uid == uid
+        || (resource.data.familyId is string && isMemberOf(familyDoc(resource.data.familyId)))
+      );
+      allow write: if signedIn() && request.auth.uid == uid;
     }
 
     // ---- /families/{familyId} ---------------------------------------------
