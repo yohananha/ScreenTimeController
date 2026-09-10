@@ -244,4 +244,6 @@
     <string name="whats_new_v0_1_13_title">מה חדש</string>
     <string name="whats_new_v0_1_13_bullet_1">תופיע כאן תקציר קצר כמו זה בכל פעם שהאפליקציה מתעדכנת.</string>
     <string name="whats_new_v0_1_13_bullet_2">מצב \"אפשור\" יכול עכשיו להישאר פעיל כל יום במקום להתאפס בחצות — חפשו \"להמשיך לאפשר כל יום\" בכרטיסיית המגבלות.</string>
+    <string name="whats_new_v0_1_14_title">מה חדש</string>
+    <string name="whats_new_v0_1_14_bullet_1">מסך המשפחה והמכשירים מציג כעת את השם האמיתי של ההורה השותף (מחשבון הגוגל שלו) במקום התווית הכללית \"הורה שותף\".</string>
 </resources>

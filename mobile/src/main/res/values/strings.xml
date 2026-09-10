@@ -269,4 +269,6 @@
     <string name="whats_new_v0_1_13_title">What\'s new</string>
     <string name="whats_new_v0_1_13_bullet_1">See a short summary like this one whenever the app updates.</string>
     <string name="whats_new_v0_1_13_bullet_2">Allow mode can now stay on every day instead of resetting at midnight — look for \"Keep allowing every day\" on the Limits tab.</string>
+    <string name="whats_new_v0_1_14_title">What\'s new</string>
+    <string name="whats_new_v0_1_14_bullet_1">The Family &amp; Devices screen now shows your co-parent\'s real name (from their Google account) instead of a generic \"Co-parent\" label.</string>
 </resources>
