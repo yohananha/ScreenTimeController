@@ -58,7 +58,10 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-34-tv
+          # Keyed to the image the AVD is built from: an AVD restored from a
+          # cache made with a different system image silently defeats the
+          # target/arch settings below.
+          key: avd-34-tv-androidtv-x86
       - name: Provide dummy google-services.json
         run: |
           for d in mobile tv; do
@@ -68,7 +71,15 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
-          arch: x86_64
+          # A tv_1080p device profile booted against a phone system image
+          # (google_apis) is an incoherent AVD: it came up with GPU
+          # "Failed to find ColorBuffer" errors and killed the instrumentation
+          # before a single test was collected ("Starting 0 tests" ->
+          # "Process crashed"), which is why this job had never once gone
+          # green. Match the profile with an actual TV image. Note the arch:
+          # android-tv publishes x86 only at API 34 -- there is no x86_64
+          # TV image until API 36.
+          arch: x86
           profile: tv_1080p
-          target: google_apis
+          target: android-tv
           script: ./gradlew :tv:connectedDebugAndroidTest
