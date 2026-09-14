@@ -89,8 +89,7 @@
     <string name="timeframe_subtitle">When the TV is allowed to be on</string>
     <string name="timeframe_enforce_schedule">Enforce a schedule</string>
     <string name="timeframe_enforce_hint">Outside these hours the TV is blocked. Bonus codes still work.</string>
-    <string name="timeframe_copy_weekdays">Copy Mon to weekdays</string>
-    <string name="timeframe_copy_weekend">Copy Sat to weekend</string>
+    <string name="timeframe_apply_also_to">Apply also to</string>
     <string name="timeframe_saving">Saving…</string>
     <string name="timeframe_save_schedule">Save schedule</string>
     <string name="timeframe_today_badge">Today</string>

@@ -44,32 +44,11 @@ class TimeFrameViewModel @Inject constructor(
         _state.update { it.copy(schedule = it.schedule.copy(enabled = enabled), pendingChanges = true) }
     }
 
-    fun setWindows(day: DayOfWeek, windows: List<TimeFrameWindow>) {
-        _state.update { state ->
-            val updated = state.schedule.windowsByDay.toMutableMap().also { it[day] = windows }
-            state.copy(schedule = state.schedule.copy(windowsByDay = updated), pendingChanges = true)
-        }
-    }
-
-    fun copyToWeekdays(day: DayOfWeek) {
-        val windows = _state.value.schedule.windowsByDay[day] ?: emptyList()
-        val weekdays = listOf(
-            DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
-            DayOfWeek.THURSDAY, DayOfWeek.FRIDAY,
-        )
+    fun setWindows(day: DayOfWeek, windows: List<TimeFrameWindow>, applyAlsoTo: Set<DayOfWeek> = emptySet()) {
         _state.update { state ->
             val updated = state.schedule.windowsByDay.toMutableMap()
-            weekdays.forEach { updated[it] = windows }
-            state.copy(schedule = state.schedule.copy(windowsByDay = updated), pendingChanges = true)
-        }
-    }
-
-    fun copyToWeekend(day: DayOfWeek) {
-        val windows = _state.value.schedule.windowsByDay[day] ?: emptyList()
-        val weekend = listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
-        _state.update { state ->
-            val updated = state.schedule.windowsByDay.toMutableMap()
-            weekend.forEach { updated[it] = windows }
+            updated[day] = windows
+            applyAlsoTo.forEach { updated[it] = windows }
             state.copy(schedule = state.schedule.copy(windowsByDay = updated), pendingChanges = true)
         }
     }

@@ -74,8 +74,7 @@
     <string name="timeframe_subtitle">מתי מותר להפעיל את הטלוויזיה</string>
     <string name="timeframe_enforce_schedule">הפעלת לוח זמנים</string>
     <string name="timeframe_enforce_hint">מחוץ לשעות אלו הטלוויזיה חסומה. קודי בונוס עדיין פועלים.</string>
-    <string name="timeframe_copy_weekdays">העתקת שני לימי החול</string>
-    <string name="timeframe_copy_weekend">העתקת שבת לסוף השבוע</string>
+    <string name="timeframe_apply_also_to">החל גם על</string>
     <string name="timeframe_saving">שומר…</string>
     <string name="timeframe_save_schedule">שמירת לוח הזמנים</string>
     <string name="timeframe_today_badge">היום</string>

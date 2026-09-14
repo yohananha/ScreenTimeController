@@ -56,6 +56,8 @@ import com.screentime.shared.model.overlaps
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
+import java.time.temporal.WeekFields
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -150,14 +152,15 @@ fun TimeFrameScreen(
                             .background(Sprout.colors.surface, Sprout.radius.card),
                     ) {
                         val today = LocalDate.now().dayOfWeek
-                        DayOfWeek.entries.forEachIndexed { index, day ->
+                        val orderedDays = remember { orderedDaysForLocale() }
+                        orderedDays.forEachIndexed { index, day ->
                             DayRow(
                                 day = day,
                                 isToday = day == today,
                                 windows = state.schedule.windowsByDay[day] ?: emptyList(),
                                 onClick = { editingDay = day },
                             )
-                            if (index < 6) {
+                            if (index < orderedDays.lastIndex) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -166,23 +169,6 @@ fun TimeFrameScreen(
                                         .size(height = 1.dp, width = 0.dp),
                                 )
                             }
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            SproutGhostButton(
-                                text = stringResource(R.string.timeframe_copy_weekdays),
-                                onClick = { viewModel.copyToWeekdays(DayOfWeek.MONDAY) },
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                            )
-                            SproutGhostButton(
-                                text = stringResource(R.string.timeframe_copy_weekend),
-                                onClick = { viewModel.copyToWeekend(DayOfWeek.SATURDAY) },
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                            )
                         }
                     }
                 }
@@ -207,12 +193,19 @@ fun TimeFrameScreen(
             day = day,
             windows = state.schedule.windowsByDay[day] ?: emptyList(),
             onDismiss = { editingDay = null },
-            onSave = { windows ->
-                viewModel.setWindows(day, windows)
+            onSave = { windows, applyAlsoTo ->
+                viewModel.setWindows(day, windows, applyAlsoTo)
                 editingDay = null
             },
         )
     }
+}
+
+/** [DayOfWeek.entries] rotated so the week starts on the current locale's first day of week. */
+private fun orderedDaysForLocale(locale: Locale = Locale.getDefault()): List<DayOfWeek> {
+    val all = DayOfWeek.entries
+    val startIndex = all.indexOf(WeekFields.of(locale).firstDayOfWeek)
+    return all.drop(startIndex) + all.take(startIndex)
 }
 
 @Composable
@@ -271,11 +264,12 @@ private fun DayEditSheet(
     day: DayOfWeek,
     windows: List<TimeFrameWindow>,
     onDismiss: () -> Unit,
-    onSave: (List<TimeFrameWindow>) -> Unit,
+    onSave: (List<TimeFrameWindow>, Set<DayOfWeek>) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var localWindows by remember(windows) { mutableStateOf(windows.toMutableList()) }
     var dialogState by remember { mutableStateOf<DialogState?>(null) }
+    var applyAlsoTo by remember(day) { mutableStateOf<Set<DayOfWeek>>(emptySet()) }
     val allDay = localWindows.isAllDay()
 
     ModalBottomSheet(
@@ -366,9 +360,17 @@ private fun DayEditSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
 
+            ApplyAlsoToPicker(
+                excludeDay = day,
+                selected = applyAlsoTo,
+                onToggle = { d ->
+                    applyAlsoTo = if (d in applyAlsoTo) applyAlsoTo - d else applyAlsoTo + d
+                },
+            )
+
             SproutPrimaryButton(
                 text = stringResource(SharedR.string.action_done),
-                onClick = { onSave(localWindows) },
+                onClick = { onSave(localWindows, applyAlsoTo) },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -557,6 +559,46 @@ private fun WindowDialog(
 
 private val DayOfWeek.displayName: String
     @Composable get() = LocalFormats.current.clock.dayName(this, TextStyle.FULL)
+
+private val DayOfWeek.shortDisplayName: String
+    @Composable get() = LocalFormats.current.clock.dayName(this, TextStyle.SHORT)
+
+/** Lets the user extend the day's hours being edited to other days, chosen from a locale-ordered list. */
+@Composable
+private fun ApplyAlsoToPicker(
+    excludeDay: DayOfWeek,
+    selected: Set<DayOfWeek>,
+    onToggle: (DayOfWeek) -> Unit,
+) {
+    val otherDays = remember(excludeDay) { orderedDaysForLocale().filter { it != excludeDay } }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            stringResource(R.string.timeframe_apply_also_to),
+            style = Sprout.typography.caption,
+            color = Sprout.colors.inkMuted,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            otherDays.forEach { d ->
+                val isSelected = d in selected
+                val bg = if (isSelected) Sprout.colors.ink else Sprout.colors.background
+                val fg = if (isSelected) Sprout.colors.background else Sprout.colors.inkMuted
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(bg, Sprout.radius.pill)
+                        .clickable { onToggle(d) }
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Text(d.shortDisplayName, style = Sprout.typography.caption, color = fg)
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun Int.toTimeLabel(): String = LocalFormats.current.clock.timeOfDay(this)

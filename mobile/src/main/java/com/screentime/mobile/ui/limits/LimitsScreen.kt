@@ -756,14 +756,20 @@ private fun summarizeSchedule(schedule: TimeFrameSchedule): String {
     val clock = LocalFormats.current.clock
     val resources = LocalContext.current.resources
     val first = sorted.first().value.first()
-    val windowStr = clock.range(resources, minutesToAmPm(first.startMinute), minutesToAmPm(first.endMinute))
     val allSame = sorted.all { it.value.size == 1 && it.value.first() == first }
     return if (allSame) {
+        val windowStr = clock.range(resources, minutesToAmPm(first.startMinute), minutesToAmPm(first.endMinute))
         val firstDay = clock.dayName(sorted.first().key, TextStyle.SHORT)
         val lastDay = clock.dayName(sorted.last().key, TextStyle.SHORT)
         "${clock.range(resources, firstDay, lastDay)}, $windowStr"
     } else {
-        val dayShort = clock.dayName(sorted.first().key, TextStyle.SHORT)
+        val today = LocalDate.now().dayOfWeek
+        val highlighted = sorted.firstOrNull { it.key == today }
+            ?: sorted.firstOrNull { it.key.value > today.value }
+            ?: sorted.first()
+        val window = highlighted.value.first()
+        val windowStr = clock.range(resources, minutesToAmPm(window.startMinute), minutesToAmPm(window.endMinute))
+        val dayShort = clock.dayName(highlighted.key, TextStyle.SHORT)
         val more = sorted.size - 1
         "$dayShort: $windowStr" + if (more > 0) " · ${pluralStringResource(R.plurals.limits_more_days, more, more)}" else ""
     }
