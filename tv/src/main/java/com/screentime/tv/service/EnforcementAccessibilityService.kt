@@ -138,8 +138,10 @@ class EnforcementAccessibilityService : AccessibilityService() {
         val limits = currentLimits.value
         val perAppLimit = limits.perApp[pkg]
 
-        // Parent-initiated instant lock — absolute override, nothing pierces it.
-        if (limits.instantLocked) {
+        // Parent-initiated instant lock — absolute override, nothing pierces
+        // it, but it self-clears at midnight rather than staying locked
+        // indefinitely (mirrors allowAllDayDate below).
+        if (limits.instantLockedDate == LocalDate.now().toString()) {
             Log.d(TAG, "Eval $pkg: instant lock active")
             block(pkg, BlockReason.InstantLocked)
             return

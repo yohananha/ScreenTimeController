@@ -9,8 +9,13 @@ data class Limits(
     val allowAllDayDate: String? = null,
     /** When true, "Allow" stays active every day instead of resetting at midnight. */
     val allowAllDayIndefinite: Boolean = false,
-    /** When true the TV is immediately blocked regardless of schedule, limits, or bonus time. */
-    val instantLocked: Boolean = false,
+    /**
+     * yyyy-MM-dd date string. When it matches today, the TV is immediately
+     * blocked regardless of schedule, limits, or bonus time — like
+     * [allowAllDayDate], this resets itself at midnight instead of staying
+     * locked indefinitely until a parent manually clears it.
+     */
+    val instantLockedDate: String? = null,
 ) {
     companion object {
         const val DEFAULT_OVERALL_MINUTES = 120

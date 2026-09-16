@@ -3,6 +3,7 @@ package com.screentime.shared.room
 import com.screentime.shared.auth.FamilyIdProvider
 import com.screentime.shared.firestore.AllowAllDayState
 import com.screentime.shared.firestore.FirestoreRepository
+import com.screentime.shared.firestore.InstantLockState
 import com.screentime.shared.model.InstalledApp
 import com.screentime.shared.model.Limits
 import com.screentime.shared.model.LockoutMode
@@ -88,8 +89,8 @@ class LimitsRepository @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun observeInstantLock(): Flow<Boolean> = familyIdProvider.familyId.flatMapLatest { id ->
-        if (id == null) flowOf(false) else firestore.instantLockFlow(id)
+    fun observeInstantLock(): Flow<InstantLockState> = familyIdProvider.familyId.flatMapLatest { id ->
+        if (id == null) flowOf(InstantLockState(locked = false, date = null)) else firestore.instantLockFlow(id)
     }
 
     suspend fun setInstantLock(locked: Boolean) {

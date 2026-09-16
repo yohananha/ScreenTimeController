@@ -67,7 +67,7 @@ open class LimitsViewModel @Inject constructor(
             Triple(tf, allDay, lock)
         },
         _todayUsage,
-    ) { (limits, apps, lockout), (timeFrame, allDay, instantLocked), usage ->
+    ) { (limits, apps, lockout), (timeFrame, allDay, instantLock), usage ->
         LimitsUiState(
             limits = limits.perApp.values.sortedBy { it.packageName },
             overallDailyMinutes = limits.overallDailyMinutes,
@@ -76,7 +76,7 @@ open class LimitsViewModel @Inject constructor(
             timeFrame = timeFrame,
             allowAllDayActive = allDay.date == LocalDate.now().toString(),
             allowAllDayIndefinite = allDay.indefinite,
-            instantLocked = instantLocked,
+            instantLocked = instantLock.locked && instantLock.date == LocalDate.now().toString(),
             usagePerApp = usage.perAppMillis,
             totalUsageMillis = usage.totalMillis(),
         )

@@ -39,6 +39,9 @@ import kotlin.random.Random
 /** State of the `limits/allDay` doc — see [FirestoreRepository.setAllowAllDay]. */
 data class AllowAllDayState(val date: String?, val indefinite: Boolean)
 
+/** State of the `limits/instantLock` doc — see [FirestoreRepository.setInstantLock]. */
+data class InstantLockState(val locked: Boolean, val date: String?)
+
 /**
  * Single entry point for all Firestore reads/writes under each family doc.
  *
@@ -59,14 +62,14 @@ class FirestoreRepository @Inject constructor(
         timeFrameFlow(familyId),
         allowAllDayFlow(familyId),
         instantLockFlow(familyId),
-    ) { overallMinutes, perApp, timeFrame, allowAllDay, instantLocked ->
+    ) { overallMinutes, perApp, timeFrame, allowAllDay, instantLock ->
         Limits(
             overallDailyMinutes    = overallMinutes,
             perApp                 = perApp,
             timeFrame              = timeFrame,
             allowAllDayDate        = allowAllDay.date,
             allowAllDayIndefinite  = allowAllDay.indefinite,
-            instantLocked          = instantLocked,
+            instantLockedDate      = if (instantLock.locked) instantLock.date else null,
         )
     }
 
@@ -202,31 +205,43 @@ class FirestoreRepository @Inject constructor(
         }
     }
 
-    fun instantLockFlow(familyId: String): Flow<Boolean> = callbackFlow {
+    fun instantLockFlow(familyId: String): Flow<InstantLockState> = callbackFlow {
         val ref = db.collection("families").document(familyId)
             .collection("limits").document("instantLock")
-        var lastKnown: Boolean? = null
+        var lastKnown: InstantLockState? = null
         val registration = ref.addSnapshotListener { snap, error ->
             if (error != null) {
                 Log.e(TAG, "instantLockFlow($familyId) listener failed", error)
                 // Fail-secure: re-emit the last known value, or default to locked
-                // if we never received one. Defaulting to false here would allow
-                // a child to bypass an active instant-lock by forcing listener errors.
-                trySend(lastKnown ?: true)
+                // (as of today) if we never received one. Defaulting to unlocked
+                // here would allow a child to bypass an active instant-lock by
+                // forcing listener errors.
+                trySend(lastKnown ?: InstantLockState(locked = true, date = LocalDate.now().toString()))
                 return@addSnapshotListener
             }
-            val value = snap?.getBoolean(FIELD_INSTANT_LOCKED) ?: false
+            val value = InstantLockState(
+                locked = snap?.getBoolean(FIELD_INSTANT_LOCKED) ?: false,
+                date = snap?.getString(FIELD_INSTANT_LOCK_DATE),
+            )
             lastKnown = value
             trySend(value)
         }
         awaitClose { registration.remove() }
     }
 
+    /**
+     * [locked] = true stamps today's date alongside the flag, so the lock
+     * self-clears at midnight — like [setAllowAllDay] — instead of staying
+     * locked indefinitely until a parent manually flips it back.
+     */
     suspend fun setInstantLock(familyId: String, locked: Boolean) {
-        db.collection("families").document(familyId)
+        val ref = db.collection("families").document(familyId)
             .collection("limits").document("instantLock")
-            .set(mapOf(FIELD_INSTANT_LOCKED to locked))
-            .await()
+        if (locked) {
+            ref.set(mapOf(FIELD_INSTANT_LOCKED to true, FIELD_INSTANT_LOCK_DATE to LocalDate.now().toString())).await()
+        } else {
+            ref.set(mapOf(FIELD_INSTANT_LOCKED to false, FIELD_INSTANT_LOCK_DATE to FieldValue.delete()), SetOptions.merge()).await()
+        }
     }
 
     suspend fun removeLimit(familyId: String, packageName: String) {
@@ -837,6 +852,7 @@ class FirestoreRepository @Inject constructor(
         const val FIELD_ALLDAY_DATE = "date"
         const val FIELD_ALLDAY_INDEFINITE = "indefinite"
         const val FIELD_INSTANT_LOCKED = "locked"
+        const val FIELD_INSTANT_LOCK_DATE = "date"
         const val FIELD_LANGUAGE_CODE = "code"
         const val FIELD_USER_LANGUAGE = "language"
     }

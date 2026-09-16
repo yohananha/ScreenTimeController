@@ -153,7 +153,7 @@
     <string name="limits_lockout_mode_parent">Require a parent to unlock</string>
 
     <string name="limits_mode_lock_title">Instant lock</string>
-    <string name="limits_mode_lock_caption">TV is locked — tap Default to release</string>
+    <string name="limits_mode_lock_caption">TV is locked until midnight — tap Default to release sooner</string>
     <string name="limits_mode_default_title">Limits active</string>
     <string name="limits_mode_default_caption">Today\'s schedule and app limits apply</string>
     <string name="limits_mode_allow_title">Allow all day</string>

@@ -134,7 +134,7 @@
     <string name="limits_lockout_mode_parent">תדרוש פתיחה על ידי הורה</string>
 
     <string name="limits_mode_lock_title">נעילה מיידית</string>
-    <string name="limits_mode_lock_caption">הטלוויזיה נעולה — הקישו על ברירת מחדל כדי לשחרר</string>
+    <string name="limits_mode_lock_caption">הטלוויזיה נעולה עד חצות — הקישו על ברירת מחדל כדי לשחרר מוקדם יותר</string>
     <string name="limits_mode_default_title">מגבלות פעילות</string>
     <string name="limits_mode_default_caption">לוח הזמנים ומגבלות האפליקציות של היום חלים</string>
     <string name="limits_mode_allow_title">אפשר כל היום</string>
