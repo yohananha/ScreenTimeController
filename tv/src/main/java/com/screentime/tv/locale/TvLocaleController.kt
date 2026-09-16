@@ -1,7 +1,10 @@
 package com.screentime.tv.locale
 
 import android.content.Context
+import android.content.ContextWrapper
+import android.content.res.AssetManager
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.text.TextUtils
 import android.view.View
 import androidx.compose.ui.unit.LayoutDirection
@@ -60,14 +63,30 @@ class TvLocaleController @Inject constructor(
         }
     }
 
-    /** A locale-applied Context whose Resources resolve strings in the family's language. */
+    /**
+     * A locale-applied Context whose Resources resolve strings in the
+     * family's language.
+     *
+     * Wraps [base] in a [ContextWrapper] rather than returning
+     * `base.createConfigurationContext(cfg)` directly: that call produces a
+     * bare `ContextImpl` with no link back to [base], so when [base] is an
+     * Activity, anything that walks the context chain looking for one (e.g.
+     * `hiltViewModel()`'s `findActivity()`) fails with "Expected an activity
+     * context". A ContextWrapper preserves that chain via getBaseContext()
+     * while still serving the localized resources.
+     */
     fun wrap(base: Context): Context {
         val l = _locale.value ?: return base
         val cfg = Configuration(base.resources.configuration).apply {
             setLocale(l)
             setLayoutDirection(l)
         }
-        return base.createConfigurationContext(cfg)
+        val configContext = base.createConfigurationContext(cfg)
+        return object : ContextWrapper(base) {
+            override fun getResources(): Resources = configContext.resources
+            override fun getAssets(): AssetManager = configContext.assets
+            override fun getTheme(): Resources.Theme = configContext.theme
+        }
     }
 
     fun layoutDirection(): LayoutDirection {
