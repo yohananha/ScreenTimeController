@@ -9,13 +9,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
-import com.screentime.mobile.R
 import com.screentime.mobile.ui.components.ChipGroup
-import com.screentime.mobile.ui.components.SproutGhostButton
-import com.screentime.mobile.ui.components.SproutPrimaryButton
-import com.screentime.mobile.ui.components.StatusBadge
-import com.screentime.mobile.ui.components.Status
+import com.screentime.mobile.ui.components.PeachPlumGhostButton
+import com.screentime.mobile.ui.components.PeachPlumPrimaryButton
 import com.screentime.mobile.ui.theme.ScreenTimeTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -28,44 +24,10 @@ class ComponentsTest {
     @get:Rule
     val composeRule = createComposeRule()
 
-    private val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
-
-    @Test
-    fun statusBadgeOnTrackIsDisplayed() {
-        composeRule.setContent {
-            ScreenTimeTheme { StatusBadge(status = Status.OnTrack) }
-        }
-        composeRule.onNodeWithText(targetContext.getString(R.string.status_on_track)).assertIsDisplayed()
-    }
-
-    @Test
-    fun statusBadgeAlmostUpIsDisplayed() {
-        composeRule.setContent {
-            ScreenTimeTheme { StatusBadge(status = Status.AlmostUp) }
-        }
-        composeRule.onNodeWithText(targetContext.getString(R.string.status_almost_up)).assertIsDisplayed()
-    }
-
-    @Test
-    fun statusBadgeTimesUpIsDisplayed() {
-        composeRule.setContent {
-            ScreenTimeTheme { StatusBadge(status = Status.TimesUp) }
-        }
-        composeRule.onNodeWithText(targetContext.getString(R.string.status_times_up)).assertIsDisplayed()
-    }
-
-    @Test
-    fun statusBadgePausedIsDisplayed() {
-        composeRule.setContent {
-            ScreenTimeTheme { StatusBadge(status = Status.Paused) }
-        }
-        composeRule.onNodeWithText(targetContext.getString(R.string.status_paused)).assertIsDisplayed()
-    }
-
     @Test
     fun primaryButtonEnabledIsDisplayed() {
         composeRule.setContent {
-            ScreenTimeTheme { SproutPrimaryButton(text = "Confirm", onClick = {}) }
+            ScreenTimeTheme { PeachPlumPrimaryButton(text = "Confirm", onClick = {}) }
         }
         composeRule.onNodeWithText("Confirm").assertIsDisplayed()
     }
@@ -73,7 +35,7 @@ class ComponentsTest {
     @Test
     fun primaryButtonDisabledIsDisplayed() {
         composeRule.setContent {
-            ScreenTimeTheme { SproutPrimaryButton(text = "Disabled", onClick = {}, enabled = false) }
+            ScreenTimeTheme { PeachPlumPrimaryButton(text = "Disabled", onClick = {}, enabled = false) }
         }
         composeRule.onNodeWithText("Disabled").assertIsDisplayed()
     }
@@ -81,7 +43,7 @@ class ComponentsTest {
     @Test
     fun ghostButtonIsDisplayed() {
         composeRule.setContent {
-            ScreenTimeTheme { SproutGhostButton(text = "Cancel", onClick = {}) }
+            ScreenTimeTheme { PeachPlumGhostButton(text = "Cancel", onClick = {}) }
         }
         composeRule.onNodeWithText("Cancel").assertIsDisplayed()
     }

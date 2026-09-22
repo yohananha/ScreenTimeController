@@ -59,18 +59,6 @@ class ResponsiveLayoutTest {
     }
 
     @Test
-    fun heroCardDecorativeCircleDoesNotCrash() {
-        composeRule.setContent {
-            ScreenTimeTheme {
-                com.screentime.mobile.ui.components.HeroCard {
-                    Text("Hello")
-                }
-            }
-        }
-        composeRule.onNodeWithText("Hello").assertIsDisplayed()
-    }
-
-    @Test
     fun compactWidthUses16dpPadding() {
         var observedPadding = 0.dp
         composeRule.setContent {
