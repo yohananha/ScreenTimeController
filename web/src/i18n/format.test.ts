@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import i18n from './i18n';
-import { formatDurationLabel, formatLimitLabel, formatRelativeTime, summarizeSchedule } from './format';
+import { formatDurationLabel, formatHoursMinutesClock, formatLimitLabel, formatRelativeTime, summarizeSchedule } from './format';
 import { UNLIMITED } from '../models/Limits';
 import { DEFAULT_TIME_FRAME_SCHEDULE } from '../models/TimeFrameSchedule';
 
@@ -51,6 +51,19 @@ describe('format (Hebrew)', () => {
   it('formats the unlimited sentinel in Hebrew', async () => {
     await i18n.changeLanguage('he');
     expect(formatLimitLabel(UNLIMITED)).toBe('ללא הגבלה');
+  });
+});
+
+describe('formatHoursMinutesClock', () => {
+  it('formats minutes as h:mm, zero-padding the minutes', () => {
+    expect(formatHoursMinutesClock(85)).toBe('1:25');
+    expect(formatHoursMinutesClock(240)).toBe('4:00');
+    expect(formatHoursMinutesClock(5)).toBe('0:05');
+    expect(formatHoursMinutesClock(0)).toBe('0:00');
+  });
+
+  it('clamps negative input to zero', () => {
+    expect(formatHoursMinutesClock(-10)).toBe('0:00');
   });
 });
 

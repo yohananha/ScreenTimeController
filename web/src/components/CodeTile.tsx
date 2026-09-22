@@ -1,25 +1,27 @@
-import { colors } from '../theme/colors';
+import { peachPlumColor } from '../theme/tokens';
 
-/** 6 cream-on-dark digit tiles used in the active unlock-code hero card. */
+/** Unlock code display tiles (design/i6c-peach-plum README §3 "Code tiles"). Always LTR. */
 export function CodeTilesRow({ code }: { code: string }) {
   return (
     // dir="ltr" keeps digit order stable under RTL — a Row would otherwise reverse it.
-    <div dir="ltr" style={{ display: 'flex', gap: 9, width: '100%' }}>
+    <div dir="ltr" style={{ display: 'flex', gap: 10, width: '100%' }}>
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
           style={{
-            flex: 1,
-            height: 78,
+            flexGrow: 1,
+            height: 84,
             borderRadius: 18,
-            background: colors.background,
+            background: peachPlumColor.surface,
+            border: `1.5px solid ${peachPlumColor.hairline}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontFamily: 'Fredoka, sans-serif',
+            fontFamily: 'Rubik, system-ui, sans-serif',
             fontWeight: 600,
-            fontSize: 44,
-            color: colors.ink,
+            fontSize: 40,
+            letterSpacing: '-0.02em',
+            color: peachPlumColor.ink,
           }}
         >
           {code[i] ?? '-'}

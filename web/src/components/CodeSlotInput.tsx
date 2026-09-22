@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { colors } from '../theme/colors';
+import { peachPlumColor } from '../theme/tokens';
 
 /** 6-digit invite/pairing code entry. Hidden text input accepts input; visible slots render code. */
 export function CodeSlotInput({
@@ -19,7 +19,6 @@ export function CodeSlotInput({
       {/* dir="ltr" keeps digit order stable under RTL — a Row would otherwise reverse it. */}
       <div dir="ltr" style={{ display: 'flex', gap: 8, cursor: 'text' }} onClick={() => inputRef.current?.focus()}>
         {Array.from({ length: slots }).map((_, i) => {
-          const filled = i < value.length;
           const active = i === value.length;
           return (
             <div
@@ -27,16 +26,16 @@ export function CodeSlotInput({
               style={{
                 flex: 1,
                 height: 62,
-                borderRadius: 14,
-                background: filled || active ? colors.background : colors.surfaceSunken,
-                border: `${active ? 2 : 1.5}px solid ${active ? colors.primary : colors.outline}`,
+                borderRadius: 18,
+                background: peachPlumColor.surface,
+                border: `${active ? 2 : 1.5}px solid ${active ? peachPlumColor.ink : peachPlumColor.hairline}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontFamily: 'Fredoka, sans-serif',
+                fontFamily: 'Rubik, system-ui, sans-serif',
                 fontWeight: 600,
                 fontSize: 32,
-                color: colors.ink,
+                color: peachPlumColor.ink,
               }}
             >
               {value[i] ?? ''}

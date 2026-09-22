@@ -172,7 +172,7 @@ function LockoutCard({
   );
 }
 
-function EditLockoutDialog({
+export function EditLockoutDialog({
   current,
   onDismiss,
   onSave,

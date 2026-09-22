@@ -333,7 +333,7 @@ function LimitModeCard({ mode, onSelect }: { mode: LimitMode; onSelect: (mode: L
   );
 }
 
-function PickAppDialog({
+export function PickAppDialog({
   available,
   tvHasNoApps,
   onDismiss,
@@ -372,7 +372,7 @@ function PickAppDialog({
   );
 }
 
-function EditLimitDialog({
+export function EditLimitDialog({
   target,
   onDismiss,
   onSave,
@@ -434,7 +434,7 @@ function EditLimitDialog({
   );
 }
 
-function EditOverallLimitDialog({
+export function EditOverallLimitDialog({
   currentMinutes,
   onDismiss,
   onSave,

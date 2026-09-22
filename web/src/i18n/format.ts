@@ -89,3 +89,19 @@ export function formatCountdown(totalSeconds: number): string {
   const sec = s % 60;
   return `${m}:${String(sec).padStart(2, '0')}`;
 }
+
+/** "1:25" for 85 minutes — the TimeGauge's h:mm label. Digits, never localized or mirrored. */
+export function formatHoursMinutesClock(totalMinutes: number): string {
+  const m = Math.max(0, Math.round(totalMinutes));
+  const hours = Math.floor(m / 60);
+  const mins = m % 60;
+  return `${hours}:${String(mins).padStart(2, '0')}`;
+}
+
+/** Falls back to a capitalized last path segment of the package name (e.g. "com.x.youtube" -> "Youtube"). */
+export function packageDisplayName(pkg: string, availableApps: { packageName: string; label: string }[]): string {
+  const known = availableApps.find((a) => a.packageName === pkg)?.label;
+  if (known) return known;
+  const last = pkg.split('.').pop() ?? pkg;
+  return last.charAt(0).toUpperCase() + last.slice(1);
+}

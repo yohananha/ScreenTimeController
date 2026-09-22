@@ -133,6 +133,48 @@
     "overlapsExisting": "This overlaps a window you already have",
     "add": "Add"
   },
+  "today": {
+    "navToday": "Today",
+    "navRules": "Rules",
+    "navFamily": "Family",
+    "familyAria": "Family",
+    "unlockAria": "Unlock code",
+    "modeGroupAria": "TV mode",
+    "modeLock": "Lock",
+    "modeLimits": "Limits",
+    "modeAllow": "Allow",
+    "gaugeWordLeft": "left",
+    "gaugeWordOver": "over",
+    "gaugeCaption": "of {{limit}} · resets 00:00",
+    "noDailyLimit": "No daily limit",
+    "noTvPaired": "No TV paired",
+    "requestTitle": "{{minutes}} more minutes on {{app}}?",
+    "requestSubtitle": "Asked from the TV · {{time}}",
+    "approveAria": "Approve {{minutes}} minutes",
+    "denyAria": "Deny",
+    "byApp": "By app",
+    "rulesLink": "Rules",
+    "usageByApp": "Usage by app"
+  },
+  "rules": {
+    "subtitle": "What the TV is allowed to do",
+    "addAppLink": "+ Add",
+    "perDay": "{{limit}} per day"
+  },
+  "family": {
+    "subtitle": "Parents and TVs",
+    "secondParent": "Second parent"
+  },
+  "unlock": {
+    "chooseSubtitle": "Your child types it on the TV. Single-use.",
+    "howMuchTime": "How much time",
+    "oneHour": "1 hour",
+    "appliesTo": "Applies to",
+    "everything": "Everything",
+    "readySubtitle": "Read it out, or show the phone.",
+    "scopeLine": "Everything · {{duration}}",
+    "newCode": "New code"
+  },
   "requests": {
     "title": "Requests",
     "subtitle": "Approve or deny extra time the TV asks for.",

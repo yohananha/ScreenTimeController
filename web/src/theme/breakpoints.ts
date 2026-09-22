@@ -16,3 +16,16 @@ export function useResponsivePadding(): number {
   }, []);
   return screenPaddingForWidth(width);
 }
+
+/** The redesign's side-rail breakpoint (design/i6c-peach-plum README §4 "Web"). */
+export const WIDE_LAYOUT_MIN_WIDTH = 840;
+
+export function useIsWideLayout(): boolean {
+  const [isWide, setIsWide] = useState(() => (typeof window === 'undefined' ? false : window.innerWidth >= WIDE_LAYOUT_MIN_WIDTH));
+  useEffect(() => {
+    const onResize = () => setIsWide(window.innerWidth >= WIDE_LAYOUT_MIN_WIDTH);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return isWide;
+}

@@ -137,6 +137,48 @@
     "overlapsExisting": "זה חופף לחלון זמן קיים",
     "add": "הוספה"
   },
+  "today": {
+    "navToday": "היום",
+    "navRules": "כללים",
+    "navFamily": "משפחה",
+    "familyAria": "משפחה",
+    "unlockAria": "קוד פתיחה",
+    "modeGroupAria": "מצב הטלוויזיה",
+    "modeLock": "נעילה",
+    "modeLimits": "מגבלות",
+    "modeAllow": "הכול מותר",
+    "gaugeWordLeft": "נשארו",
+    "gaugeWordOver": "נגמר",
+    "gaugeCaption": "מתוך {{limit}} · מתאפס ב־00:00",
+    "noDailyLimit": "אין מגבלה יומית",
+    "noTvPaired": "לא מחוברת טלוויזיה",
+    "requestTitle": "עוד {{minutes}} דקות ב-{{app}}?",
+    "requestSubtitle": "בקשה מהטלוויזיה · {{time}}",
+    "approveAria": "לאשר {{minutes}} דקות",
+    "denyAria": "לדחות",
+    "byApp": "לפי אפליקציה",
+    "rulesLink": "כללים",
+    "usageByApp": "שימוש לפי אפליקציה"
+  },
+  "rules": {
+    "subtitle": "מה מותר לטלוויזיה",
+    "addAppLink": "+ הוספה",
+    "perDay": "{{limit}} ליום"
+  },
+  "family": {
+    "subtitle": "הורים וטלוויזיות",
+    "secondParent": "הורה נוסף"
+  },
+  "unlock": {
+    "chooseSubtitle": "הילד/ה מקליד/ה אותו בטלוויזיה. שימוש חד-פעמי.",
+    "howMuchTime": "כמה זמן",
+    "oneHour": "שעה",
+    "appliesTo": "חל על",
+    "everything": "הכול",
+    "readySubtitle": "הקריאו אותו בקול, או הראו את הטלפון.",
+    "scopeLine": "הכול · {{duration}}",
+    "newCode": "קוד חדש"
+  },
   "requests": {
     "title": "בקשות",
     "subtitle": "אשרו או דחו זמן נוסף שהטלוויזיה מבקשת.",

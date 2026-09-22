@@ -1,8 +1,6 @@
-import { colors } from '../theme/colors';
-import { radius } from '../theme/radius';
-import { typography } from '../theme/typography';
+import { peachPlumColor } from '../theme/tokens';
 
-/** Selectable chip row used in Requests amount chooser and Codes settings. */
+/** Selectable chip row — Unlock's "How much time" / "Applies to" (design/i6c-peach-plum README §3 "Chip"). */
 export function ChipGroup<T extends string | number>({
   options,
   selected,
@@ -15,21 +13,25 @@ export function ChipGroup<T extends string | number>({
   label: (value: T) => string;
 }) {
   return (
-    <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
       {options.map((opt) => {
         const isSel = opt === selected;
         return (
           <button
             key={opt}
+            aria-pressed={isSel}
             onClick={() => onSelect(opt)}
             style={{
-              flex: 1,
-              background: isSel ? colors.ink : colors.surface,
-              color: isSel ? colors.background : colors.ink,
-              border: `1px solid ${isSel ? colors.ink : colors.outline}`,
-              borderRadius: radius.input,
-              padding: '11px 0',
-              ...typography.label,
+              height: 44,
+              padding: '0 18px',
+              borderRadius: 999,
+              border: `1.5px solid ${isSel ? peachPlumColor.ink : peachPlumColor.hairline}`,
+              background: isSel ? peachPlumColor.ink : peachPlumColor.surface,
+              color: isSel ? peachPlumColor.surface : peachPlumColor.ink,
+              fontFamily: 'Rubik, system-ui, sans-serif',
+              fontSize: 14,
+              fontWeight: isSel ? 600 : 500,
+              whiteSpace: 'nowrap',
             }}
           >
             {label(opt)}

@@ -10,18 +10,14 @@ export interface NavTabDef {
 
 export const NAV_TABS: NavTabDef[] = [
   { route: 'limits', labelKey: 'nav.limits', icon: '🕐' },
-  { route: 'requests', labelKey: 'nav.requests', icon: '🔔' },
-  { route: 'codes', labelKey: 'nav.codes', icon: '⌨' },
   { route: 'settings', labelKey: 'nav.settings', icon: '⚙️' },
 ];
 
 export function SproutBottomNavBar({
   selectedRoute,
-  pendingCount,
   onTabClick,
 }: {
   selectedRoute: string;
-  pendingCount: number;
   onTabClick: (route: string) => void;
 }) {
   const { t } = useTranslation();
@@ -60,43 +56,19 @@ export function SproutBottomNavBar({
                 border: 'none',
               }}
             >
-              <div style={{ position: 'relative' }}>
-                <div
-                  style={{
-                    width: 60,
-                    height: 32,
-                    borderRadius: 999,
-                    background: selected ? colors.accentContainer : 'transparent',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 18,
-                  }}
-                >
-                  {tab.icon}
-                </div>
-                {tab.route === 'requests' && pendingCount > 0 && (
-                  <span
-                    style={{
-                      position: 'absolute',
-                      top: -4,
-                      insetInlineEnd: 4,
-                      minWidth: 16,
-                      minHeight: 16,
-                      borderRadius: 999,
-                      background: colors.overDisplay,
-                      color: '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '1px 4px',
-                      fontSize: 10,
-                      fontWeight: 800,
-                    }}
-                  >
-                    {pendingCount}
-                  </span>
-                )}
+              <div
+                style={{
+                  width: 60,
+                  height: 32,
+                  borderRadius: 999,
+                  background: selected ? colors.accentContainer : 'transparent',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 18,
+                }}
+              >
+                {tab.icon}
               </div>
               <span
                 style={{
