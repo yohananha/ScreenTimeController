@@ -4,8 +4,43 @@
 @import '@fontsource/nunito-sans/700.css';
 @import '@fontsource/nunito-sans/800.css';
 @import '@fontsource/nunito-sans/900.css';
+/* Peach & plum redesign (design/i6c-peach-plum) — one family for Latin and Hebrew. */
+@import '@fontsource-variable/rubik';
 
 :root {
+  /* Peach & plum tokens (design/i6c-peach-plum/tokens.json). Additive during the
+     migration — not yet used by the Sprout-era screens below. */
+  --pp-color-ground: #fff6ee;
+  --pp-color-ink: #2a1e2e;
+  --pp-color-muted: #6e5f66;
+  --pp-color-hairline: #f0e3d8;
+  --pp-color-tint: #ffede0;
+  --pp-color-surface: #ffffff;
+  --pp-color-peach: #ffb088;
+  --pp-color-rose: #f79ac0;
+  --pp-color-ok: #12a87a;
+  --pp-color-over: #b3261e;
+  --pp-color-nav-inactive: #b9a9b5;
+  --pp-color-ok-container: #dff6ec;
+  --pp-color-ok-text: #0f6b4e;
+  --pp-color-over-container: #fbe2df;
+  --pp-glow-peach: rgba(255, 176, 136, 0.24);
+  --pp-glow-rose: rgba(247, 154, 192, 0.2);
+
+  --pp-radius-dot: 3px;
+  --pp-radius-icon-tile: 12px;
+  --pp-radius-tile: 14px;
+  --pp-radius-input: 18px;
+  --pp-radius-strip: 20px;
+  --pp-radius-card: 22px;
+  --pp-radius-sheet: 28px;
+  --pp-radius-pill: 999px;
+
+  --pp-shadow-card: 0 1px 2px rgba(42, 30, 46, 0.04), 0 10px 30px rgba(42, 30, 46, 0.06);
+  --pp-shadow-pill-light: 0 1px 2px rgba(42, 30, 46, 0.05), 0 6px 18px rgba(42, 30, 46, 0.07);
+  --pp-shadow-nav-pill: 0 14px 32px rgba(42, 30, 46, 0.25);
+  --pp-shadow-sheet: 0 -12px 40px rgba(42, 30, 46, 0.22);
+
   --sprout-color-background: #fcf6f0;
   --sprout-color-surface: #ffffff;
   --sprout-color-surface-sunken: #faf5ef;
@@ -70,4 +105,27 @@ textarea {
 
 .num {
   font-variant-numeric: tabular-nums;
+}
+
+/* Peach & plum motion (design/i6c-peach-plum/tokens.json#motion). Additive —
+   not yet applied by any component. */
+@keyframes pp-live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(18, 168, 122, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+
+@keyframes pp-wait-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
 }
