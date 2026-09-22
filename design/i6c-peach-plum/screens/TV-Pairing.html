@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>I6c · TV · Pairing</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;font-family:Rubik, system-ui, sans-serif;background:#1E1622}
+a{color:#2A1E2E}a:hover{color:#6E5F66}
+button{font-family:inherit;cursor:pointer}
+@keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(18,168,122,0.45)}70%{box-shadow:0 0 0 8px rgba(18,168,122,0)}100%{box-shadow:0 0 0 0 rgba(18,168,122,0)}}
+.live{animation:livePulse 2s ease-out infinite}
+@keyframes waitPulse{0%{transform:scale(1);opacity:.7}50%{transform:scale(1.12);opacity:1}100%{transform:scale(1);opacity:.7}}
+.waiting{animation:waitPulse 1.8s ease-in-out infinite}
+</style>
+</head>
+<body style="display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:24px;box-sizing:border-box;background:#E9E1DA;">
+<div dir="ltr" style="width: 1920px; height: 1080px; box-sizing: border-box; position: relative; overflow: hidden; background: #1E1622; color: #FFF6EE; font-family: Rubik, system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+  <div style="position: absolute; top: -420px; left: -300px; width: 1200px; height: 1200px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,176,136,0.16), rgba(30,22,34,0)); pointer-events: none;"></div>
+  <div style="position: absolute; bottom: -520px; right: -320px; width: 1200px; height: 1200px; border-radius: 50%; background: radial-gradient(closest-side, rgba(247,154,192,0.14), rgba(30,22,34,0)); pointer-events: none;"></div>
+  <div style="position: absolute; top: 56px; left: 96px; right: 96px; display: flex; justify-content: space-between; align-items: center;">
+    <span style="font-weight: 600; font-size: 28px; letter-spacing: -0.01em; color: #B9A9B5;">ScreenTime</span>
+    <span style="font-size: 26px; font-weight: 500; color: #B9A9B5;"></span>
+  </div>
+  <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 40px; width: 1280px; text-align: center;">
+<h1 style="margin: 0; font-weight: 600; font-size: 104px; line-height: 1.02; letter-spacing: -0.03em; color: #FFF6EE;">Pair with a parent's phone</h1>
+<p style="margin: 0; font-size: 36px; line-height: 1.4; font-weight: 400; color: #B9A9B5; max-width: 1000px;">On the phone: Family → Pair a TV, then type this code.</p>
+<div dir="ltr" style="display: flex; gap: 18px;"><span style="width: 118px; height: 148px; border-radius: 24px; background: #FFF6EE; color: #1E1622; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 84px; letter-spacing: -0.02em;">4</span><span style="width: 118px; height: 148px; border-radius: 24px; background: #FFF6EE; color: #1E1622; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 84px; letter-spacing: -0.02em;">8</span><span style="width: 118px; height: 148px; border-radius: 24px; background: #FFF6EE; color: #1E1622; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 84px; letter-spacing: -0.02em;">2</span><span style="width: 118px; height: 148px; border-radius: 24px; background: #FFF6EE; color: #1E1622; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 84px; letter-spacing: -0.02em;">1</span><span style="width: 118px; height: 148px; border-radius: 24px; background: #FFF6EE; color: #1E1622; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 84px; letter-spacing: -0.02em;">9</span><span style="width: 118px; height: 148px; border-radius: 24px; background: #FFF6EE; color: #1E1622; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 84px; letter-spacing: -0.02em;">3</span></div>
+<span style="display: flex; align-items: center; gap: 14px; font-size: 28px; font-weight: 500; color: #9FE9CE;"><span class="waiting" style="width: 14px; height: 14px; border-radius: 50%; background: #12A87A;"></span>Waiting for the phone…</span>
+<div style="display: flex; align-items: center; gap: 36px; margin-top: 12px;"><button style="height: 92px; padding: 0 48px; border-radius: 999px; border: 3px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.08); color: #FFF6EE; font-size: 32px; font-weight: 500; box-shadow: 0 0 0 6px #1E1622, 0 0 0 12px #FFB088; transform: scale(1.04);">Get a new code</button></div>
+  </div>
+  <div style="position: absolute; bottom: 64px; left: 96px; right: 96px; display: flex; justify-content: space-between; align-items: center; color: #B9A9B5; font-size: 26px; font-weight: 500;">
+    <span></span>
+    <span>◀ ▶ move · OK select</span>
+  </div>
+</div>
+</body>
+</html>
