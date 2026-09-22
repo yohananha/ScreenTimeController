@@ -8,6 +8,6 @@
          MainActivity superclass change must land together.
          Not a DayNight variant — the app is light-only. -->
     <style name="Theme.ScreenTimeMobile" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:windowBackground">@color/sprout_background</item>
+        <item name="android:windowBackground">@color/peach_plum_background</item>
     </style>
 </resources>

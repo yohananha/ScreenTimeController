@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Mirrors SproutPalette.background (ui/theme/SproutTokens.kt) so the
-         AppCompat theme's window background matches Compose's before the
-         first frame draws — otherwise there's a white flash on launch. -->
-    <color name="sprout_background">#FCF6F0</color>
+    <!-- Mirrors PeachPlumPalette.background (ui/theme/PeachPlumTokens.kt) so
+         the AppCompat theme's window background matches Compose's before the
+         first frame draws — otherwise there's a flash of the wrong color on
+         launch. Value must be kept in sync by hand: XML color resources
+         can't reference a Kotlin constant. -->
+    <color name="peach_plum_background">#FFF6EE</color>
 </resources>
