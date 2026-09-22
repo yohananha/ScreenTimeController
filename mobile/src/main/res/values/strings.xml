@@ -83,6 +83,44 @@
     <string name="requests_approved_on">Approved %1$s on %2$s</string>
     <string name="requests_active_until">Active until %1$s</string>
 
+    <!-- today/TodayScreen.kt -->
+    <string name="today_nav_today">Today</string>
+    <string name="today_nav_rules">Rules</string>
+    <string name="today_nav_family">Family</string>
+    <string name="today_family_aria">Family</string>
+    <string name="today_unlock_aria">Unlock code</string>
+    <string name="today_mode_group_aria">TV mode</string>
+    <string name="today_mode_lock">Lock</string>
+    <string name="today_mode_limits">Limits</string>
+    <string name="today_mode_allow">Allow</string>
+    <string name="today_gauge_word_left">left</string>
+    <string name="today_gauge_word_over">over</string>
+    <string name="today_gauge_caption">Of %1$s · resets 00:00</string>
+    <string name="today_mode_allow_caption">All limits paused until midnight</string>
+    <string name="today_no_daily_limit">No daily limit</string>
+    <string name="today_no_tv_paired">No TV paired</string>
+    <!-- %1$s is a pre-formatted "Nm" duration (see requests_chip_minutes), not
+         a raw count, so PluralsCandidate doesn't flag "%d more"/"%d minutes". -->
+    <string name="today_request_title">%1$s more on %2$s?</string>
+    <string name="today_request_subtitle">Asked from the TV · %1$s</string>
+    <string name="today_approve_aria">Approve %1$s</string>
+    <string name="today_deny_aria">Deny</string>
+    <string name="today_by_app">By app</string>
+    <string name="today_rules_link">Rules</string>
+    <string name="today_usage_by_app">Usage by app</string>
+    <string name="family_subtitle">Parents and TVs</string>
+
+    <!-- rules/RulesScreen.kt -->
+    <string name="rules_subtitle">What the TV is allowed to do</string>
+    <string name="rules_add_app_link">+ Add</string>
+    <string name="rules_per_day">%1$s per day</string>
+
+    <!-- components/UnlockSheet.kt -->
+    <string name="unlock_choose_subtitle">Your child types it on the TV. Single-use.</string>
+    <string name="unlock_ready_subtitle">Read it out, or show the phone.</string>
+    <string name="unlock_scope_line">Everything · %1$s</string>
+    <string name="unlock_new_code">New code</string>
+
     <!-- limits/TimeFrameScreen.kt -->
     <string name="timeframe_back">Back</string>
     <string name="timeframe_title">Allowed hours</string>

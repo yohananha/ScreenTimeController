@@ -1,26 +1,24 @@
 package com.screentime.mobile.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.Dialpad
-import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.filled.Rule
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,124 +27,80 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.screentime.mobile.R
-import com.screentime.mobile.ui.theme.Sprout
-import com.screentime.mobile.ui.theme.SproutRadius
+import com.screentime.mobile.ui.theme.PeachPlum
 
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.ui.unit.sp
-
-// The Settings tab replaces the old Family tab: it now also hosts the
-// language picker, code lockout (moved out of Limits), and About — see
-// ui/settings/SettingsScreen.kt. @StringRes rather than a plain String
-// because the enum constructor isn't a @Composable context, so the label
-// can't be resolved with stringResource() until a composable reads it.
+/**
+ * Today · Rules · Family + a round Unlock button on a dark pill (design/
+ * i6c-peach-plum tokens.json#sizes navPillHeight/navItemHeight — the phone
+ * counterpart to web's NavPill.tsx). Folds in what used to be the
+ * Requests/Codes tabs: Requests is now inline on Today, Codes is the
+ * standalone Unlock sheet, so neither gets a tab of its own any more.
+ */
 enum class NavTab(val route: String, @StringRes val labelRes: Int, val icon: ImageVector) {
-    Limits("limits", R.string.tab_limits, Icons.Filled.AccessTime),
-    Requests("requests", R.string.tab_requests, Icons.Filled.NotificationsActive),
-    Codes("codes", R.string.tab_codes, Icons.Filled.Dialpad),
-    Settings("settings", R.string.settings_title, Icons.Filled.Settings),
+    Today("today", R.string.today_nav_today, Icons.Filled.Home),
+    Rules("rules", R.string.today_nav_rules, Icons.AutoMirrored.Filled.Rule),
+    Family("family", R.string.today_nav_family, Icons.Filled.Group),
 }
 
 @Composable
-fun SproutBottomNavBar(
+fun PeachPlumBottomNavBar(
     selectedRoute: String,
-    pendingCount: Int,
     onTabClick: (NavTab) -> Unit,
+    onUnlockClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Box(
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(1.dp)
-                .background(Sprout.colors.outline)
-        )
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Sprout.colors.surface)
-                .windowInsetsPadding(WindowInsets.navigationBars),
+                .height(58.dp)
+                .background(PeachPlum.colors.ink, PeachPlum.radius.pill)
+                .padding(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
+            NavTab.entries.forEach { tab ->
+                NavItem(tab = tab, selected = selectedRoute == tab.route, onClick = { onTabClick(tab) }, modifier = Modifier.weight(1f))
+            }
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 6.dp, end = 6.dp, top = 8.dp, bottom = 10.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically,
+                    .size(46.dp)
+                    .background(PeachPlum.colors.primary, PeachPlum.radius.pill)
+                    .clickable(onClick = onUnlockClick),
+                contentAlignment = Alignment.Center,
             ) {
-                NavTab.entries.forEach { tab ->
-                    val selected = selectedRoute == tab.route ||
-                        (tab == NavTab.Limits && selectedRoute == "history")
-                    NavItem(
-                        tab = tab,
-                        selected = selected,
-                        pendingCount = if (tab == NavTab.Requests) pendingCount else 0,
-                        onClick = { onTabClick(tab) },
-                    )
-                }
+                Icon(
+                    Icons.Filled.LockOpen,
+                    contentDescription = stringResource(R.string.today_unlock_aria),
+                    tint = PeachPlum.colors.ink,
+                    modifier = Modifier.size(20.dp),
+                )
             }
         }
     }
 }
 
 @Composable
-private fun NavItem(tab: NavTab, selected: Boolean, pendingCount: Int, onClick: () -> Unit) {
+private fun NavItem(tab: NavTab, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val label = stringResource(tab.labelRes)
-    Column(
-        modifier = Modifier
-            .width(72.dp)
+    Box(
+        modifier = modifier
+            .height(46.dp)
+            .background(if (selected) Color.White.copy(alpha = 0.12f) else Color.Transparent, PeachPlum.radius.pill)
             .clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        Box {
-            val pillModifier = if (selected) {
-                Modifier
-                    .width(60.dp)
-                    .height(32.dp)
-                    .background(Sprout.colors.accentContainer, SproutRadius.pill)
-            } else {
-                Modifier.height(32.dp).width(60.dp)
-            }
-            Box(modifier = pillModifier, contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = tab.icon,
-                    contentDescription = label,
-                    tint = if (selected) Sprout.colors.ink else Sprout.colors.inkMuted,
-                    modifier = Modifier.size(22.dp),
-                )
-            }
-            if (pendingCount > 0) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .offset(x = 4.dp, y = (-4).dp)
-                        .background(Sprout.colors.overDisplay, SproutRadius.pill)
-                        .padding(horizontal = 4.dp, vertical = 1.dp)
-                        .sizeIn(minWidth = 16.dp, minHeight = 16.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = pendingCount.toString(),
-                        color = Color.White,
-                        style = Sprout.typography.caption.copy(fontSize = 10.sp, fontWeight = FontWeight.ExtraBold),
-                    )
-                }
-            }
-        }
         Text(
             label,
-            style = Sprout.typography.caption.copy(
-                fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Bold,
-            ),
-            color = if (selected) Sprout.colors.ink else Sprout.colors.inkMuted,
+            style = PeachPlum.typography.label,
+            color = if (selected) PeachPlum.colors.background else PeachPlum.colors.inkFaint,
         )
     }
 }
-
-@Suppress("unused")
-private val _color: Color = Color.Transparent

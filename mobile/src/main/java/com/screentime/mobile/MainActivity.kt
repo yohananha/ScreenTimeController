@@ -13,10 +13,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -24,18 +26,16 @@ import androidx.navigation.compose.rememberNavController
 import com.screentime.mobile.ui.auth.AuthState
 import com.screentime.mobile.ui.auth.AuthViewModel
 import com.screentime.mobile.ui.auth.SignInScreen
-import com.screentime.mobile.ui.codes.CodesScreen
 import com.screentime.mobile.ui.components.NavTab
-import com.screentime.mobile.ui.components.SproutBottomNavBar
+import com.screentime.mobile.ui.components.PeachPlumBottomNavBar
+import com.screentime.mobile.ui.components.UnlockSheet
 import com.screentime.mobile.ui.family.FamilyOnboardingScreen
-import com.screentime.mobile.ui.history.HistoryScreen
-import com.screentime.mobile.ui.limits.LimitsScreen
+import com.screentime.mobile.ui.family.FamilyScreen
 import com.screentime.mobile.ui.limits.TimeFrameScreen
-import com.screentime.mobile.ui.requests.RequestsBadgeViewModel
-import com.screentime.mobile.ui.requests.RequestsScreen
-import com.screentime.mobile.ui.settings.SettingsScreen
+import com.screentime.mobile.ui.rules.RulesScreen
 import com.screentime.mobile.ui.theme.ScreenTimeTheme
-import com.screentime.mobile.ui.theme.Sprout
+import com.screentime.mobile.ui.theme.PeachPlum
+import com.screentime.mobile.ui.today.TodayScreen
 import com.screentime.mobile.whatsnew.WhatsNewDialog
 import com.screentime.mobile.whatsnew.WhatsNewViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContent {
             ScreenTimeTheme {
-                Box(modifier = Modifier.fillMaxSize().background(Sprout.colors.background)) {
+                Box(modifier = Modifier.fillMaxSize().background(PeachPlum.colors.background)) {
                     AuthGate()
                 }
             }
@@ -65,7 +65,7 @@ private fun AuthGate(viewModel: AuthViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
     when (val current = state) {
         AuthState.Loading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Sprout.colors.primary)
+            CircularProgressIndicator(color = PeachPlum.colors.primary)
         }
         AuthState.NeedsSignIn -> SignInScreen()
         AuthState.NeedsFamily -> FamilyOnboardingScreen()
@@ -76,23 +76,22 @@ private fun AuthGate(viewModel: AuthViewModel = hiltViewModel()) {
 @Composable
 private fun AppShell(
     familyId: String,
-    badgeViewModel: RequestsBadgeViewModel = hiltViewModel(),
     whatsNewViewModel: WhatsNewViewModel = hiltViewModel(),
 ) {
     val nav = rememberNavController()
     val current by nav.currentBackStackEntryAsState()
-    val pendingRequestsCount by badgeViewModel.pendingCount.collectAsState()
-    val currentRoute = current?.destination?.route ?: NavTab.Limits.route
+    val currentRoute = current?.destination?.route ?: NavTab.Today.route
     val whatsNewEntry by whatsNewViewModel.entryToShow.collectAsState()
     whatsNewEntry?.let { entry ->
         WhatsNewDialog(entry = entry, onDismiss = whatsNewViewModel::dismiss)
     }
+    var unlockOpen by remember { mutableStateOf(false) }
+
     Scaffold(
-        containerColor = Sprout.colors.background,
+        containerColor = PeachPlum.colors.background,
         bottomBar = {
-            SproutBottomNavBar(
+            PeachPlumBottomNavBar(
                 selectedRoute = currentRoute,
-                pendingCount = pendingRequestsCount,
                 onTabClick = { tab ->
                     nav.navigate(tab.route) {
                         launchSingleTop = true
@@ -100,27 +99,35 @@ private fun AppShell(
                         popUpTo(nav.graph.startDestinationId) { saveState = true }
                     }
                 },
+                onUnlockClick = { unlockOpen = true },
             )
         },
     ) { padding ->
         NavHost(
             navController = nav,
-            startDestination = NavTab.Limits.route,
+            startDestination = NavTab.Today.route,
             modifier = Modifier.padding(padding),
         ) {
-            composable(NavTab.Limits.route) {
-                LimitsScreen(
-                    onOpenHistory = { nav.navigate("history") },
+            composable(NavTab.Today.route) {
+                TodayScreen(
+                    onOpenRules = { nav.navigate(NavTab.Rules.route) },
+                    onOpenFamily = { nav.navigate(NavTab.Family.route) },
+                )
+            }
+            composable(NavTab.Rules.route) {
+                RulesScreen(
+                    onOpenFamily = { nav.navigate(NavTab.Family.route) },
                     onOpenTimeFrame = { nav.navigate("timeframe") },
                 )
             }
             composable("timeframe") {
                 TimeFrameScreen(onBack = { nav.popBackStack() })
             }
-            composable(NavTab.Requests.route) { RequestsScreen() }
-            composable(NavTab.Codes.route) { CodesScreen() }
-            composable(NavTab.Settings.route) { SettingsScreen(familyId = familyId) }
-            composable("history") { HistoryScreen() }
+            composable(NavTab.Family.route) { FamilyScreen(familyId = familyId) }
         }
+    }
+
+    if (unlockOpen) {
+        UnlockSheet(onDismiss = { unlockOpen = false })
     }
 }

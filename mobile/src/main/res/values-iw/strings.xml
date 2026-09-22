@@ -69,6 +69,42 @@
     <string name="requests_approved_on">אושרו %1$s עבור %2$s</string>
     <string name="requests_active_until">פעיל עד %1$s</string>
 
+    <!-- today/TodayScreen.kt -->
+    <string name="today_nav_today">היום</string>
+    <string name="today_nav_rules">כללים</string>
+    <string name="today_nav_family">משפחה</string>
+    <string name="today_family_aria">משפחה</string>
+    <string name="today_unlock_aria">קוד פתיחה</string>
+    <string name="today_mode_group_aria">מצב הטלוויזיה</string>
+    <string name="today_mode_lock">נעילה</string>
+    <string name="today_mode_limits">מגבלות</string>
+    <string name="today_mode_allow">הכול מותר</string>
+    <string name="today_gauge_word_left">נשארו</string>
+    <string name="today_gauge_word_over">נגמר</string>
+    <string name="today_gauge_caption">מתוך %1$s · מתאפס ב־00:00</string>
+    <string name="today_mode_allow_caption">כל המגבלות מושהות עד חצות</string>
+    <string name="today_no_daily_limit">אין מגבלה יומית</string>
+    <string name="today_no_tv_paired">לא מחוברת טלוויזיה</string>
+    <string name="today_request_title">עוד %1$s ב-%2$s?</string>
+    <string name="today_request_subtitle">בקשה מהטלוויזיה · %1$s</string>
+    <string name="today_approve_aria">לאשר %1$s</string>
+    <string name="today_deny_aria">לדחות</string>
+    <string name="today_by_app">לפי אפליקציה</string>
+    <string name="today_rules_link">כללים</string>
+    <string name="today_usage_by_app">שימוש לפי אפליקציה</string>
+    <string name="family_subtitle">הורים וטלוויזיות</string>
+
+    <!-- rules/RulesScreen.kt -->
+    <string name="rules_subtitle">מה מותר לטלוויזיה</string>
+    <string name="rules_add_app_link">+ הוספה</string>
+    <string name="rules_per_day">%1$s ליום</string>
+
+    <!-- components/UnlockSheet.kt -->
+    <string name="unlock_choose_subtitle">הילד/ה מקליד/ה אותו בטלוויזיה. שימוש חד-פעמי.</string>
+    <string name="unlock_ready_subtitle">הקריאו אותו בקול, או הראו את הטלפון.</string>
+    <string name="unlock_scope_line">הכול · %1$s</string>
+    <string name="unlock_new_code">קוד חדש</string>
+
     <string name="timeframe_back">חזרה</string>
     <string name="timeframe_title">שעות מותרות</string>
     <string name="timeframe_subtitle">מתי מותר להפעיל את הטלוויזיה</string>

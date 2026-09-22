@@ -25,12 +25,13 @@ pattern='Text\(\s*"[A-Za-z]|text = "[A-Za-z]'
 # Known-intentional exceptions, left hardcoded on purpose:
 #   - the "ScreenTime" brand wordmark (brand names aren't translated)
 #   - a bare "G" (Google logo letter) and "P" (parent-initial placeholder) —
-#     both data/glyphs, not copy
+#     both data/glyphs, not copy — including the two extra "P" avatars added
+#     for the Today/Rules screens' peach-plum header (design/i6c-peach-plum)
 # If this count goes UP, something new was hardcoded that probably shouldn't
 # have been. If it goes down (someone extracts one of the exceptions above
 # to a resource, e.g. by adding translatable="false"), lower BASELINE to
 # match — don't leave slack in the gate.
-BASELINE=4
+BASELINE=6
 
 matches="$(grep -rEno "$pattern" mobile/src/main/java tv/src/main/java 2>/dev/null || true)"
 count=0
