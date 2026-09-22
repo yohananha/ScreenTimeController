@@ -9,27 +9,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.screentime.mobile.R
-import com.screentime.mobile.ui.components.SproutPrimaryButton
-import com.screentime.mobile.ui.theme.Sprout
+import com.screentime.mobile.ui.components.PeachPlumPrimaryButton
+import com.screentime.mobile.ui.theme.PeachPlum
 
 @Composable
 fun WhatsNewDialog(entry: WhatsNewEntry, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Sprout.colors.surface,
-        title = { Text(stringResource(entry.titleRes), style = Sprout.typography.headline, color = Sprout.colors.ink) },
+        containerColor = PeachPlum.colors.surface,
+        title = { Text(stringResource(entry.titleRes), style = PeachPlum.typography.headline, color = PeachPlum.colors.ink) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 entry.bulletRes.forEach { bulletRes ->
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("•", style = Sprout.typography.body, color = Sprout.colors.inkMuted)
-                        Text(stringResource(bulletRes), style = Sprout.typography.body, color = Sprout.colors.inkMuted)
+                        Text("•", style = PeachPlum.typography.body, color = PeachPlum.colors.inkMuted)
+                        Text(stringResource(bulletRes), style = PeachPlum.typography.body, color = PeachPlum.colors.inkMuted)
                     }
                 }
             }
         },
         confirmButton = {
-            SproutPrimaryButton(text = stringResource(R.string.whats_new_dismiss), onClick = onDismiss)
+            PeachPlumPrimaryButton(text = stringResource(R.string.whats_new_dismiss), onClick = onDismiss)
         },
     )
 }

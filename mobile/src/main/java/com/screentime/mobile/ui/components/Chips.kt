@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.screentime.mobile.ui.theme.Sprout
+import com.screentime.mobile.ui.theme.PeachPlum
 
 /** Selectable chip row used in Requests amount chooser and Codes settings. */
 @Composable
@@ -30,20 +30,20 @@ fun <T> ChipGroup(
     ) {
         options.forEach { opt ->
             val isSel = opt == selected
-            val bg = if (isSel) Sprout.colors.ink else Sprout.colors.surface
-            val fg = if (isSel) Sprout.colors.background else Sprout.colors.ink
-            val border = if (isSel) Sprout.colors.ink else Sprout.colors.outline
+            val bg = if (isSel) PeachPlum.colors.ink else PeachPlum.colors.surface
+            val fg = if (isSel) PeachPlum.colors.background else PeachPlum.colors.ink
+            val border = if (isSel) PeachPlum.colors.ink else PeachPlum.colors.outline
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .background(bg, Sprout.radius.input)
-                    .border(BorderStroke(1.dp, border), Sprout.radius.input)
+                    .background(bg, PeachPlum.radius.input)
+                    .border(BorderStroke(1.dp, border), PeachPlum.radius.input)
                     .clickable { onSelect(opt) }
                     .padding(vertical = 11.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(label(opt), style = Sprout.typography.label, color = fg)
+                Text(label(opt), style = PeachPlum.typography.label, color = fg)
             }
         }
     }

@@ -10,44 +10,44 @@ import androidx.compose.ui.platform.LocalContext
 import com.screentime.shared.format.ClockFormat
 import com.screentime.shared.format.DurationFormat
 
-private val SproutMaterialColors = lightColorScheme(
-    primary = SproutPalette.primary,
-    onPrimary = SproutPalette.onPrimary,
-    primaryContainer = SproutPalette.accentContainer,
-    onPrimaryContainer = SproutPalette.ink,
-    secondary = SproutPalette.accent,
-    onSecondary = SproutPalette.ink,
-    secondaryContainer = SproutPalette.accentContainer,
-    onSecondaryContainer = SproutPalette.ink,
-    tertiary = SproutPalette.positiveDisplay,
-    onTertiary = SproutPalette.positiveText,
-    tertiaryContainer = SproutPalette.positiveContainer,
-    onTertiaryContainer = SproutPalette.positiveText,
-    background = SproutPalette.background,
-    onBackground = SproutPalette.ink,
-    surface = SproutPalette.surface,
-    onSurface = SproutPalette.ink,
-    surfaceVariant = SproutPalette.surfaceSunken,
-    onSurfaceVariant = SproutPalette.inkMuted,
-    outline = SproutPalette.outline,
-    outlineVariant = SproutPalette.outlineStrong,
-    error = SproutPalette.overDisplay,
-    onError = SproutPalette.surface,
-    errorContainer = SproutPalette.overContainer,
-    onErrorContainer = SproutPalette.overText,
+private val PeachPlumMaterialColors = lightColorScheme(
+    primary = PeachPlumPalette.primary,
+    onPrimary = PeachPlumPalette.onPrimary,
+    primaryContainer = PeachPlumPalette.accentContainer,
+    onPrimaryContainer = PeachPlumPalette.ink,
+    secondary = PeachPlumPalette.accent,
+    onSecondary = PeachPlumPalette.ink,
+    secondaryContainer = PeachPlumPalette.accentContainer,
+    onSecondaryContainer = PeachPlumPalette.ink,
+    tertiary = PeachPlumPalette.positiveDisplay,
+    onTertiary = PeachPlumPalette.positiveText,
+    tertiaryContainer = PeachPlumPalette.positiveContainer,
+    onTertiaryContainer = PeachPlumPalette.positiveText,
+    background = PeachPlumPalette.background,
+    onBackground = PeachPlumPalette.ink,
+    surface = PeachPlumPalette.surface,
+    onSurface = PeachPlumPalette.ink,
+    surfaceVariant = PeachPlumPalette.surfaceSunken,
+    onSurfaceVariant = PeachPlumPalette.inkMuted,
+    outline = PeachPlumPalette.outline,
+    outlineVariant = PeachPlumPalette.outlineStrong,
+    error = PeachPlumPalette.overDisplay,
+    onError = PeachPlumPalette.surface,
+    errorContainer = PeachPlumPalette.overContainer,
+    onErrorContainer = PeachPlumPalette.overText,
 )
 
-private val SproutShapes = Shapes(
-    extraSmall = SproutRadius.icon,
-    small = SproutRadius.input,
-    medium = SproutRadius.card,
-    large = SproutRadius.large,
-    extraLarge = SproutRadius.large,
+private val PeachPlumShapes = Shapes(
+    extraSmall = PeachPlumRadius.icon,
+    small = PeachPlumRadius.input,
+    medium = PeachPlumRadius.card,
+    large = PeachPlumRadius.large,
+    extraLarge = PeachPlumRadius.large,
 )
 
 @Composable
 fun ScreenTimeTheme(content: @Composable () -> Unit) {
-    val typeScale = rememberSproutTypeScale()
+    val typeScale = rememberPeachPlumTypeScale()
     // Plain instances, not routed through Hilt: both formatters are stateless
     // and safe to construct directly, and :shared has no Compose dependency
     // to host a CompositionLocal of its own. Non-Compose consumers (e.g. the
@@ -57,24 +57,24 @@ fun ScreenTimeTheme(content: @Composable () -> Unit) {
     val appContext = LocalContext.current.applicationContext
     val formats = remember(appContext) { Formats(DurationFormat(), ClockFormat(appContext)) }
     CompositionLocalProvider(
-        LocalSproutColors provides SproutPalette,
-        LocalSproutTypography provides typeScale,
+        LocalPeachPlumColors provides PeachPlumPalette,
+        LocalPeachPlumTypography provides typeScale,
         LocalFormats provides formats,
     ) {
         MaterialTheme(
-            colorScheme = SproutMaterialColors,
+            colorScheme = PeachPlumMaterialColors,
             typography = materialTypeBridge(typeScale),
-            shapes = SproutShapes,
+            shapes = PeachPlumShapes,
             content = content,
         )
     }
 }
 
-object Sprout {
-    val colors: SproutColors
-        @Composable get() = LocalSproutColors.current
-    val typography: SproutTypography
-        @Composable get() = LocalSproutTypography.current
-    val spacing: SproutSpacing = SproutSpacing
-    val radius: SproutRadius = SproutRadius
+object PeachPlum {
+    val colors: PeachPlumColors
+        @Composable get() = LocalPeachPlumColors.current
+    val typography: PeachPlumTypography
+        @Composable get() = LocalPeachPlumTypography.current
+    val spacing: PeachPlumSpacing = PeachPlumSpacing
+    val radius: PeachPlumRadius = PeachPlumRadius
 }

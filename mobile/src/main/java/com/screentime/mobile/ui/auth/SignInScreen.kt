@@ -36,9 +36,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.screentime.mobile.R
-import com.screentime.mobile.ui.components.SproutGhostButton
-import com.screentime.mobile.ui.components.SproutPrimaryButton
-import com.screentime.mobile.ui.theme.Sprout
+import com.screentime.mobile.ui.components.PeachPlumGhostButton
+import com.screentime.mobile.ui.components.PeachPlumPrimaryButton
+import com.screentime.mobile.ui.theme.PeachPlum
 import kotlinx.coroutines.launch
 
 @Composable
@@ -50,7 +50,7 @@ fun SignInScreen(viewModel: AuthViewModel = hiltViewModel()) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Sprout.colors.background),
+            .background(PeachPlum.colors.background),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -61,27 +61,27 @@ fun SignInScreen(viewModel: AuthViewModel = hiltViewModel()) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-        // App icon: coral square with plum circle (matches Sprout app icon)
+        // App icon: coral square with plum circle (matches PeachPlum app icon)
         Box(
             modifier = Modifier
                 .size(96.dp)
-                .background(Sprout.colors.primary, RoundedCornerShape(24.dp)),
+                .background(PeachPlum.colors.primary, RoundedCornerShape(24.dp)),
             contentAlignment = Alignment.Center,
         ) {
-            Box(modifier = Modifier.size(40.dp).background(Sprout.colors.ink, CircleShape))
+            Box(modifier = Modifier.size(40.dp).background(PeachPlum.colors.ink, CircleShape))
         }
         Spacer(Modifier.height(26.dp))
         Text(
             stringResource(R.string.auth_welcome_title),
-            style = Sprout.typography.display,
-            color = Sprout.colors.ink,
+            style = PeachPlum.typography.display,
+            color = PeachPlum.colors.ink,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(10.dp))
         Text(
             stringResource(R.string.auth_welcome_subtitle),
-            style = Sprout.typography.bodyL,
-            color = Sprout.colors.inkMuted,
+            style = PeachPlum.typography.bodyL,
+            color = PeachPlum.colors.inkMuted,
             textAlign = TextAlign.Center,
         )
 
@@ -89,15 +89,15 @@ fun SignInScreen(viewModel: AuthViewModel = hiltViewModel()) {
             Spacer(Modifier.height(16.dp))
             Text(
                 it,
-                color = Sprout.colors.overText,
-                style = Sprout.typography.bodyStrong,
+                color = PeachPlum.colors.overText,
+                style = PeachPlum.typography.bodyStrong,
             )
         }
 
         Spacer(Modifier.height(32.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-            SproutPrimaryButton(
+            PeachPlumPrimaryButton(
                 text = stringResource(R.string.auth_continue_google),
                 onClick = { scope.launch { signInWithGoogle(context, viewModel) } },
                 leading = {
@@ -107,7 +107,7 @@ fun SignInScreen(viewModel: AuthViewModel = hiltViewModel()) {
                             .background(Color.White, RoundedCornerShape(8.dp)),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("G", style = Sprout.typography.label, color = Color(0xFF4285F4))
+                        Text("G", style = PeachPlum.typography.label, color = Color(0xFF4285F4))
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -115,7 +115,7 @@ fun SignInScreen(viewModel: AuthViewModel = hiltViewModel()) {
         }
         Spacer(Modifier.height(12.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-            SproutGhostButton(
+            PeachPlumGhostButton(
                 text = stringResource(R.string.auth_sign_in_email),
                 onClick = { /* email path TODO */ },
                 modifier = Modifier.fillMaxWidth(),
@@ -125,8 +125,8 @@ fun SignInScreen(viewModel: AuthViewModel = hiltViewModel()) {
         Spacer(Modifier.height(20.dp))
         Text(
             stringResource(R.string.auth_legal_notice),
-            style = Sprout.typography.caption,
-            color = Sprout.colors.inkFaint,
+            style = PeachPlum.typography.caption,
+            color = PeachPlum.colors.inkFaint,
             textAlign = TextAlign.Center,
         )
         }

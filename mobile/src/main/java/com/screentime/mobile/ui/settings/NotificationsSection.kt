@@ -30,8 +30,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.screentime.mobile.R
-import com.screentime.mobile.ui.components.SproutPrimaryButton
-import com.screentime.mobile.ui.theme.Sprout
+import com.screentime.mobile.ui.components.PeachPlumPrimaryButton
+import com.screentime.mobile.ui.theme.PeachPlum
 
 /**
  * Settings-screen counterpart to the system permission prompt: a persistent
@@ -73,12 +73,12 @@ fun NotificationsSection() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Sprout.colors.surface, Sprout.radius.card)
+            .background(PeachPlum.colors.surface, PeachPlum.radius.card)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text(stringResource(R.string.settings_notifications_title), style = Sprout.typography.headline, color = Sprout.colors.ink)
-        Text(stringResource(R.string.settings_notifications_hint), style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
+        Text(stringResource(R.string.settings_notifications_title), style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
+        Text(stringResource(R.string.settings_notifications_hint), style = PeachPlum.typography.caption, color = PeachPlum.colors.inkMuted)
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -86,11 +86,11 @@ fun NotificationsSection() {
         ) {
             Text(
                 text = if (enabled) stringResource(R.string.settings_notifications_on) else stringResource(R.string.settings_notifications_off),
-                style = Sprout.typography.body,
-                color = Sprout.colors.ink,
+                style = PeachPlum.typography.body,
+                color = PeachPlum.colors.ink,
             )
             if (!enabled) {
-                SproutPrimaryButton(
+                PeachPlumPrimaryButton(
                     text = stringResource(
                         if (canPromptInApp) R.string.settings_notifications_enable else R.string.settings_notifications_open_settings,
                     ),

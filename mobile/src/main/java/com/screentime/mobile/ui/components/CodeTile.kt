@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.screentime.mobile.ui.theme.RubikFont
-import com.screentime.mobile.ui.theme.Sprout
+import com.screentime.mobile.ui.theme.PeachPlum
 
 /**
  * 6 cream-on-dark digit tiles used in the active unlock-code hero card.
@@ -42,7 +42,7 @@ fun CodeTilesRow(code: String, modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .weight(1f)
                     .height(78.dp)
-                    .background(Sprout.colors.background, RoundedCornerShape(18.dp)),
+                    .background(PeachPlum.colors.background, RoundedCornerShape(18.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -52,7 +52,7 @@ fun CodeTilesRow(code: String, modifier: Modifier = Modifier) {
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 44.sp,
                     ),
-                    color = Sprout.colors.ink,
+                    color = PeachPlum.colors.ink,
                 )
             }
         }

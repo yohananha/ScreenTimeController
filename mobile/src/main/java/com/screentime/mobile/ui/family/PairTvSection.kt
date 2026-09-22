@@ -51,10 +51,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.screentime.mobile.R
 import com.screentime.shared.R as SharedR
 import com.screentime.mobile.ui.components.CodeSlotInput
-import com.screentime.mobile.ui.components.SproutGhostButton
-import com.screentime.mobile.ui.components.SproutPrimaryButton
-import com.screentime.mobile.ui.theme.Sprout
-import com.screentime.mobile.ui.theme.SproutRadius
+import com.screentime.mobile.ui.components.PeachPlumGhostButton
+import com.screentime.mobile.ui.components.PeachPlumPrimaryButton
+import com.screentime.mobile.ui.theme.PeachPlum
+import com.screentime.mobile.ui.theme.PeachPlumRadius
 import com.screentime.shared.model.PairedDevice
 
 @Composable
@@ -86,11 +86,11 @@ fun PairTvSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(stringResource(R.string.pairtv_section_title), style = Sprout.typography.headline, color = Sprout.colors.ink)
+            Text(stringResource(R.string.pairtv_section_title), style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
             Text(
                 text = if (devices.isEmpty()) stringResource(R.string.pairtv_none_paired) else pluralStringResource(R.plurals.pairtv_count_paired, devices.size, devices.size),
-                style = Sprout.typography.caption,
-                color = Sprout.colors.inkMuted,
+                style = PeachPlum.typography.caption,
+                color = PeachPlum.colors.inkMuted,
             )
         }
 
@@ -122,21 +122,21 @@ fun PairTvSection(
                     Icon(
                         Icons.Filled.Tv,
                         contentDescription = null,
-                        tint = Sprout.colors.inkFaint,
+                        tint = PeachPlum.colors.inkFaint,
                         modifier = Modifier.size(34.dp),
                     )
                 }
-                Text(stringResource(R.string.pairtv_empty_title), style = Sprout.typography.title, color = Sprout.colors.ink)
+                Text(stringResource(R.string.pairtv_empty_title), style = PeachPlum.typography.title, color = PeachPlum.colors.ink)
                 Text(
                     stringResource(R.string.pairtv_empty_subtitle),
-                    style = Sprout.typography.body,
-                    color = Sprout.colors.inkMuted,
+                    style = PeachPlum.typography.body,
+                    color = PeachPlum.colors.inkMuted,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 10.dp),
                 )
-                SproutPrimaryButton(
+                PeachPlumPrimaryButton(
                     text = stringResource(R.string.pairtv_action_pair),
                     onClick = { showForm = true },
                 )
@@ -146,8 +146,8 @@ fun PairTvSection(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(Sprout.radius.card)
-                    .background(Sprout.colors.ink, Sprout.radius.card),
+                    .clip(PeachPlum.radius.card)
+                    .background(PeachPlum.colors.ink, PeachPlum.radius.card),
             ) {
                 devices.forEachIndexed { index, device ->
                     val isExpanded = expandedDeviceId == device.id
@@ -184,28 +184,28 @@ fun PairTvSection(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Sprout.colors.surface, Sprout.radius.card)
+                        .background(PeachPlum.colors.surface, PeachPlum.radius.card)
                         .padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    Text(stringResource(R.string.pairtv_action_pair), style = Sprout.typography.headline, color = Sprout.colors.ink)
+                    Text(stringResource(R.string.pairtv_action_pair), style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
                     Text(
                         stringResource(R.string.pairtv_form_subtitle),
-                        style = Sprout.typography.body,
-                        color = Sprout.colors.inkMuted,
+                        style = PeachPlum.typography.body,
+                        color = PeachPlum.colors.inkMuted,
                     )
                     CodeSlotInput(value = code, onValueChange = { code = it })
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        SproutPrimaryButton(
+                        PeachPlumPrimaryButton(
                             text = if (state.busy) stringResource(R.string.pairtv_pairing) else stringResource(R.string.pairtv_pair),
                             onClick = { viewModel.claim(code, familyId) },
                             enabled = code.length == 6 && !state.busy,
                             modifier = Modifier.weight(1f),
                         )
-                        SproutGhostButton(
+                        PeachPlumGhostButton(
                             text = stringResource(SharedR.string.action_cancel),
                             onClick = {
                                 showForm = false
@@ -218,13 +218,13 @@ fun PairTvSection(
                     state.message?.let {
                         Text(
                             stringResource(it),
-                            style = Sprout.typography.caption,
-                            color = if (state.success) Sprout.colors.positiveText else Sprout.colors.overText,
+                            style = PeachPlum.typography.caption,
+                            color = if (state.success) PeachPlum.colors.positiveText else PeachPlum.colors.overText,
                         )
                     }
                 }
             } else {
-                SproutGhostButton(
+                PeachPlumGhostButton(
                     text = stringResource(R.string.pairtv_add_another),
                     onClick = { showForm = true },
                     modifier = Modifier.fillMaxWidth(),
@@ -279,7 +279,7 @@ private fun DeviceListRow(
                 Icon(
                     Icons.Filled.Tv,
                     contentDescription = null,
-                    tint = if (isExpanded) Color(0xFFB99AEF) else Sprout.colors.background,
+                    tint = if (isExpanded) Color(0xFFB99AEF) else PeachPlum.colors.background,
                     modifier = Modifier.size(15.dp),
                 )
             }
@@ -287,8 +287,8 @@ private fun DeviceListRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     device.name,
-                    style = Sprout.typography.bodyStrong,
-                    color = Sprout.colors.surface,
+                    style = PeachPlum.typography.bodyStrong,
+                    color = PeachPlum.colors.surface,
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -298,11 +298,11 @@ private fun DeviceListRow(
                     Box(
                         modifier = Modifier
                             .size(5.dp)
-                            .background(Sprout.colors.positiveDisplay, CircleShape),
+                            .background(PeachPlum.colors.positiveDisplay, CircleShape),
                     )
                     Text(
                         stringResource(R.string.pairtv_online_status, "0m"),
-                        style = Sprout.typography.caption,
+                        style = PeachPlum.typography.caption,
                         color = Color(0xFF9FE9CE),
                     )
                 }
@@ -325,7 +325,7 @@ private fun DeviceListRow(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Sprout.colors.darkSurface)
+                    .background(PeachPlum.colors.darkSurface)
                     .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
@@ -348,7 +348,7 @@ private fun DeviceListRow(
                     ) {
                         Text(
                             stringResource(R.string.pairtv_unpair_confirm),
-                            style = Sprout.typography.caption.copy(fontWeight = FontWeight.Bold),
+                            style = PeachPlum.typography.caption.copy(fontWeight = FontWeight.Bold),
                             color = Color(0xFFFFD9D4),
                         )
                         Row(
@@ -358,21 +358,21 @@ private fun DeviceListRow(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(Sprout.colors.overDisplay, SproutRadius.pill)
+                                    .background(PeachPlum.colors.overDisplay, PeachPlumRadius.pill)
                                     .clickable { onConfirmUnpair() }
                                     .padding(vertical = 10.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Text(stringResource(R.string.pairtv_action_unpair), style = Sprout.typography.label, color = Color.White)
+                                Text(stringResource(R.string.pairtv_action_unpair), style = PeachPlum.typography.label, color = Color.White)
                             }
                             Box(
                                 modifier = Modifier
-                                    .border(BorderStroke(1.dp, Color(0xFF6A5A7E)), SproutRadius.pill)
+                                    .border(BorderStroke(1.dp, Color(0xFF6A5A7E)), PeachPlumRadius.pill)
                                     .clickable { onCancelUnpair() }
                                     .padding(horizontal = 18.dp, vertical = 10.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Text(stringResource(SharedR.string.action_cancel), style = Sprout.typography.label, color = Sprout.colors.background)
+                                Text(stringResource(SharedR.string.action_cancel), style = PeachPlum.typography.label, color = PeachPlum.colors.background)
                             }
                         }
                     }
@@ -384,22 +384,22 @@ private fun DeviceListRow(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .border(BorderStroke(1.dp, Color(0xFF6A5A7E)), SproutRadius.pill)
+                                .border(BorderStroke(1.dp, Color(0xFF6A5A7E)), PeachPlumRadius.pill)
                                 .clickable { onRename() }
                                 .padding(vertical = 8.dp),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text(stringResource(R.string.pairtv_action_rename), style = Sprout.typography.label, color = Sprout.colors.background)
+                            Text(stringResource(R.string.pairtv_action_rename), style = PeachPlum.typography.label, color = PeachPlum.colors.background)
                         }
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .border(BorderStroke(1.dp, Color(0xFF6A5A7E)), SproutRadius.pill)
+                                .border(BorderStroke(1.dp, Color(0xFF6A5A7E)), PeachPlumRadius.pill)
                                 .clickable { onRequestUnpair() }
                                 .padding(vertical = 8.dp),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text(stringResource(R.string.pairtv_action_unpair_tv), style = Sprout.typography.label, color = Color(0xFFFFB7AF))
+                            Text(stringResource(R.string.pairtv_action_unpair_tv), style = PeachPlum.typography.label, color = Color(0xFFFFB7AF))
                         }
                     }
                 }
@@ -415,8 +415,8 @@ private fun StatChip(label: String, value: String, modifier: Modifier = Modifier
             .background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(9.dp))
             .padding(horizontal = 10.dp, vertical = 8.dp),
     ) {
-        Text(label, style = Sprout.typography.caption, color = Sprout.colors.darkMutedText)
-        Text(value, style = Sprout.typography.bodyStrong, color = Sprout.colors.surface)
+        Text(label, style = PeachPlum.typography.caption, color = PeachPlum.colors.darkMutedText)
+        Text(value, style = PeachPlum.typography.bodyStrong, color = PeachPlum.colors.surface)
     }
 }
 
@@ -429,30 +429,30 @@ private fun RenameDeviceDialog(
     var name by remember(device) { mutableStateOf(device.name) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Sprout.colors.surface,
-        title = { Text(stringResource(R.string.pairtv_rename_title), style = Sprout.typography.headline, color = Sprout.colors.ink) },
+        containerColor = PeachPlum.colors.surface,
+        title = { Text(stringResource(R.string.pairtv_rename_title), style = PeachPlum.typography.headline, color = PeachPlum.colors.ink) },
         text = {
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
                 singleLine = true,
-                textStyle = Sprout.typography.bodyStrong,
+                textStyle = PeachPlum.typography.bodyStrong,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Sprout.colors.primary,
-                    unfocusedBorderColor = Sprout.colors.outline,
-                    focusedTextColor = Sprout.colors.ink,
-                    unfocusedTextColor = Sprout.colors.ink,
+                    focusedBorderColor = PeachPlum.colors.primary,
+                    unfocusedBorderColor = PeachPlum.colors.outline,
+                    focusedTextColor = PeachPlum.colors.ink,
+                    unfocusedTextColor = PeachPlum.colors.ink,
                 ),
             )
         },
         confirmButton = {
             TextButton(onClick = { onSave(name.trim().ifBlank { device.name }) }) {
-                Text(stringResource(SharedR.string.action_save), style = Sprout.typography.label, color = Sprout.colors.primary)
+                Text(stringResource(SharedR.string.action_save), style = PeachPlum.typography.label, color = PeachPlum.colors.primary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(SharedR.string.action_cancel), style = Sprout.typography.label, color = Sprout.colors.inkMuted)
+                Text(stringResource(SharedR.string.action_cancel), style = PeachPlum.typography.label, color = PeachPlum.colors.inkMuted)
             }
         },
     )

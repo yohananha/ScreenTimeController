@@ -19,20 +19,20 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.screentime.mobile.ui.theme.Sprout
-import com.screentime.mobile.ui.theme.SproutRadius
+import com.screentime.mobile.ui.theme.PeachPlum
+import com.screentime.mobile.ui.theme.PeachPlumRadius
 
 @Composable
-fun SproutPrimaryButton(
+fun PeachPlumPrimaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    shape: Shape = SproutRadius.pill,
+    shape: Shape = PeachPlumRadius.pill,
     shadow: Boolean = false,
     leading: @Composable (RowScope.() -> Unit)? = null,
 ) {
-    val bg = if (enabled) Sprout.colors.primary else Sprout.colors.outline
+    val bg = if (enabled) PeachPlum.colors.primary else PeachPlum.colors.outline
     val shadowMod = if (shadow && enabled) Modifier.shadow(elevation = 10.dp, shape = shape) else Modifier
     Row(
         modifier = modifier
@@ -47,14 +47,14 @@ fun SproutPrimaryButton(
         if (leading != null) leading()
         Text(
             text = text,
-            style = Sprout.typography.label,
-            color = if (enabled) Sprout.colors.onPrimary else Sprout.colors.inkFaint,
+            style = PeachPlum.typography.label,
+            color = if (enabled) PeachPlum.colors.onPrimary else PeachPlum.colors.inkFaint,
         )
     }
 }
 
 @Composable
-fun SproutGhostButton(
+fun PeachPlumGhostButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -64,7 +64,7 @@ fun SproutGhostButton(
 ) {
     Row(
         modifier = modifier
-            .border(BorderStroke(1.5.dp, Sprout.colors.outline), SproutRadius.pill)
+            .border(BorderStroke(1.5.dp, PeachPlum.colors.outline), PeachPlumRadius.pill)
             .semantics { role = Role.Button }
             .clickable(enabled = enabled, onClick = onClick)
             .padding(contentPadding),
@@ -74,21 +74,21 @@ fun SproutGhostButton(
         if (leading != null) leading()
         Text(
             text = text,
-            style = Sprout.typography.label,
-            color = Sprout.colors.ink,
+            style = PeachPlum.typography.label,
+            color = PeachPlum.colors.ink,
         )
     }
 }
 
 @Composable
-fun SproutDangerButton(
+fun PeachPlumDangerButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
-            .background(Sprout.colors.overDisplay, SproutRadius.pill)
+            .background(PeachPlum.colors.overDisplay, PeachPlumRadius.pill)
             .semantics { role = Role.Button }
             .clickable(onClick = onClick)
             .padding(horizontal = 18.dp, vertical = 11.dp),
@@ -97,8 +97,8 @@ fun SproutDangerButton(
     ) {
         Text(
             text = text,
-            style = Sprout.typography.label,
-            color = Sprout.colors.surface,
+            style = PeachPlum.typography.label,
+            color = PeachPlum.colors.surface,
         )
     }
 }

@@ -37,7 +37,7 @@ import com.screentime.mobile.R
 import com.screentime.mobile.ui.components.ProgressBar
 import com.screentime.mobile.ui.components.TopHeader
 import com.screentime.mobile.ui.theme.LocalFormats
-import com.screentime.mobile.ui.theme.Sprout
+import com.screentime.mobile.ui.theme.PeachPlum
 import com.screentime.mobile.ui.theme.rememberScreenPadding
 import com.screentime.shared.model.UsageSnapshot
 import java.time.LocalDate
@@ -50,7 +50,7 @@ fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
     val nonEmpty = snapshots.filter { it.perAppMillis.isNotEmpty() }
     val hPad = rememberScreenPadding()
 
-    Box(modifier = Modifier.fillMaxSize().background(Sprout.colors.background), contentAlignment = Alignment.TopCenter) {
+    Box(modifier = Modifier.fillMaxSize().background(PeachPlum.colors.background), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
             modifier = Modifier.fillMaxWidth().widthIn(max = 600.dp),
             contentPadding = PaddingValues(start = hPad, end = hPad, bottom = 24.dp),
@@ -59,11 +59,11 @@ fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
             item { TopHeader(familyName = "Family", parentInitial = "P") }
             item {
                 Column(modifier = Modifier.padding(top = 4.dp, bottom = 6.dp)) {
-                    Text(stringResource(R.string.history_title), style = Sprout.typography.display, color = Sprout.colors.ink)
+                    Text(stringResource(R.string.history_title), style = PeachPlum.typography.display, color = PeachPlum.colors.ink)
                     Text(
                         stringResource(R.string.history_subtitle),
-                        style = Sprout.typography.caption,
-                        color = Sprout.colors.inkMuted,
+                        style = PeachPlum.typography.caption,
+                        color = PeachPlum.colors.inkMuted,
                         modifier = Modifier.padding(top = 5.dp),
                     )
                 }
@@ -83,22 +83,22 @@ private fun EmptyState() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Sprout.colors.surface, Sprout.radius.card)
+            .background(PeachPlum.colors.surface, PeachPlum.radius.card)
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Box(
-            modifier = Modifier.size(88.dp).background(Sprout.colors.positiveContainer, CircleShape),
+            modifier = Modifier.size(88.dp).background(PeachPlum.colors.positiveContainer, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Filled.Check, contentDescription = null, tint = Sprout.colors.positiveText, modifier = Modifier.size(40.dp))
+            Icon(Icons.Filled.Check, contentDescription = null, tint = PeachPlum.colors.positiveText, modifier = Modifier.size(40.dp))
         }
-        Text(stringResource(R.string.history_empty_title), style = Sprout.typography.title, color = Sprout.colors.ink)
+        Text(stringResource(R.string.history_empty_title), style = PeachPlum.typography.title, color = PeachPlum.colors.ink)
         Text(
             stringResource(R.string.history_empty_subtitle),
-            style = Sprout.typography.bodyStrong,
-            color = Sprout.colors.inkMuted,
+            style = PeachPlum.typography.bodyStrong,
+            color = PeachPlum.colors.inkMuted,
         )
     }
 }
@@ -112,7 +112,7 @@ private fun WeeklyBarChartCard(snapshots: List<UsageSnapshot>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Sprout.colors.surface, Sprout.radius.input)
+            .background(PeachPlum.colors.surface, PeachPlum.radius.input)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -154,16 +154,16 @@ private fun WeeklyBarChartCard(snapshots: List<UsageSnapshot>) {
                     Spacer(Modifier.height(6.dp))
                     Text(
                         dayLabel,
-                        style = Sprout.typography.label,
-                        color = if (isToday) Sprout.colors.ink else Sprout.colors.inkFaint,
+                        style = PeachPlum.typography.label,
+                        color = if (isToday) PeachPlum.colors.ink else PeachPlum.colors.inkFaint,
                     )
                 }
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            LegendDot(Sprout.colors.positiveDisplay, stringResource(R.string.status_on_track))
-            LegendDot(Sprout.colors.warningDisplay, stringResource(R.string.status_almost_up))
-            LegendDot(Sprout.colors.overDisplay, stringResource(R.string.history_legend_over_limit))
+            LegendDot(PeachPlum.colors.positiveDisplay, stringResource(R.string.status_on_track))
+            LegendDot(PeachPlum.colors.warningDisplay, stringResource(R.string.status_almost_up))
+            LegendDot(PeachPlum.colors.overDisplay, stringResource(R.string.history_legend_over_limit))
         }
     }
 }
@@ -172,7 +172,7 @@ private fun WeeklyBarChartCard(snapshots: List<UsageSnapshot>) {
 private fun LegendDot(color: Color, label: String) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
         Box(modifier = Modifier.size(8.dp).background(color, CircleShape))
-        Text(label, style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
+        Text(label, style = PeachPlum.typography.caption, color = PeachPlum.colors.inkMuted)
     }
 }
 
@@ -198,7 +198,7 @@ private fun DayCard(snapshot: UsageSnapshot) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Sprout.colors.surface, Sprout.radius.card)
+            .background(PeachPlum.colors.surface, PeachPlum.radius.card)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -208,13 +208,13 @@ private fun DayCard(snapshot: UsageSnapshot) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column {
-                Text(dayLabel, style = Sprout.typography.headline, color = Sprout.colors.ink)
-                Text(dateLabel, style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
+                Text(dayLabel, style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
+                Text(dateLabel, style = PeachPlum.typography.caption, color = PeachPlum.colors.inkMuted)
             }
             Text(
                 LocalFormats.current.duration.minutes(LocalContext.current.resources, totalMinutes),
-                style = Sprout.typography.headline,
-                color = Sprout.colors.ink,
+                style = PeachPlum.typography.headline,
+                color = PeachPlum.colors.ink,
             )
         }
         topApps.forEach { (pkg, millis) ->
@@ -231,17 +231,17 @@ private fun DayCard(snapshot: UsageSnapshot) {
 private fun AppUsageRow(appName: String, minutes: Int, fraction: Float) {
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(appName, style = Sprout.typography.body, color = Sprout.colors.ink)
+            Text(appName, style = PeachPlum.typography.body, color = PeachPlum.colors.ink)
             Text(
                 LocalFormats.current.duration.minutes(LocalContext.current.resources, minutes),
-                style = Sprout.typography.bodyStrong,
-                color = Sprout.colors.inkMuted,
+                style = PeachPlum.typography.bodyStrong,
+                color = PeachPlum.colors.inkMuted,
             )
         }
         ProgressBar(
             progress = fraction.coerceIn(0f, 1f),
-            fill = Sprout.colors.primary,
-            track = Sprout.colors.outline,
+            fill = PeachPlum.colors.primary,
+            track = PeachPlum.colors.outline,
             height = 6,
         )
     }

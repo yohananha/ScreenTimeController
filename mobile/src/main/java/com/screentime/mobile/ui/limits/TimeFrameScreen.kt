@@ -45,10 +45,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.screentime.mobile.R
 import com.screentime.shared.R as SharedR
-import com.screentime.mobile.ui.components.SproutGhostButton
-import com.screentime.mobile.ui.components.SproutPrimaryButton
+import com.screentime.mobile.ui.components.PeachPlumGhostButton
+import com.screentime.mobile.ui.components.PeachPlumPrimaryButton
 import com.screentime.mobile.ui.theme.LocalFormats
-import com.screentime.mobile.ui.theme.Sprout
+import com.screentime.mobile.ui.theme.PeachPlum
 import com.screentime.mobile.ui.theme.rememberScreenPadding
 import com.screentime.shared.model.TimeFrameSchedule
 import com.screentime.shared.model.TimeFrameWindow
@@ -69,7 +69,7 @@ fun TimeFrameScreen(
     var editingDay by remember { mutableStateOf<DayOfWeek?>(null) }
     val hPad = rememberScreenPadding()
 
-    Box(modifier = Modifier.fillMaxSize().background(Sprout.colors.background), contentAlignment = Alignment.TopCenter) {
+    Box(modifier = Modifier.fillMaxSize().background(PeachPlum.colors.background), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
             modifier = Modifier.fillMaxWidth().widthIn(max = 600.dp),
             contentPadding = PaddingValues(start = hPad, end = hPad, bottom = 120.dp),
@@ -84,23 +84,23 @@ fun TimeFrameScreen(
                     Box(
                         modifier = Modifier
                             .size(38.dp)
-                            .background(Sprout.colors.surface, Sprout.radius.pill)
+                            .background(PeachPlum.colors.surface, PeachPlum.radius.pill)
                             .clickable(onClick = onBack),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.timeframe_back),
-                            tint = Sprout.colors.ink,
+                            tint = PeachPlum.colors.ink,
                             modifier = Modifier.size(20.dp),
                         )
                     }
                     Column {
-                        Text(stringResource(R.string.timeframe_title), style = Sprout.typography.title, color = Sprout.colors.ink)
+                        Text(stringResource(R.string.timeframe_title), style = PeachPlum.typography.title, color = PeachPlum.colors.ink)
                         Text(
                             stringResource(R.string.timeframe_subtitle),
-                            style = Sprout.typography.caption,
-                            color = Sprout.colors.inkMuted,
+                            style = PeachPlum.typography.caption,
+                            color = PeachPlum.colors.inkMuted,
                         )
                     }
                 }
@@ -110,7 +110,7 @@ fun TimeFrameScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Sprout.colors.surface, Sprout.radius.card)
+                        .background(PeachPlum.colors.surface, PeachPlum.radius.card)
                         .padding(horizontal = 16.dp, vertical = 14.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
@@ -119,16 +119,16 @@ fun TimeFrameScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Text(stringResource(R.string.timeframe_enforce_schedule), style = Sprout.typography.headline, color = Sprout.colors.ink)
+                        Text(stringResource(R.string.timeframe_enforce_schedule), style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
                         Switch(
                             checked = state.schedule.enabled,
                             onCheckedChange = viewModel::setEnabled,
                             thumbContent = { Box(Modifier.size(24.dp)) },
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = Sprout.colors.surface,
-                                checkedTrackColor = Sprout.colors.primary,
+                                checkedThumbColor = PeachPlum.colors.surface,
+                                checkedTrackColor = PeachPlum.colors.primary,
                                 checkedBorderColor = Color.Transparent,
-                                uncheckedThumbColor = Sprout.colors.surface,
+                                uncheckedThumbColor = PeachPlum.colors.surface,
                                 uncheckedTrackColor = Color(0xFFC9BCD0),
                                 uncheckedBorderColor = Color.Transparent,
                             ),
@@ -137,8 +137,8 @@ fun TimeFrameScreen(
                     if (state.schedule.enabled) {
                         Text(
                             stringResource(R.string.timeframe_enforce_hint),
-                            style = Sprout.typography.caption,
-                            color = Sprout.colors.inkMuted,
+                            style = PeachPlum.typography.caption,
+                            color = PeachPlum.colors.inkMuted,
                         )
                     }
                 }
@@ -149,7 +149,7 @@ fun TimeFrameScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Sprout.colors.surface, Sprout.radius.card),
+                            .background(PeachPlum.colors.surface, PeachPlum.radius.card),
                     ) {
                         val today = LocalDate.now().dayOfWeek
                         val orderedDays = remember { orderedDaysForLocale() }
@@ -165,7 +165,7 @@ fun TimeFrameScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp)
-                                        .background(Sprout.colors.outline)
+                                        .background(PeachPlum.colors.outline)
                                         .size(height = 1.dp, width = 0.dp),
                                 )
                             }
@@ -176,7 +176,7 @@ fun TimeFrameScreen(
         }
 
         if (state.pendingChanges) {
-            SproutPrimaryButton(
+            PeachPlumPrimaryButton(
                 text = if (state.saving) stringResource(R.string.timeframe_saving) else stringResource(R.string.timeframe_save_schedule),
                 onClick = viewModel::save,
                 enabled = !state.saving,
@@ -227,25 +227,25 @@ private fun DayRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(day.displayName, style = Sprout.typography.headline, color = Sprout.colors.ink)
+            Text(day.displayName, style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
             if (isToday) {
                 Text(
                     stringResource(R.string.timeframe_today_badge),
-                    style = Sprout.typography.caption,
-                    color = Sprout.colors.ink,
+                    style = PeachPlum.typography.caption,
+                    color = PeachPlum.colors.ink,
                     modifier = Modifier
-                        .background(Sprout.colors.accentContainer, Sprout.radius.pill)
+                        .background(PeachPlum.colors.accentContainer, PeachPlum.radius.pill)
                         .padding(horizontal = 8.dp, vertical = 3.dp),
                 )
             }
         }
         Text(
             text = windows.windowsSummary(),
-            style = Sprout.typography.caption,
+            style = PeachPlum.typography.caption,
             color = when {
-                windows.isEmpty() -> Sprout.colors.overText
-                windows.isAllDay() -> Sprout.colors.positiveText
-                else -> Sprout.colors.inkMuted
+                windows.isEmpty() -> PeachPlum.colors.overText
+                windows.isAllDay() -> PeachPlum.colors.positiveText
+                else -> PeachPlum.colors.inkMuted
             },
             textAlign = TextAlign.End,
         )
@@ -275,7 +275,7 @@ private fun DayEditSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Sprout.colors.surface,
+        containerColor = PeachPlum.colors.surface,
     ) {
         Column(
             modifier = Modifier
@@ -289,24 +289,24 @@ private fun DayEditSheet(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(day.displayName, style = Sprout.typography.title, color = Sprout.colors.ink)
+                Text(day.displayName, style = PeachPlum.typography.title, color = PeachPlum.colors.ink)
                 Box(
                     modifier = Modifier
                         .size(32.dp)
-                        .background(Sprout.colors.background, Sprout.radius.pill)
+                        .background(PeachPlum.colors.background, PeachPlum.radius.pill)
                         .clickable(onClick = onDismiss),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         Icons.Filled.Close,
                         contentDescription = stringResource(R.string.timeframe_close),
-                        tint = Sprout.colors.inkMuted,
+                        tint = PeachPlum.colors.inkMuted,
                         modifier = Modifier.size(18.dp),
                     )
                 }
             }
 
-            SproutGhostButton(
+            PeachPlumGhostButton(
                 text = stringResource(
                     if (allDay) R.string.timeframe_allow_all_day_active else R.string.timeframe_allow_all_day,
                 ),
@@ -324,19 +324,19 @@ private fun DayEditSheet(
                     Icon(
                         Icons.Filled.AccessTime,
                         contentDescription = null,
-                        tint = Sprout.colors.inkFaint,
+                        tint = PeachPlum.colors.inkFaint,
                         modifier = Modifier.size(40.dp),
                     )
                     Text(
                         stringResource(R.string.timeframe_blocked_all_day_on, day.displayName),
-                        style = Sprout.typography.headline,
-                        color = Sprout.colors.ink,
+                        style = PeachPlum.typography.headline,
+                        color = PeachPlum.colors.ink,
                         textAlign = TextAlign.Center,
                     )
                     Text(
                         stringResource(R.string.timeframe_add_window_hint),
-                        style = Sprout.typography.caption,
-                        color = Sprout.colors.inkMuted,
+                        style = PeachPlum.typography.caption,
+                        color = PeachPlum.colors.inkMuted,
                         textAlign = TextAlign.Center,
                     )
                 }
@@ -354,7 +354,7 @@ private fun DayEditSheet(
                 }
             }
 
-            SproutGhostButton(
+            PeachPlumGhostButton(
                 text = stringResource(R.string.timeframe_add_window_action),
                 onClick = { dialogState = DialogState.Add },
                 modifier = Modifier.fillMaxWidth(),
@@ -368,7 +368,7 @@ private fun DayEditSheet(
                 },
             )
 
-            SproutPrimaryButton(
+            PeachPlumPrimaryButton(
                 text = stringResource(SharedR.string.action_done),
                 onClick = { onSave(localWindows, applyAlsoTo) },
                 modifier = Modifier.fillMaxWidth(),
@@ -407,7 +407,7 @@ private fun WindowRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Sprout.colors.background, Sprout.radius.input)
+            .background(PeachPlum.colors.background, PeachPlum.radius.input)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -419,7 +419,7 @@ private fun WindowRow(
             Icon(
                 Icons.Filled.AccessTime,
                 contentDescription = null,
-                tint = Sprout.colors.accent,
+                tint = PeachPlum.colors.accent,
                 modifier = Modifier.size(18.dp),
             )
             Text(
@@ -428,8 +428,8 @@ private fun WindowRow(
                 } else {
                     LocalFormats.current.clock.range(LocalContext.current.resources, window.startMinute.toTimeLabel(), window.endMinute.toTimeLabel())
                 },
-                style = Sprout.typography.bodyStrong,
-                color = Sprout.colors.ink,
+                style = PeachPlum.typography.bodyStrong,
+                color = PeachPlum.colors.ink,
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -437,14 +437,14 @@ private fun WindowRow(
                 Box(
                     modifier = Modifier
                         .size(32.dp)
-                        .background(Sprout.colors.accentContainer, Sprout.radius.pill)
+                        .background(PeachPlum.colors.accentContainer, PeachPlum.radius.pill)
                         .clickable(onClick = onEdit),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         Icons.Filled.Edit,
                         contentDescription = stringResource(R.string.timeframe_edit_window),
-                        tint = Sprout.colors.ink,
+                        tint = PeachPlum.colors.ink,
                         modifier = Modifier.size(16.dp),
                     )
                 }
@@ -452,14 +452,14 @@ private fun WindowRow(
             Box(
                 modifier = Modifier
                     .size(32.dp)
-                    .background(Sprout.colors.overContainer, Sprout.radius.pill)
+                    .background(PeachPlum.colors.overContainer, PeachPlum.radius.pill)
                     .clickable(onClick = onDelete),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     Icons.Filled.Delete,
                     contentDescription = stringResource(SharedR.string.action_remove),
-                    tint = Sprout.colors.overText,
+                    tint = PeachPlum.colors.overText,
                     modifier = Modifier.size(16.dp),
                 )
             }
@@ -494,18 +494,18 @@ private fun WindowDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Sprout.colors.surface,
+        containerColor = PeachPlum.colors.surface,
         title = {
             Text(
                 if (pickingEnd) stringResource(R.string.timeframe_end_time) else stringResource(R.string.timeframe_start_time),
-                style = Sprout.typography.headline,
+                style = PeachPlum.typography.headline,
             )
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 TimePicker(state = if (pickingEnd) endState else startState)
                 errorMessage?.let {
-                    Text(it, style = Sprout.typography.caption, color = Sprout.colors.warningText)
+                    Text(it, style = PeachPlum.typography.caption, color = PeachPlum.colors.warningText)
                 }
             }
         },
@@ -517,7 +517,7 @@ private fun WindowDialog(
                 isEdit -> stringResource(SharedR.string.action_save)
                 else -> stringResource(R.string.timeframe_action_add)
             }
-            SproutPrimaryButton(
+            PeachPlumPrimaryButton(
                 text = confirmLabel,
                 onClick = {
                     if (!pickingEnd) {
@@ -539,7 +539,7 @@ private fun WindowDialog(
             )
         },
         dismissButton = {
-            SproutGhostButton(
+            PeachPlumGhostButton(
                 text = if (pickingEnd) stringResource(SharedR.string.action_back) else stringResource(SharedR.string.action_cancel),
                 onClick = {
                     if (pickingEnd) { pickingEnd = false; errorMessage = null } else onDismiss()
@@ -574,8 +574,8 @@ private fun ApplyAlsoToPicker(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             stringResource(R.string.timeframe_apply_also_to),
-            style = Sprout.typography.caption,
-            color = Sprout.colors.inkMuted,
+            style = PeachPlum.typography.caption,
+            color = PeachPlum.colors.inkMuted,
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -583,17 +583,17 @@ private fun ApplyAlsoToPicker(
         ) {
             otherDays.forEach { d ->
                 val isSelected = d in selected
-                val bg = if (isSelected) Sprout.colors.ink else Sprout.colors.background
-                val fg = if (isSelected) Sprout.colors.background else Sprout.colors.inkMuted
+                val bg = if (isSelected) PeachPlum.colors.ink else PeachPlum.colors.background
+                val fg = if (isSelected) PeachPlum.colors.background else PeachPlum.colors.inkMuted
                 Row(
                     modifier = Modifier
                         .weight(1f)
-                        .background(bg, Sprout.radius.pill)
+                        .background(bg, PeachPlum.radius.pill)
                         .clickable { onToggle(d) }
                         .padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    Text(d.shortDisplayName, style = Sprout.typography.caption, color = fg)
+                    Text(d.shortDisplayName, style = PeachPlum.typography.caption, color = fg)
                 }
             }
         }

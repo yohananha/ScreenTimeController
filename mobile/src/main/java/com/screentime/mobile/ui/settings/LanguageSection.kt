@@ -21,7 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.screentime.mobile.R
-import com.screentime.mobile.ui.theme.Sprout
+import com.screentime.mobile.ui.theme.PeachPlum
 
 @Composable
 fun LanguageSection(viewModel: LanguageViewModel = hiltViewModel()) {
@@ -41,13 +41,13 @@ fun LanguageSection(viewModel: LanguageViewModel = hiltViewModel()) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Sprout.colors.surface, Sprout.radius.card)
+            .background(PeachPlum.colors.surface, PeachPlum.radius.card)
             .padding(vertical = 6.dp),
     ) {
         Text(
             stringResource(R.string.settings_language_section_title),
-            style = Sprout.typography.headline,
-            color = Sprout.colors.ink,
+            style = PeachPlum.typography.headline,
+            color = PeachPlum.colors.ink,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
         )
         LanguageRow(
@@ -67,8 +67,8 @@ fun LanguageSection(viewModel: LanguageViewModel = hiltViewModel()) {
         )
         Text(
             stringResource(R.string.settings_language_hint),
-            style = Sprout.typography.caption,
-            color = Sprout.colors.inkMuted,
+            style = PeachPlum.typography.caption,
+            color = PeachPlum.colors.inkMuted,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
     }
@@ -89,7 +89,7 @@ private fun LanguageRow(label: String, selected: Boolean, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(label, style = Sprout.typography.bodyStrong, color = Sprout.colors.ink)
+        Text(label, style = PeachPlum.typography.bodyStrong, color = PeachPlum.colors.ink)
         RadioButton(selected = selected, onClick = onClick)
     }
 }

@@ -38,12 +38,12 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.screentime.mobile.R
-import com.screentime.mobile.ui.components.SproutDangerButton
-import com.screentime.mobile.ui.components.SproutGhostButton
-import com.screentime.mobile.ui.components.SproutPrimaryButton
+import com.screentime.mobile.ui.components.PeachPlumDangerButton
+import com.screentime.mobile.ui.components.PeachPlumGhostButton
+import com.screentime.mobile.ui.components.PeachPlumPrimaryButton
 import com.screentime.mobile.ui.family.FamilyViewModel
-import com.screentime.mobile.ui.theme.Sprout
-import com.screentime.mobile.ui.theme.SproutRadius
+import com.screentime.mobile.ui.theme.PeachPlum
+import com.screentime.mobile.ui.theme.PeachPlumRadius
 import com.screentime.shared.R as SharedR
 import com.screentime.shared.model.Family
 import com.screentime.shared.model.FamilyRole
@@ -79,12 +79,12 @@ fun FamilyMembersSection(
     state.error?.let { err ->
         Text(
             stringResource(err),
-            color = Sprout.colors.overText,
-            style = Sprout.typography.caption,
+            color = PeachPlum.colors.overText,
+            style = PeachPlum.typography.caption,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp)
-                .background(Sprout.colors.overContainer, SproutRadius.input)
+                .background(PeachPlum.colors.overContainer, PeachPlumRadius.input)
                 .padding(horizontal = 14.dp, vertical = 10.dp),
         )
     }
@@ -106,7 +106,7 @@ private fun MembersSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Sprout.colors.surface, SproutRadius.card)
+            .background(PeachPlum.colors.surface, PeachPlumRadius.card)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
@@ -117,11 +117,11 @@ private fun MembersSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(stringResource(R.string.family_parents_title), style = Sprout.typography.headline, color = Sprout.colors.ink)
+            Text(stringResource(R.string.family_parents_title), style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
             Text(
                 pluralStringResource(R.plurals.family_members, family.members.size, family.members.size),
-                style = Sprout.typography.caption,
-                color = Sprout.colors.inkMuted,
+                style = PeachPlum.typography.caption,
+                color = PeachPlum.colors.inkMuted,
             )
         }
 
@@ -138,7 +138,7 @@ private fun MembersSection(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(1.dp)
-                            .background(Sprout.colors.outline),
+                            .background(PeachPlum.colors.outline),
                     )
                 }
                 val coParentName = displayNames[uid]
@@ -163,7 +163,7 @@ private fun MembersSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(Sprout.colors.outline),
+                .background(PeachPlum.colors.outline),
         )
         Row(
             modifier = Modifier
@@ -184,22 +184,22 @@ private fun MembersSection(
             Box(
                 modifier = Modifier
                     .size(30.dp)
-                    .background(Sprout.colors.accentContainer, CircleShape),
+                    .background(PeachPlum.colors.accentContainer, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     Icons.Filled.Add,
                     contentDescription = null,
-                    tint = Sprout.colors.ink,
+                    tint = PeachPlum.colors.ink,
                     modifier = Modifier.size(16.dp),
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.family_invite_title), style = Sprout.typography.headline, color = Sprout.colors.ink)
+                Text(stringResource(R.string.family_invite_title), style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
                 Text(
                     stringResource(R.string.family_invite_subtitle),
-                    style = Sprout.typography.caption,
-                    color = Sprout.colors.inkMuted,
+                    style = PeachPlum.typography.caption,
+                    color = PeachPlum.colors.inkMuted,
                 )
             }
         }
@@ -230,11 +230,11 @@ private fun MemberRow(
     if (showConfirm) {
         AlertDialog(
             onDismissRequest = { showConfirm = false },
-            title = { Text(stringResource(R.string.family_remove_confirm_title), style = Sprout.typography.headline, color = Sprout.colors.ink) },
-            text = { Text(stringResource(R.string.family_remove_confirm_body), style = Sprout.typography.body, color = Sprout.colors.inkMuted) },
+            title = { Text(stringResource(R.string.family_remove_confirm_title), style = PeachPlum.typography.headline, color = PeachPlum.colors.ink) },
+            text = { Text(stringResource(R.string.family_remove_confirm_body), style = PeachPlum.typography.body, color = PeachPlum.colors.inkMuted) },
             confirmButton = {
                 TextButton(onClick = { onRemove(); showConfirm = false }) {
-                    Text(stringResource(SharedR.string.action_remove), color = Sprout.colors.overText)
+                    Text(stringResource(SharedR.string.action_remove), color = PeachPlum.colors.overText)
                 }
             },
             dismissButton = {
@@ -255,30 +255,30 @@ private fun MemberRow(
             Box(
                 modifier = Modifier
                     .size(38.dp)
-                    .background(Sprout.colors.primary, CircleShape),
+                    .background(PeachPlum.colors.primary, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(initial, style = Sprout.typography.headline, color = Sprout.colors.surface)
+                Text(initial, style = PeachPlum.typography.headline, color = PeachPlum.colors.surface)
             }
 
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(displayName, style = Sprout.typography.bodyStrong, color = Sprout.colors.ink)
+                Text(displayName, style = PeachPlum.typography.bodyStrong, color = PeachPlum.colors.ink)
             }
 
             // Role badge
             val (badgeBg, badgeFg, badgeLabel) = when {
-                isOwner && isSelf -> Triple(Sprout.colors.accent, Sprout.colors.ink, stringResource(R.string.family_role_owner_you))
-                isOwner -> Triple(Sprout.colors.accent, Sprout.colors.ink, stringResource(R.string.family_role_owner))
-                else -> Triple(Sprout.colors.accentContainer, Color(0xFF5B4D69), stringResource(R.string.family_role_co_parent))
+                isOwner && isSelf -> Triple(PeachPlum.colors.accent, PeachPlum.colors.ink, stringResource(R.string.family_role_owner_you))
+                isOwner -> Triple(PeachPlum.colors.accent, PeachPlum.colors.ink, stringResource(R.string.family_role_owner))
+                else -> Triple(PeachPlum.colors.accentContainer, Color(0xFF5B4D69), stringResource(R.string.family_role_co_parent))
             }
             Box(
                 modifier = Modifier
-                    .background(badgeBg, SproutRadius.pill)
+                    .background(badgeBg, PeachPlumRadius.pill)
                     .padding(horizontal = 9.dp, vertical = 4.dp),
             ) {
                 Text(
                     badgeLabel,
-                    style = Sprout.typography.caption.copy(
+                    style = PeachPlum.typography.caption.copy(
                         fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
                     ),
                     color = badgeFg,
@@ -289,11 +289,11 @@ private fun MemberRow(
                 Box(
                     modifier = Modifier
                         .size(36.dp)
-                        .background(Sprout.colors.surfaceSunken, CircleShape)
+                        .background(PeachPlum.colors.surfaceSunken, CircleShape)
                         .clickable { expanded = !expanded },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.family_options), tint = Sprout.colors.inkMuted, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.family_options), tint = PeachPlum.colors.inkMuted, modifier = Modifier.size(18.dp))
                 }
             }
         }
@@ -305,12 +305,12 @@ private fun MemberRow(
                     .padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                SproutDangerButton(
+                PeachPlumDangerButton(
                     text = stringResource(R.string.family_remove_from_family),
                     onClick = { showConfirm = true; expanded = false },
                     modifier = Modifier.weight(1f),
                 )
-                SproutGhostButton(
+                PeachPlumGhostButton(
                     text = stringResource(SharedR.string.action_cancel),
                     onClick = { expanded = false },
                     modifier = Modifier.weight(1f),
@@ -328,14 +328,14 @@ private fun InvitePanel(inviteCode: String?, onRefresh: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Sprout.colors.accentContainer, RoundedCornerShape(20.dp))
+            .background(PeachPlum.colors.accentContainer, RoundedCornerShape(20.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
             stringResource(R.string.family_invite_share_hint),
-            style = Sprout.typography.caption,
-            color = Sprout.colors.inkMuted,
+            style = PeachPlum.typography.caption,
+            color = PeachPlum.colors.inkMuted,
         )
         if (inviteCode != null) {
             Row(
@@ -346,16 +346,16 @@ private fun InvitePanel(inviteCode: String?, onRefresh: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .background(Sprout.colors.surface, SproutRadius.pill)
+                        .background(PeachPlum.colors.surface, PeachPlumRadius.pill)
                         .padding(horizontal = 16.dp, vertical = 10.dp),
                 ) {
                     Text(
                         inviteCode,
-                        style = Sprout.typography.bodyStrong,
-                        color = Sprout.colors.ink,
+                        style = PeachPlum.typography.bodyStrong,
+                        color = PeachPlum.colors.ink,
                     )
                 }
-                SproutPrimaryButton(
+                PeachPlumPrimaryButton(
                     text = if (copied) stringResource(R.string.family_invite_copied) else stringResource(R.string.family_invite_copy),
                     onClick = {
                         clipboard.setText(AnnotatedString(inviteCode))
@@ -364,9 +364,9 @@ private fun InvitePanel(inviteCode: String?, onRefresh: () -> Unit) {
                 )
             }
         } else {
-            Text(stringResource(R.string.family_invite_generating), style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
+            Text(stringResource(R.string.family_invite_generating), style = PeachPlum.typography.caption, color = PeachPlum.colors.inkMuted)
         }
-        SproutGhostButton(
+        PeachPlumGhostButton(
             text = stringResource(R.string.family_invite_generate_new),
             onClick = onRefresh,
             modifier = Modifier.fillMaxWidth(),

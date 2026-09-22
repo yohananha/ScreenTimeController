@@ -22,10 +22,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.screentime.mobile.R
-import com.screentime.mobile.ui.components.SproutGhostButton
-import com.screentime.mobile.ui.components.SproutPrimaryButton
+import com.screentime.mobile.ui.components.PeachPlumGhostButton
+import com.screentime.mobile.ui.components.PeachPlumPrimaryButton
 import com.screentime.mobile.ui.theme.LocalFormats
-import com.screentime.mobile.ui.theme.Sprout
+import com.screentime.mobile.ui.theme.PeachPlum
 import com.screentime.shared.R as SharedR
 import com.screentime.shared.model.LockoutMode
 import com.screentime.shared.model.LockoutSettings
@@ -48,7 +48,7 @@ internal fun LockoutCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Sprout.colors.surface, Sprout.radius.card)
+            .background(PeachPlum.colors.surface, PeachPlum.radius.card)
             .clickable(onClick = onClick)
             .padding(horizontal = 15.dp, vertical = 14.dp),
     ) {
@@ -58,25 +58,25 @@ internal fun LockoutCard(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Column {
-                Text(stringResource(R.string.limits_lockout_title), style = Sprout.typography.headline, color = Sprout.colors.ink)
+                Text(stringResource(R.string.limits_lockout_title), style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
                 Text(
                     stringResource(R.string.limits_lockout_subtitle),
-                    style = Sprout.typography.caption,
-                    color = Sprout.colors.inkMuted,
+                    style = PeachPlum.typography.caption,
+                    color = PeachPlum.colors.inkMuted,
                 )
             }
-            Text(statusText, style = Sprout.typography.bodyStrong, color = Sprout.colors.ink)
+            Text(statusText, style = PeachPlum.typography.bodyStrong, color = PeachPlum.colors.ink)
         }
         if (lockout.locked) {
             Text(
                 stringResource(R.string.limits_lockout_locked_notice),
-                color = Sprout.colors.overText,
-                style = Sprout.typography.caption,
+                color = PeachPlum.colors.overText,
+                style = PeachPlum.typography.caption,
                 modifier = Modifier.padding(top = 6.dp),
             )
             if (lockout.mode == LockoutMode.PARENT_UNLOCK) {
                 Row(modifier = Modifier.padding(top = 8.dp)) {
-                    SproutPrimaryButton(text = stringResource(R.string.limits_lockout_unlock_now), onClick = onUnlockNow)
+                    PeachPlumPrimaryButton(text = stringResource(R.string.limits_lockout_unlock_now), onClick = onUnlockNow)
                 }
             }
         }
@@ -93,14 +93,14 @@ internal fun EditLockoutDialog(
     var mode by remember(current) { mutableStateOf(current.mode) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Sprout.colors.surface,
-        title = { Text(stringResource(R.string.limits_lockout_title), style = Sprout.typography.headline) },
+        containerColor = PeachPlum.colors.surface,
+        title = { Text(stringResource(R.string.limits_lockout_title), style = PeachPlum.typography.headline) },
         text = {
             Column {
                 Text(
                     stringResource(R.string.limits_lockout_dialog_subtitle),
-                    style = Sprout.typography.caption,
-                    color = Sprout.colors.inkMuted,
+                    style = PeachPlum.typography.caption,
+                    color = PeachPlum.colors.inkMuted,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = mode == LockoutMode.TIMER, onClick = { mode = LockoutMode.TIMER })
@@ -113,8 +113,8 @@ internal fun EditLockoutDialog(
                 if (mode == LockoutMode.TIMER) {
                     Text(
                         LocalFormats.current.duration.minutes(LocalContext.current.resources, minutes.toInt()),
-                        style = Sprout.typography.title,
-                        color = Sprout.colors.ink,
+                        style = PeachPlum.typography.title,
+                        color = PeachPlum.colors.ink,
                     )
                     Slider(
                         value = minutes,
@@ -126,10 +126,10 @@ internal fun EditLockoutDialog(
             }
         },
         confirmButton = {
-            SproutPrimaryButton(text = stringResource(SharedR.string.action_save), onClick = { onSave(minutes.toInt(), mode) })
+            PeachPlumPrimaryButton(text = stringResource(SharedR.string.action_save), onClick = { onSave(minutes.toInt(), mode) })
         },
         dismissButton = {
-            SproutGhostButton(text = stringResource(SharedR.string.action_cancel), onClick = onDismiss)
+            PeachPlumGhostButton(text = stringResource(SharedR.string.action_cancel), onClick = onDismiss)
         },
     )
 }

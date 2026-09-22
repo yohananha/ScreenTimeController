@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.clickable
-import com.screentime.mobile.ui.theme.Sprout
+import com.screentime.mobile.ui.theme.PeachPlum
 
 /**
  * Phone-side 6-digit invite/pair-code entry. Hidden text field accepts
@@ -62,11 +62,11 @@ fun CodeSlotInput(
             repeat(slots) { i ->
                 val filled = i < value.length
                 val active = i == value.length
-                val bg = if (filled || active) Sprout.colors.background else Sprout.colors.surfaceSunken
+                val bg = if (filled || active) PeachPlum.colors.background else PeachPlum.colors.surfaceSunken
                 val border = when {
-                    active -> BorderStroke(2.dp, Sprout.colors.primary)
-                    filled -> BorderStroke(1.5.dp, Sprout.colors.outline)
-                    else -> BorderStroke(1.5.dp, Sprout.colors.outline)
+                    active -> BorderStroke(2.dp, PeachPlum.colors.primary)
+                    filled -> BorderStroke(1.5.dp, PeachPlum.colors.outline)
+                    else -> BorderStroke(1.5.dp, PeachPlum.colors.outline)
                 }
                 Box(
                     modifier = Modifier
@@ -82,7 +82,7 @@ fun CodeSlotInput(
                             fontFamily = com.screentime.mobile.ui.theme.RubikFont,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 32.sp,
-                            color = Sprout.colors.ink,
+                            color = PeachPlum.colors.ink,
                             textAlign = TextAlign.Center,
                         ),
                     )

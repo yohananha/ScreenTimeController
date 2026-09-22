@@ -20,8 +20,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.screentime.mobile.ui.theme.Sprout
-import com.screentime.mobile.ui.theme.SproutRadius
+import com.screentime.mobile.ui.theme.PeachPlum
+import com.screentime.mobile.ui.theme.PeachPlumRadius
 
 @Composable
 fun TopHeader(
@@ -42,8 +42,8 @@ fun TopHeader(
         // Family switcher pill
         Row(
             modifier = Modifier
-                .background(Sprout.colors.surface, SproutRadius.pill)
-                .border(BorderStroke(1.dp, Sprout.colors.outline), SproutRadius.pill)
+                .background(PeachPlum.colors.surface, PeachPlumRadius.pill)
+                .border(BorderStroke(1.dp, PeachPlum.colors.outline), PeachPlumRadius.pill)
                 .clickable(onClick = onFamilyClick)
                 .padding(start = 5.dp, end = 12.dp, top = 5.dp, bottom = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -52,14 +52,14 @@ fun TopHeader(
             InitialCircle(
                 initial = familyName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
                 size = 30,
-                bg = Sprout.colors.accent,
+                bg = PeachPlum.colors.accent,
             )
             Text(
                 familyName,
-                style = Sprout.typography.label.copy(fontSize = androidx.compose.ui.unit.TextUnit.Unspecified),
-                color = Sprout.colors.ink,
+                style = PeachPlum.typography.label.copy(fontSize = androidx.compose.ui.unit.TextUnit.Unspecified),
+                color = PeachPlum.colors.ink,
             )
-            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null, tint = Sprout.colors.inkMuted, modifier = Modifier.size(16.dp))
+            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null, tint = PeachPlum.colors.inkMuted, modifier = Modifier.size(16.dp))
         }
 
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -67,7 +67,7 @@ fun TopHeader(
             InitialCircle(
                 initial = parentInitial,
                 size = 38,
-                bg = Sprout.colors.primary,
+                bg = PeachPlum.colors.primary,
                 onClick = onParentClick,
             )
         }
@@ -83,6 +83,6 @@ fun InitialCircle(initial: String, size: Int, bg: androidx.compose.ui.graphics.C
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         contentAlignment = Alignment.Center,
     ) {
-        Text(initial, style = Sprout.typography.headline, color = Sprout.colors.ink)
+        Text(initial, style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
     }
 }

@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.screentime.mobile.R
-import com.screentime.mobile.ui.theme.Sprout
+import com.screentime.mobile.ui.theme.PeachPlum
 
 @Composable
 fun RequestBanner(
@@ -33,28 +33,28 @@ fun RequestBanner(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Sprout.colors.accentContainer, Sprout.radius.input)
+            .background(PeachPlum.colors.accentContainer, PeachPlum.radius.input)
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Box(
-            modifier = Modifier.size(38.dp).background(Sprout.colors.ink, RoundedCornerShape(12.dp)),
+            modifier = Modifier.size(38.dp).background(PeachPlum.colors.ink, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Filled.Tv, contentDescription = null, tint = Sprout.colors.background, modifier = Modifier.size(20.dp))
+            Icon(Icons.Filled.Tv, contentDescription = null, tint = PeachPlum.colors.background, modifier = Modifier.size(20.dp))
         }
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = Sprout.typography.bodyStrong, color = Sprout.colors.ink)
-            Text(context, style = Sprout.typography.caption, color = Sprout.colors.inkMuted)
+            Text(title, style = PeachPlum.typography.bodyStrong, color = PeachPlum.colors.ink)
+            Text(context, style = PeachPlum.typography.caption, color = PeachPlum.colors.inkMuted)
         }
         Row(
             modifier = Modifier
-                .background(Sprout.colors.surface, Sprout.radius.pill)
+                .background(PeachPlum.colors.surface, PeachPlum.radius.pill)
                 .padding(horizontal = 15.dp, vertical = 9.dp),
         ) {
-            Text(actionLabel, style = Sprout.typography.label, color = Sprout.colors.ink)
+            Text(actionLabel, style = PeachPlum.typography.label, color = PeachPlum.colors.ink)
         }
     }
 }

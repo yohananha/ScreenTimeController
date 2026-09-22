@@ -34,9 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.screentime.mobile.R
 import com.screentime.mobile.ui.components.CodeSlotInput
-import com.screentime.mobile.ui.components.SproutPrimaryButton
+import com.screentime.mobile.ui.components.PeachPlumPrimaryButton
 import com.screentime.mobile.ui.components.mirrorInRtl
-import com.screentime.mobile.ui.theme.Sprout
+import com.screentime.mobile.ui.theme.PeachPlum
 import com.screentime.mobile.ui.theme.rememberScreenPadding
 
 @Composable
@@ -46,7 +46,7 @@ fun FamilyOnboardingScreen(viewModel: FamilyViewModel = hiltViewModel()) {
     var code by remember { mutableStateOf("") }
     val hPad = rememberScreenPadding()
 
-    Box(modifier = Modifier.fillMaxSize().background(Sprout.colors.background), contentAlignment = Alignment.TopCenter) {
+    Box(modifier = Modifier.fillMaxSize().background(PeachPlum.colors.background), contentAlignment = Alignment.TopCenter) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -64,28 +64,28 @@ fun FamilyOnboardingScreen(viewModel: FamilyViewModel = hiltViewModel()) {
                 Box(
                     modifier = Modifier
                         .size(30.dp)
-                        .background(Sprout.colors.primary, RoundedCornerShape(10.dp)),
+                        .background(PeachPlum.colors.primary, RoundedCornerShape(10.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Box(modifier = Modifier.size(12.dp).background(Sprout.colors.ink, CircleShape))
+                    Box(modifier = Modifier.size(12.dp).background(PeachPlum.colors.ink, CircleShape))
                 }
-                Text("ScreenTime", style = Sprout.typography.headline, color = Sprout.colors.ink)
+                Text("ScreenTime", style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
             }
             Box(
-                modifier = Modifier.size(38.dp).background(Sprout.colors.primary, CircleShape),
+                modifier = Modifier.size(38.dp).background(PeachPlum.colors.primary, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("P", style = Sprout.typography.label, color = Sprout.colors.ink)
+                Text("P", style = PeachPlum.typography.label, color = PeachPlum.colors.ink)
             }
         }
 
         Spacer(Modifier.height(24.dp))
 
-        Text(stringResource(R.string.family_onboarding_title), style = Sprout.typography.display, color = Sprout.colors.ink)
+        Text(stringResource(R.string.family_onboarding_title), style = PeachPlum.typography.display, color = PeachPlum.colors.ink)
         Text(
             stringResource(R.string.family_onboarding_subtitle),
-            style = Sprout.typography.bodyStrong,
-            color = Sprout.colors.inkMuted,
+            style = PeachPlum.typography.bodyStrong,
+            color = PeachPlum.colors.inkMuted,
             modifier = Modifier.padding(top = 7.dp),
         )
 
@@ -93,7 +93,7 @@ fun FamilyOnboardingScreen(viewModel: FamilyViewModel = hiltViewModel()) {
 
         // Create card
         Card(
-            iconBg = Sprout.colors.accentContainer,
+            iconBg = PeachPlum.colors.accentContainer,
             iconContent = {
                 Icon(Icons.Filled.Add, contentDescription = null, tint = Color5B4D8C, modifier = Modifier.size(24.dp))
             },
@@ -108,7 +108,7 @@ fun FamilyOnboardingScreen(viewModel: FamilyViewModel = hiltViewModel()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Sprout.colors.surface, Sprout.radius.card)
+                .background(PeachPlum.colors.surface, PeachPlum.radius.card)
                 .padding(20.dp),
         ) {
             Row(
@@ -120,23 +120,23 @@ fun FamilyOnboardingScreen(viewModel: FamilyViewModel = hiltViewModel()) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
-                    modifier = Modifier.size(52.dp).background(Sprout.colors.primary, CircleShape),
+                    modifier = Modifier.size(52.dp).background(PeachPlum.colors.primary, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(Icons.Filled.Key, contentDescription = null, tint = Sprout.colors.ink, modifier = Modifier.size(24.dp))
+                    Icon(Icons.Filled.Key, contentDescription = null, tint = PeachPlum.colors.ink, modifier = Modifier.size(24.dp))
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(stringResource(R.string.family_onboarding_join_title), style = Sprout.typography.headline, color = Sprout.colors.ink)
+                    Text(stringResource(R.string.family_onboarding_join_title), style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
                     Text(
                         stringResource(R.string.family_onboarding_join_subtitle),
-                        style = Sprout.typography.body,
-                        color = Sprout.colors.inkMuted,
+                        style = PeachPlum.typography.body,
+                        color = PeachPlum.colors.inkMuted,
                     )
                 }
                 Icon(
                     Icons.Filled.ChevronRight,
                     contentDescription = null,
-                    tint = Sprout.colors.primary,
+                    tint = PeachPlum.colors.primary,
                     modifier = Modifier.size(22.dp).mirrorInRtl(),
                 )
             }
@@ -144,13 +144,13 @@ fun FamilyOnboardingScreen(viewModel: FamilyViewModel = hiltViewModel()) {
                 Spacer(Modifier.height(18.dp))
                 Text(
                     stringResource(R.string.family_onboarding_invite_code_label),
-                    style = Sprout.typography.label,
-                    color = Sprout.colors.inkFaint,
+                    style = PeachPlum.typography.label,
+                    color = PeachPlum.colors.inkFaint,
                 )
                 Spacer(Modifier.height(10.dp))
                 CodeSlotInput(value = code, onValueChange = { code = it })
                 Spacer(Modifier.height(14.dp))
-                SproutPrimaryButton(
+                PeachPlumPrimaryButton(
                     text = if (state.joining) stringResource(R.string.family_onboarding_joining) else stringResource(R.string.action_continue),
                     onClick = { viewModel.joinByCode(code) },
                     enabled = code.length == 6 && !state.joining,
@@ -161,7 +161,7 @@ fun FamilyOnboardingScreen(viewModel: FamilyViewModel = hiltViewModel()) {
 
         state.error?.let {
             Spacer(Modifier.height(12.dp))
-            Text(stringResource(it), color = Sprout.colors.overText, style = Sprout.typography.bodyStrong)
+            Text(stringResource(it), color = PeachPlum.colors.overText, style = PeachPlum.typography.bodyStrong)
         }
         }
     }
@@ -178,7 +178,7 @@ private fun Card(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Sprout.colors.surface, Sprout.radius.card)
+            .background(PeachPlum.colors.surface, PeachPlum.radius.card)
             .clickable(onClick = onClick)
             .padding(20.dp),
         horizontalArrangement = Arrangement.spacedBy(15.dp),
@@ -191,13 +191,13 @@ private fun Card(
             iconContent()
         }
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = Sprout.typography.headline, color = Sprout.colors.ink)
-            Text(subtitle, style = Sprout.typography.body, color = Sprout.colors.inkMuted)
+            Text(title, style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
+            Text(subtitle, style = PeachPlum.typography.body, color = PeachPlum.colors.inkMuted)
         }
         Icon(
             Icons.Filled.ChevronRight,
             contentDescription = null,
-            tint = Sprout.colors.primary,
+            tint = PeachPlum.colors.primary,
             modifier = Modifier.size(22.dp).mirrorInRtl(),
         )
     }
