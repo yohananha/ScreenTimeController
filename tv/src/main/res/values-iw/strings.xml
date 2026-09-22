@@ -11,6 +11,7 @@
     <string name="permission_accessibility_body">הפעילו את שירות הנגישות של ScreenTime כדי שיוכל לדעת איזו אפליקציה פתוחה ולהתערב רק כשצריך. אם המסך לא מגיע ישירות לשם, חפשו את \"ScreenTime\" תחת נגישות ← שירותים שהורדו.</string>
     <string name="permission_open_settings">פתיחת הגדרות אנדרואיד</string>
     <string name="permission_why_needed">למה זה נחוץ?</string>
+    <string name="permission_step_of">שלב %1$d מתוך %2$d</string>
     <string name="operational_title">הכול מוכן!</string>
     <string name="operational_body">ScreenTime פועל ברקע. נופיע רק כשמגיעים למגבלה — מבטיחים.</string>
     <string name="update_check_button">בדיקת עדכונים</string>
@@ -24,13 +25,14 @@
     <string name="update_failed">בדיקת העדכונים נכשלה: %1$s</string>
 
     <string name="pairing_headline">חיבור לטלפון של הורה</string>
-    <string name="pairing_instructions">באפליקציית ScreenTime: הגדרות, ואז חיבור טלוויזיה. הזינו את הקוד הזה.</string>
+    <string name="pairing_instructions">בטלפון: משפחה ← חיבור טלוויזיה, ואז מקלידים את הקוד הזה.</string>
     <string name="pairing_generating_code">יוצר את הקוד שלכם…</string>
     <string name="pairing_waiting">ממתין לטלפון…</string>
     <string name="pairing_get_new_code">קוד חדש</string>
     <string name="pairing_how_to_pair">איך מתחברים</string>
 
-    <string name="tv_remote_hint">◀ ▶ ▲ ▼  +  אישור</string>
+    <string name="tv_remote_hint">◀ ▶ לנווט · OK לבחור</string>
+    <string name="tv_remote_hint_keypad">◀ ▶ ▲ ▼ לנווט · OK לבחור · ⌫ למחוק</string>
 
     <string name="keypad_clear">C</string>
 
@@ -41,12 +43,13 @@
     <string name="overlay_opens_again_at">זמן המסך נפתח שוב ב-%1$s — עוד רגע!</string>
     <string name="overlay_no_more_today">אין עוד זמן מסך מתוזמן להיום — נתראה מחר!</string>
 
-    <string name="overlay_main_title">זהו, סיימנו להיום!</string>
-    <string name="overlay_watched_today">%1$s · %2$s נצפו היום</string>
-    <string name="overlay_used_all_time">צפייה נעימה. ניצלתם את כל הזמן של %1$s — נתראה מחר, או בקשו קצת עוד.</string>
+    <string name="overlay_main_title">זהו, מספיק </string>
+    <string name="overlay_main_title_accent">להיום.</string>
+    <string name="overlay_watched_today">%1$s · %2$s היום</string>
+    <string name="overlay_used_all_time">אפשר לבקש מהורה עוד קצת זמן, או להקליד קוד אם קיבלת אחד.</string>
     <string name="overlay_resets_midnight">מתאפס בחצות · %1$s</string>
-    <string name="overlay_ask_parent_more_time">בקשה מהורה לעוד זמן</string>
-    <string name="overlay_enter_unlock_code">הזנת קוד פתיחה</string>
+    <string name="overlay_ask_parent_more_time">לבקש מהורה</string>
+    <string name="overlay_enter_unlock_code">להקליד קוד</string>
 
     <string name="overlay_request_time_title">כמה עוד?</string>
     <string name="overlay_request_time_body">נשלח בקשה קצרה לטלפון של הורה.</string>
@@ -70,9 +73,9 @@
     </plurals>
 
     <string name="overlay_waiting_title">שלחנו בקשה להורה!</string>
-    <string name="overlay_waiting_body">הם קיבלו הודעה עכשיו. עוד רגע — או שאפשר להקיש קוד פתיחה אם קיבלתם אחד.</string>
+    <string name="overlay_waiting_body">הם קיבלו הודעה עכשיו. עוד רגע — או שאפשר להקליד קוד אם קיבלתם אחד.</string>
     <string name="overlay_enter_code_instead">הזנת קוד במקום</string>
-    <string name="overlay_never_mind">לא משנה</string>
+    <string name="overlay_never_mind">ביטול</string>
 
     <string name="overlay_approved_headline">קיבלתם עוד %1$d!</string>
     <string name="overlay_approved_headline_unknown">קיבלתם עוד זמן!</string>
@@ -88,7 +91,8 @@
     <string name="overlay_locked_parent_title">בקשו מהורה לפתוח</string>
     <string name="overlay_locked_timer_title">בואו ניקח הפסקה קצרה</string>
     <string name="overlay_locked_parent_body">אלו כמה קודים שגויים. הורה צריך לפתוח את הטלוויזיה מהאפליקציה בטלפון.</string>
-    <string name="overlay_locked_timer_body">אלו כמה קודים שגויים. הטלוויזיה נפתחת שוב לבד — קחו חטיף או תמתחו קצת!</string>
+    <string name="overlay_locked_timer_body">כמה קודים שגויים ברצף. הטלוויזיה תיפתח שוב לבד בעוד</string>
+    <string name="overlay_locked_ask_parent">לבקש מהורה במקום</string>
 
     <string name="overlay_keep_watching">להמשיך לצפות</string>
     <string name="overlay_cancel">ביטול</string>

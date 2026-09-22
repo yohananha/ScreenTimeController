@@ -12,7 +12,8 @@
     <string name="permission_accessibility_headline">Almost there!</string>
     <string name="permission_accessibility_body">Turn on the ScreenTime accessibility service so it can tell which app is open and step in only when needed. If Android doesn\'t take you straight there, look for \"ScreenTime\" under Accessibility → Downloaded services.</string>
     <string name="permission_open_settings">Open Android settings</string>
-    <string name="permission_why_needed">Why do you need this?</string>
+    <string name="permission_why_needed">Why is this needed?</string>
+    <string name="permission_step_of">Step %1$d of %2$d</string>
     <string name="operational_title">You\'re all set!</string>
     <string name="operational_body">ScreenTime is running in the background. We\'ll only show up when a limit hits — promise.</string>
     <string name="update_check_button">Check for updates</string>
@@ -27,34 +28,37 @@
 
     <!-- ui/pairing/PairingScreen.kt -->
     <string name="pairing_headline">Pair with a parent\'s phone</string>
-    <!-- Rewritten to avoid a hardcoded "→" (points the wrong way under RTL)
-         and to reference the new Settings tab (was "Family & devices"). -->
-    <string name="pairing_instructions">In the ScreenTime app: Settings, then Pair a TV. Enter this code.</string>
+    <!-- The arrow is per-locale literal text (design/i6c-peach-plum), not a
+         mirrored glyph — pick the one that reads correctly for this language. -->
+    <string name="pairing_instructions">On the phone: Family → Pair a TV, then type this code.</string>
     <string name="pairing_generating_code">Generating your code…</string>
     <string name="pairing_waiting">Waiting for the phone…</string>
     <string name="pairing_get_new_code">Get a new code</string>
     <string name="pairing_how_to_pair">How to pair</string>
 
     <!-- ui/components/TvSurfaces.kt -->
-    <string name="tv_remote_hint">◀ ▶ ▲ ▼  +  OK</string>
+    <string name="tv_remote_hint">◀ ▶ move · OK select</string>
+    <string name="tv_remote_hint_keypad">◀ ▶ ▲ ▼ move · OK select · ⌫ delete</string>
 
     <!-- ui/components/TvKeypad.kt -->
     <string name="keypad_clear">C</string>
 
     <!-- ui/BlockOverlayContent.kt — the kid-facing block screen, one entry per view state. -->
     <string name="overlay_instant_locked_title">TV is locked</string>
-    <string name="overlay_instant_locked_body">A parent locked the TV from the Sprout app. Ask them to unlock it when you\'re ready.</string>
+    <string name="overlay_instant_locked_body">A parent locked the TV from the ScreenTime app. Ask them to unlock it when you\'re ready.</string>
 
     <string name="overlay_outside_hours_title">TV time is paused right now</string>
     <string name="overlay_opens_again_at">Screen time opens again at %1$s — hang tight!</string>
     <string name="overlay_no_more_today">No more screen time scheduled for today — see you tomorrow!</string>
 
-    <string name="overlay_main_title">That\'s a wrap for today!</string>
-    <string name="overlay_watched_today">%1$s · %2$s watched today</string>
-    <string name="overlay_used_all_time">Nice watching. You\'ve used all your %1$s time — see you tomorrow, or ask for a little more.</string>
+    <!-- Two-tone headline (design/i6c-peach-plum): "That's enough " + peach "for today." -->
+    <string name="overlay_main_title">That\'s enough </string>
+    <string name="overlay_main_title_accent">for today.</string>
+    <string name="overlay_watched_today">%1$s · %2$s today</string>
+    <string name="overlay_used_all_time">Ask a parent for a little more, or enter a code if they gave you one.</string>
     <string name="overlay_resets_midnight">Resets at midnight · %1$s</string>
-    <string name="overlay_ask_parent_more_time">Ask a parent for more time</string>
-    <string name="overlay_enter_unlock_code">Enter an unlock code</string>
+    <string name="overlay_ask_parent_more_time">Ask a parent</string>
+    <string name="overlay_enter_unlock_code">Enter a code</string>
 
     <string name="overlay_request_time_title">How much more?</string>
     <string name="overlay_request_time_body">We\'ll send a quick request to a parent\'s phone.</string>
@@ -77,9 +81,9 @@
     </plurals>
 
     <string name="overlay_waiting_title">Asked your parent!</string>
-    <string name="overlay_waiting_body">They just got a notification. Hang tight — or punch in an unlock code if they gave you one.</string>
+    <string name="overlay_waiting_body">They just got a notification. Hang tight — or enter a code if they gave you one.</string>
     <string name="overlay_enter_code_instead">Enter a code instead</string>
-    <string name="overlay_never_mind">Never mind</string>
+    <string name="overlay_never_mind">Cancel</string>
 
     <!-- Not a real plurals candidate: "more" doesn't grammatically inflect
          by count in English or Hebrew here (no noun being counted, unlike
@@ -98,7 +102,10 @@
     <string name="overlay_locked_parent_title">Ask a parent to unlock</string>
     <string name="overlay_locked_timer_title">Let\'s take a short break</string>
     <string name="overlay_locked_parent_body">That\'s a few wrong codes. A parent needs to unlock the TV from the mobile app.</string>
-    <string name="overlay_locked_timer_body">That\'s a few wrong codes. The TV unlocks again on its own — grab a snack or stretch!</string>
+    <!-- Deliberately no trailing punctuation — the countdown (e.g. "4:59")
+         renders right after this as if continuing the same sentence. -->
+    <string name="overlay_locked_timer_body">That\'s a few wrong codes in a row. The TV unlocks again on its own in</string>
+    <string name="overlay_locked_ask_parent">Ask a parent instead</string>
 
     <string name="overlay_keep_watching">Keep watching</string>
     <string name="overlay_cancel">Cancel</string>

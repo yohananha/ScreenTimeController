@@ -15,28 +15,28 @@ import com.screentime.shared.format.DurationFormat
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 private val TvColors = darkColorScheme(
-    primary = SproutPalette.primary,
-    onPrimary = SproutPalette.onPrimary,
-    primaryContainer = SproutPalette.accentContainer,
-    onPrimaryContainer = SproutPalette.ink,
-    secondary = SproutPalette.accent,
-    onSecondary = SproutPalette.ink,
-    secondaryContainer = SproutPalette.tvSurface,
-    onSecondaryContainer = SproutPalette.tvCream,
-    background = SproutPalette.tvBackground,
-    onBackground = SproutPalette.tvCream,
-    surface = SproutPalette.tvSurface,
-    onSurface = SproutPalette.tvCream,
-    error = SproutPalette.overDisplay,
-    onError = SproutPalette.tvCream,
-    errorContainer = SproutPalette.overContainer,
-    onErrorContainer = SproutPalette.overText,
+    primary = PeachPlumPalette.primary,
+    onPrimary = PeachPlumPalette.onPrimary,
+    primaryContainer = PeachPlumPalette.accentContainer,
+    onPrimaryContainer = PeachPlumPalette.ink,
+    secondary = PeachPlumPalette.accent,
+    onSecondary = PeachPlumPalette.ink,
+    secondaryContainer = PeachPlumPalette.tvSurface,
+    onSecondaryContainer = PeachPlumPalette.tvCream,
+    background = PeachPlumPalette.tvBackground,
+    onBackground = PeachPlumPalette.tvCream,
+    surface = PeachPlumPalette.tvSurface,
+    onSurface = PeachPlumPalette.tvCream,
+    error = PeachPlumPalette.overDisplay,
+    onError = PeachPlumPalette.tvCream,
+    errorContainer = PeachPlumPalette.overContainer,
+    onErrorContainer = PeachPlumPalette.overText,
 )
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun ScreenTimeTvTheme(content: @Composable () -> Unit) {
-    val typeScale = rememberSproutTypeScale()
+    val typeScale = rememberPeachPlumTypeScale()
     // Built from whatever LocalContext is in scope here — for the block
     // overlay that's the locale-wrapped Context TvLocaleController.wrap()
     // produced, so ClockFormat's is24HourFormat() check and locale defaults
@@ -44,8 +44,8 @@ fun ScreenTimeTvTheme(content: @Composable () -> Unit) {
     val context = LocalContext.current
     val formats = remember(context) { Formats(DurationFormat(), ClockFormat(context)) }
     CompositionLocalProvider(
-        LocalSproutColors provides SproutPalette,
-        LocalSproutTypography provides typeScale,
+        LocalPeachPlumColors provides PeachPlumPalette,
+        LocalPeachPlumTypography provides typeScale,
         LocalFormats provides formats,
     ) {
         MaterialTheme(colorScheme = TvColors, typography = materialTypeBridge(typeScale)) {
@@ -56,11 +56,11 @@ fun ScreenTimeTvTheme(content: @Composable () -> Unit) {
     }
 }
 
-object Sprout {
-    val colors: SproutColors
-        @Composable get() = LocalSproutColors.current
-    val typography: SproutTypography
-        @Composable get() = LocalSproutTypography.current
-    val spacing: SproutSpacing = SproutSpacing
-    val radius: SproutRadius = SproutRadius
+object PeachPlum {
+    val colors: PeachPlumColors
+        @Composable get() = LocalPeachPlumColors.current
+    val typography: PeachPlumTypography
+        @Composable get() = LocalPeachPlumTypography.current
+    val spacing: PeachPlumSpacing = PeachPlumSpacing
+    val radius: PeachPlumRadius = PeachPlumRadius
 }

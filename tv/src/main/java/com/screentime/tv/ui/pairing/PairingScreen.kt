@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -42,7 +43,8 @@ import androidx.tv.material3.Text
 import com.screentime.tv.R
 import com.screentime.tv.ui.components.TvCanvas
 import com.screentime.tv.ui.components.TvGhostButton
-import com.screentime.tv.ui.theme.Sprout
+import com.screentime.tv.ui.theme.PeachPlum
+import com.screentime.tv.ui.theme.atReferenceSize
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -58,29 +60,29 @@ fun PairingScreen(viewModel: PairingViewModel = hiltViewModel()) {
         ) {
             Text(
                 stringResource(R.string.pairing_headline),
-                style = Sprout.typography.displayLarge,
-                color = Sprout.colors.tvCream,
+                style = PeachPlum.typography.displayLarge.atReferenceSize(104),
+                color = PeachPlum.colors.tvCream,
                 textAlign = TextAlign.Center,
             )
             Text(
                 stringResource(R.string.pairing_instructions),
-                style = Sprout.typography.bodyLarge,
-                color = Sprout.colors.tvMutedText,
+                style = PeachPlum.typography.bodyLarge,
+                color = PeachPlum.colors.tvMutedText,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 12.dp).widthIn(max = 600.dp),
+                modifier = Modifier.padding(top = 40.dp).widthIn(max = 1000.dp),
             )
 
             val code = state.code
             if (code != null) {
                 BoxWithConstraints(
                     modifier = Modifier
-                        .padding(top = 28.dp)
+                        .padding(top = 40.dp)
                         .fillMaxWidth(),
                     contentAlignment = Alignment.Center,
                 ) {
-                    val slotGap = 9.dp
+                    val slotGap = 18.dp
                     val slotWidth = ((maxWidth - slotGap * (code.length - 1)) / code.length)
-                        .coerceAtMost(59.dp)
+                        .coerceAtMost(118.dp)
                     val slotHeight = (slotWidth.value * 1.254f).dp
                     // Forced LTR — a Row honors layout direction, so under
                     // RTL the pairing code's digits would render reversed.
@@ -91,13 +93,13 @@ fun PairingScreen(viewModel: PairingViewModel = hiltViewModel()) {
                                     modifier = Modifier
                                         .width(slotWidth)
                                         .height(slotHeight)
-                                        .background(Sprout.colors.tvCream, RoundedCornerShape(12.dp)),
+                                        .background(PeachPlum.colors.tvCream, RoundedCornerShape(24.dp)),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text(
                                         text = ch.toString(),
-                                        style = Sprout.typography.displayHero,
-                                        color = Sprout.colors.ink,
+                                        style = PeachPlum.typography.codeTile,
+                                        color = PeachPlum.colors.tvBackground,
                                     )
                                 }
                             }
@@ -108,17 +110,17 @@ fun PairingScreen(viewModel: PairingViewModel = hiltViewModel()) {
                 Box(modifier = Modifier.padding(top = 28.dp)) {
                     Text(
                         stringResource(R.string.pairing_generating_code),
-                        style = Sprout.typography.bodyLarge,
-                        color = Sprout.colors.tvMutedText,
+                        style = PeachPlum.typography.bodyLarge,
+                        color = PeachPlum.colors.tvMutedText,
                     )
                 }
             }
 
             // Waiting indicator
             Row(
-                modifier = Modifier.padding(top = 18.dp),
+                modifier = Modifier.padding(top = 40.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 val transition = rememberInfiniteTransition(label = "waitingDot")
                 val alpha by transition.animateFloat(
@@ -129,14 +131,14 @@ fun PairingScreen(viewModel: PairingViewModel = hiltViewModel()) {
                 )
                 Box(
                     modifier = Modifier
-                        .size(7.dp)
+                        .size(14.dp)
                         .alpha(alpha)
-                        .background(Sprout.colors.positiveDisplay, CircleShape),
+                        .background(PeachPlum.colors.positiveDisplay, CircleShape),
                 )
                 Text(
                     stringResource(R.string.pairing_waiting),
-                    style = Sprout.typography.bodyMedium,
-                    color = Sprout.colors.positiveDisplay,
+                    style = PeachPlum.typography.label,
+                    color = Color(0xFF9FE9CE),
                 )
             }
 
@@ -147,26 +149,22 @@ fun PairingScreen(viewModel: PairingViewModel = hiltViewModel()) {
                 } catch (_: Exception) {}
             }
             Row(
-                modifier = Modifier.padding(top = 20.dp),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                modifier = Modifier.padding(top = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(36.dp),
             ) {
                 TvGhostButton(
                     text = stringResource(R.string.pairing_get_new_code),
                     onClick = { viewModel.ensureCode() },
                     focusRequester = focusRequester
                 )
-                TvGhostButton(
-                    text = stringResource(R.string.pairing_how_to_pair),
-                    onClick = {}
-                )
             }
 
             state.error?.let {
                 Text(
                     stringResource(it),
-                    color = Sprout.colors.overDisplay,
+                    color = PeachPlum.colors.overDisplay,
                     modifier = Modifier.padding(top = 6.dp),
-                    style = Sprout.typography.bodyMedium,
+                    style = PeachPlum.typography.bodyMedium,
                 )
             }
         }

@@ -1,6 +1,5 @@
 package com.screentime.tv.ui.components
 
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -10,6 +9,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,14 +22,24 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.focusable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
-import com.screentime.tv.ui.theme.Sprout
-import com.screentime.tv.ui.theme.SproutRadius
+import com.screentime.tv.ui.theme.PeachPlum
+import com.screentime.tv.ui.theme.PeachPlumRadius
+
+/**
+ * The double-ring focus halo shared by every focusable TV control (design/i6c-peach-plum
+ * tokens.json#motion.tvFocus: "0 0 0 6px tv.ground, 0 0 0 12px peach", scale 1.04).
+ * A CSS box-shadow spread can't translate directly to Compose, but the same picture
+ * comes from a peach border drawn *outside* a same-colour-as-background gap: the gap
+ * is invisible because it matches whatever's already behind the control.
+ */
+@Composable
+private fun Modifier.tvFocusRing(focused: Boolean, shape: androidx.compose.ui.graphics.Shape) = this
+    .border(BorderStroke(if (focused) 6.dp else 0.dp, PeachPlum.colors.primary), shape)
+    .padding(if (focused) 6.dp else 0.dp)
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -41,22 +51,22 @@ fun TvPrimaryButton(
 ) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
-    val scale by animateFloatAsState(if (focused) 1.06f else 1f, label = "scale")
-    val haloWidth by animateDpAsState(if (focused) 3.dp else 0.dp, label = "halo")
+    val scale by animateFloatAsState(if (focused) 1.04f else 1f, label = "scale")
     Row(
         modifier = modifier
+            .tvFocusRing(focused, PeachPlumRadius.pill)
             .scale(scale)
-            .background(Sprout.colors.primary, SproutRadius.pill)
-            .border(BorderStroke(haloWidth, Sprout.colors.tvCream), SproutRadius.pill)
+            .height(92.dp)
+            .background(PeachPlum.colors.tvCream, PeachPlumRadius.pill)
             .focusable(interactionSource = interaction)
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
             .semantics { role = Role.Button }
             .clickable(onClick = onClick)
-            .padding(horizontal = 23.dp, vertical = 12.dp),
+            .padding(horizontal = 56.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = text, style = Sprout.typography.button, color = Sprout.colors.onPrimary)
+        Text(text = text, style = PeachPlum.typography.button, color = PeachPlum.colors.tvBackground)
     }
 }
 
@@ -70,22 +80,22 @@ fun TvGhostButton(
 ) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
-    val scale by animateFloatAsState(if (focused) 1.06f else 1f, label = "scale")
-    val bg = if (focused) Color(0x29FF6B5E) else Color(0x14FFFFFF)
-    val borderColor = if (focused) Sprout.colors.primary else Color(0x3DFFFFFF)
+    val scale by animateFloatAsState(if (focused) 1.04f else 1f, label = "scale")
     Row(
         modifier = modifier
+            .tvFocusRing(focused, PeachPlumRadius.pill)
             .scale(scale)
-            .background(bg, SproutRadius.pill)
-            .border(BorderStroke(1.5.dp, borderColor), SproutRadius.pill)
+            .height(92.dp)
+            .background(PeachPlum.colors.tvSurface, PeachPlumRadius.pill)
+            .border(BorderStroke(3.dp, PeachPlum.colors.outline), PeachPlumRadius.pill)
             .focusable(interactionSource = interaction)
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
             .semantics { role = Role.Button }
             .clickable(onClick = onClick)
-            .padding(horizontal = 23.dp, vertical = 12.dp),
+            .padding(horizontal = 48.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = text, style = Sprout.typography.button, color = Sprout.colors.tvCream)
+        Text(text = text, style = PeachPlum.typography.button, color = PeachPlum.colors.tvCream)
     }
 }

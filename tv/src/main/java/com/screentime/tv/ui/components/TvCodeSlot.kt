@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
-import com.screentime.tv.ui.theme.Sprout
+import com.screentime.tv.ui.theme.PeachPlum
 
 enum class TvCodeSlotState { Empty, Active, Filled, Error }
 
@@ -29,34 +29,31 @@ fun TvCodeSlot(
     digit: Char?,
     state: TvCodeSlotState,
     modifier: Modifier = Modifier,
-    height: Int = 75,
+    height: Int = 150,
 ) {
-    val (bg, borderColor) = when (state) {
-        TvCodeSlotState.Empty -> Color(0x1AFCF6F0) to Color(0x33FFFFFF)
-        TvCodeSlotState.Active -> Color(0x1FFCF6F0) to Sprout.colors.primary
-        TvCodeSlotState.Filled -> Sprout.colors.tvCream to Sprout.colors.tvCream
-        TvCodeSlotState.Error -> Color(0x2EE5483A) to Sprout.colors.overDisplay
+    // design/i6c-peach-plum README §4 "Keypad": filled = cream / active = peach
+    // 4px border + glow / empty = white@8%.
+    val (bg, borderColor, borderWidth) = when (state) {
+        TvCodeSlotState.Empty -> Triple(PeachPlum.colors.tvSurface, PeachPlum.colors.outline, 3.dp)
+        TvCodeSlotState.Active -> Triple(Color(0x1AFFF6EE), PeachPlum.colors.primary, 4.dp)
+        TvCodeSlotState.Filled -> Triple(PeachPlum.colors.tvCream, PeachPlum.colors.tvCream, 0.dp)
+        TvCodeSlotState.Error -> Triple(PeachPlum.colors.overContainer, PeachPlum.colors.overDisplay, 2.dp)
     }
-    val textColor = if (state == TvCodeSlotState.Filled) Sprout.colors.ink else Sprout.colors.tvCream
-    val shape = RoundedCornerShape(12.dp)
-    val outerShape = RoundedCornerShape(15.dp)
+    val textColor = if (state == TvCodeSlotState.Filled) PeachPlum.colors.tvBackground else PeachPlum.colors.tvCream
+    val shape = RoundedCornerShape(24.dp)
     Box(
         modifier = modifier
             .height(height.dp)
             .background(bg, shape)
-            .border(BorderStroke(if (state == TvCodeSlotState.Active) 2.dp else 0.75.dp, borderColor), shape)
+            .border(BorderStroke(borderWidth, borderColor), shape)
             .then(
                 if (state == TvCodeSlotState.Active) {
-                    Modifier.border(BorderStroke(3.dp, Sprout.colors.primary.copy(alpha = 0.3f)), outerShape)
+                    Modifier.border(BorderStroke(6.dp, PeachPlum.colors.primary.copy(alpha = 0.3f)), shape)
                 } else Modifier
             ),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = digit?.toString() ?: "",
-            style = Sprout.typography.displayLarge.copy(fontSize = androidx.compose.ui.unit.TextUnit.Unspecified),
-            color = textColor,
-        )
+        Text(text = digit?.toString() ?: "", style = PeachPlum.typography.codeTile, color = textColor)
     }
 }
 

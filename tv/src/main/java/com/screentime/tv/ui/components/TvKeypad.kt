@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -26,13 +28,15 @@ import androidx.compose.foundation.focusable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.screentime.tv.R
-import com.screentime.tv.ui.theme.Sprout
+import com.screentime.tv.ui.theme.PeachPlum
 
 sealed class KeypadKey {
     data class Digit(val value: Int) : KeypadKey()
@@ -46,7 +50,7 @@ fun TvKeypad(
     onKey: (KeypadKey) -> Unit,
     modifier: Modifier = Modifier,
     firstKeyFocus: FocusRequester? = null,
-    keySize: Int = 75,
+    keySize: Int = 150,
 ) {
     val rows = listOf(
         listOf(KeypadKey.Digit(1), KeypadKey.Digit(2), KeypadKey.Digit(3)),
@@ -54,17 +58,22 @@ fun TvKeypad(
         listOf(KeypadKey.Digit(7), KeypadKey.Digit(8), KeypadKey.Digit(9)),
         listOf(KeypadKey.Clear, KeypadKey.Digit(0), KeypadKey.Backspace),
     )
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(11.dp)) {
-        rows.forEachIndexed { rowIdx, row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(11.dp)) {
-                row.forEachIndexed { colIdx, key ->
-                    val first = rowIdx == 0 && colIdx == 0
-                    KeypadButton(
-                        key = key,
-                        onClick = { onKey(key) },
-                        size = keySize,
-                        focusRequester = if (first) firstKeyFocus else null,
-                    )
+    // The keypad grid never mirrors (design/i6c-peach-plum README §5.3 —
+    // screens/TV-Keypad-HE.html keeps 1-2-3/4-5-6/7-8-9/C-0-⌫ in the same
+    // physical positions and the same "⌫" glyph as the English version).
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(22.dp)) {
+            rows.forEachIndexed { rowIdx, row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(22.dp)) {
+                    row.forEachIndexed { colIdx, key ->
+                        val first = rowIdx == 0 && colIdx == 0
+                        KeypadButton(
+                            key = key,
+                            onClick = { onKey(key) },
+                            size = keySize,
+                            focusRequester = if (first) firstKeyFocus else null,
+                        )
+                    }
                 }
             }
         }
@@ -81,35 +90,39 @@ private fun KeypadButton(
 ) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
-    val scale by animateFloatAsState(if (focused) 1.06f else 1f, label = "scale")
-    val haloWidth by animateDpAsState(if (focused) 3.dp else 0.dp, label = "halo")
+    val scale by animateFloatAsState(if (focused) 1.04f else 1f, label = "scale")
+    val ringWidth by animateDpAsState(if (focused) 6.dp else 0.dp, label = "ring")
 
-    val bg = if (focused) Sprout.colors.primary else Color(0x12FFFFFF)
-    val border = if (focused) Sprout.colors.primary else Color(0x24FFFFFF)
+    val bg = if (focused) PeachPlum.colors.tvCream else PeachPlum.colors.tvSurface
+    val border = if (focused) PeachPlum.colors.tvCream else PeachPlum.colors.outline
     val textColor = when {
-        focused -> Sprout.colors.onPrimary
-        key is KeypadKey.Digit -> Sprout.colors.tvCream
-        else -> Sprout.colors.accent
+        focused -> PeachPlum.colors.tvBackground
+        key is KeypadKey.Digit -> PeachPlum.colors.tvCream
+        else -> PeachPlum.colors.primary // C / backspace are peach
     }
     Box(
         modifier = Modifier
-            .size(size.dp)
+            .border(BorderStroke(ringWidth, PeachPlum.colors.primary), RoundedCornerShape(26.dp))
+            .padding(ringWidth)
             .scale(scale)
-            .background(bg, RoundedCornerShape(13.dp))
-            .border(BorderStroke(1.5.dp, border), RoundedCornerShape(13.dp))
-            .border(BorderStroke(haloWidth, Sprout.colors.tvCream), RoundedCornerShape(16.dp))
+            .size(size.dp)
+            .background(bg, RoundedCornerShape(26.dp))
+            .border(BorderStroke(3.dp, border), RoundedCornerShape(26.dp))
             .focusable(interactionSource = interaction)
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         if (key == KeypadKey.Backspace) {
-            // AutoMirrored: in RTL a backspace visually points the other way.
+            // AutoMirrored, but harmlessly so: the keypad is forced LTR above
+            // (see the comment on TvKeypad), so this always renders its
+            // default, non-flipped orientation — matching the "⌫" glyph the
+            // Hebrew reference uses unchanged.
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Backspace,
                 contentDescription = null,
                 tint = textColor,
-                modifier = Modifier.size((size * 0.4).dp),
+                modifier = Modifier.size((size * 0.32).dp),
             )
         } else {
             val label = when (key) {
@@ -117,7 +130,7 @@ private fun KeypadButton(
                 KeypadKey.Clear -> stringResource(R.string.keypad_clear)
                 KeypadKey.Backspace -> "" // unreachable, handled above
             }
-            Text(label, style = Sprout.typography.keypadDigit, color = textColor)
+            Text(label, style = PeachPlum.typography.keypadDigit, color = textColor)
         }
     }
 }

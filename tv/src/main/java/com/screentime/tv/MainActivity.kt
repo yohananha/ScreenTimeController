@@ -11,9 +11,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +45,6 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
 import com.screentime.shared.auth.FamilyIdProvider
 import com.screentime.tv.locale.TvLocaleController
-import com.screentime.tv.ui.components.StatusKind
 import com.screentime.tv.ui.components.TvCanvas
 import com.screentime.tv.ui.components.TvGhostButton
 import com.screentime.tv.ui.components.TvPrimaryButton
@@ -47,7 +52,7 @@ import com.screentime.tv.ui.components.TvStatusCircle
 import com.screentime.tv.ui.components.TvStepDots
 import com.screentime.tv.ui.pairing.PairingScreen
 import com.screentime.tv.ui.theme.ScreenTimeTvTheme
-import com.screentime.tv.ui.theme.Sprout
+import com.screentime.tv.ui.theme.PeachPlum
 import com.screentime.tv.update.UpdateUiState
 import com.screentime.tv.update.UpdateViewModel
 import com.screentime.tv.usage.InstalledAppsReporter
@@ -195,7 +200,12 @@ private fun OperationalScreen(@Suppress("UNUSED_PARAMETER") viewModel: Operation
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            TvStatusCircle(kind = StatusKind.Mint)
+            TvStatusCircle(
+                backgroundColor = PeachPlum.colors.positiveDisplay,
+                foregroundColor = Color(0xFF062A1E),
+                icon = Icons.Filled.Check,
+                haloRing = true,
+            )
             Column(
                 modifier = Modifier.padding(top = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -203,14 +213,14 @@ private fun OperationalScreen(@Suppress("UNUSED_PARAMETER") viewModel: Operation
             ) {
                 Text(
                     stringResource(R.string.operational_title),
-                    style = Sprout.typography.displayHero,
-                    color = Sprout.colors.tvCream,
+                    style = PeachPlum.typography.displayHero,
+                    color = PeachPlum.colors.tvCream,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     stringResource(R.string.operational_body),
-                    style = Sprout.typography.bodyLarge,
-                    color = Sprout.colors.tvMutedText,
+                    style = PeachPlum.typography.bodyLarge,
+                    color = PeachPlum.colors.tvMutedText,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.widthIn(max = 550.dp),
                 )
@@ -236,16 +246,16 @@ private fun UpdateSection(viewModel: UpdateViewModel = hiltViewModel()) {
                 TvGhostButton(text = stringResource(R.string.update_check_button), onClick = viewModel::checkForUpdate)
 
             is UpdateUiState.Checking ->
-                Text(stringResource(R.string.update_checking), style = Sprout.typography.bodyLarge, color = Sprout.colors.tvMutedText)
+                Text(stringResource(R.string.update_checking), style = PeachPlum.typography.bodyLarge, color = PeachPlum.colors.tvMutedText)
 
             is UpdateUiState.UpToDate ->
-                Text(stringResource(R.string.update_up_to_date), style = Sprout.typography.bodyLarge, color = Sprout.colors.tvMutedText)
+                Text(stringResource(R.string.update_up_to_date), style = PeachPlum.typography.bodyLarge, color = PeachPlum.colors.tvMutedText)
 
             is UpdateUiState.Available -> {
                 Text(
                     stringResource(R.string.update_available, s.versionName),
-                    style = Sprout.typography.bodyLarge,
-                    color = Sprout.colors.tvCream,
+                    style = PeachPlum.typography.bodyLarge,
+                    color = PeachPlum.colors.tvCream,
                     textAlign = TextAlign.Center,
                 )
                 TvPrimaryButton(
@@ -255,14 +265,14 @@ private fun UpdateSection(viewModel: UpdateViewModel = hiltViewModel()) {
             }
 
             is UpdateUiState.Downloading ->
-                Text(stringResource(R.string.update_downloading), style = Sprout.typography.bodyLarge, color = Sprout.colors.tvMutedText)
+                Text(stringResource(R.string.update_downloading), style = PeachPlum.typography.bodyLarge, color = PeachPlum.colors.tvMutedText)
 
             is UpdateUiState.ReadyToInstall -> {
                 if (!viewModel.canRequestInstall()) {
                     Text(
                         stringResource(R.string.update_install_permission_needed),
-                        style = Sprout.typography.bodyLarge,
-                        color = Sprout.colors.tvMutedText,
+                        style = PeachPlum.typography.bodyLarge,
+                        color = PeachPlum.colors.tvMutedText,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.widthIn(max = 550.dp),
                     )
@@ -282,8 +292,8 @@ private fun UpdateSection(viewModel: UpdateViewModel = hiltViewModel()) {
             is UpdateUiState.Failed ->
                 Text(
                     stringResource(R.string.update_failed, s.message),
-                    style = Sprout.typography.bodyLarge,
-                    color = Sprout.colors.tvMutedText,
+                    style = PeachPlum.typography.bodyLarge,
+                    color = PeachPlum.colors.tvMutedText,
                     textAlign = TextAlign.Center,
                 )
         }
@@ -300,46 +310,38 @@ private fun PermissionWall(
     primary: String,
     onPrimary: () -> Unit,
 ) {
-    TvCanvas {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 100.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            TvStatusCircle(kind = StatusKind.Lilac, size = 84)
+    TvCanvas(footerContext = stringResource(R.string.permission_step_of, stepCurrent, stepTotal)) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(
-                modifier = Modifier.padding(top = 22.dp).widthIn(max = 550.dp),
+                modifier = Modifier.width(1280.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(40.dp),
             ) {
+                TvStatusCircle(
+                    backgroundColor = Color(0x29FFB088),
+                    foregroundColor = PeachPlum.colors.primary,
+                    icon = Icons.Filled.Visibility,
+                    haloRing = true,
+                )
                 Text(
                     headline,
-                    style = Sprout.typography.displayLarge,
-                    color = Sprout.colors.tvCream,
+                    style = PeachPlum.typography.displayLarge,
+                    color = PeachPlum.colors.tvCream,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     body,
-                    style = Sprout.typography.bodyLarge,
-                    color = Sprout.colors.tvMutedText,
+                    style = PeachPlum.typography.bodyLarge,
+                    color = PeachPlum.colors.tvMutedText,
                     textAlign = TextAlign.Center,
+                    modifier = Modifier.widthIn(max = 1000.dp),
                 )
                 TvStepDots(current = stepCurrent, total = stepTotal)
-                Row(stepCurrent = stepCurrent, primary = primary, onPrimary = onPrimary)
+                Row(horizontalArrangement = Arrangement.spacedBy(36.dp)) {
+                    TvPrimaryButton(text = primary, onClick = onPrimary)
+                    TvGhostButton(text = stringResource(R.string.permission_why_needed), onClick = { /* expandable info — TODO */ })
+                }
             }
         }
-    }
-}
-
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-private fun Row(stepCurrent: Int, primary: String, onPrimary: () -> Unit) {
-    androidx.compose.foundation.layout.Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        TvPrimaryButton(text = primary, onClick = onPrimary)
-        TvGhostButton(text = stringResource(R.string.permission_why_needed), onClick = { /* expandable info — TODO */ })
     }
 }
