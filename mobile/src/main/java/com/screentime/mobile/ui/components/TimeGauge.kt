@@ -23,6 +23,11 @@ private val GaugeWidth = 300.dp
 private val GaugeHeight = 170.dp
 private val GaugeRadius = 120.dp
 private val GaugeStroke = 16.dp
+// design/i6c-peach-plum tokens.json#sizes.arc: cy=150 out of height=170 — the
+// circle's center sits near the BOTTOM of the box, not its vertical middle,
+// so the drawn top half (see sweep math below) fills the box top-down like a
+// dome instead of being centered and half clipped.
+private val GaugeCenterY = 150.dp
 
 /**
  * Half-arc time gauge (design/i6c-peach-plum tokens.json#sizes.arc). The fill
@@ -53,21 +58,25 @@ fun TimeGauge(
             val strokePx = GaugeStroke.toPx()
             val radiusPx = GaugeRadius.toPx()
             val diameter = radiusPx * 2
-            val topLeft = Offset(size.width / 2f - radiusPx, size.height / 2f - radiusPx)
+            val topLeft = Offset(size.width / 2f - radiusPx, GaugeCenterY.toPx() - radiusPx)
             val arcSize = Size(diameter, diameter)
             val style = Stroke(width = strokePx, cap = androidx.compose.ui.graphics.StrokeCap.Round)
 
-            // Track: always the top half-circle, west -> north -> east, never mirrored.
-            drawArc(color = trackColor, startAngle = 180f, sweepAngle = -180f, useCenter = false, topLeft = topLeft, size = arcSize, style = style)
+            // Track: always the top half-circle, west -> north -> east, never
+            // mirrored. Compose's drawArc angle convention: 0 = east, and
+            // positive sweep is CLOCKWISE (east -> south -> west -> north),
+            // so reaching north from west (180) needs a positive sweep.
+            drawArc(color = trackColor, startAngle = 180f, sweepAngle = 180f, useCenter = false, topLeft = topLeft, size = arcSize, style = style)
 
             if (clamped > 0f) {
                 val sweep = 180f * clamped
-                // LTR fills from the west end toward the east via the top; RTL
+                // LTR fills from the west end toward the east via the top (same
+                // direction as the track, hence the same positive sweep); RTL
                 // fills from the east end toward the west via the top instead
                 // of literally mirroring the drawn path (matches the CSS
                 // translate+scale(-1,1) applied only to the fill in the web version).
                 val startAngle = if (isRtl) 0f else 180f
-                val sweepAngle = if (isRtl) sweep else -sweep
+                val sweepAngle = if (isRtl) -sweep else sweep
                 if (overLimit) {
                     drawArc(color = overColor, startAngle = startAngle, sweepAngle = sweepAngle, useCenter = false, topLeft = topLeft, size = arcSize, style = style)
                 } else {
@@ -76,7 +85,7 @@ fun TimeGauge(
                 }
             }
         }
-        Column(modifier = Modifier.padding(bottom = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(modifier = Modifier.padding(bottom = GaugeHeight - GaugeCenterY), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(centerLabel, style = PeachPlum.typography.gauge, color = PeachPlum.colors.ink)
             if (word.isNotEmpty()) {
                 Text(word, style = PeachPlum.typography.gaugeWord, color = PeachPlum.colors.inkMuted)
