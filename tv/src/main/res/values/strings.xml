@@ -52,7 +52,7 @@
     <string name="overlay_no_more_today">No more screen time scheduled for today — see you tomorrow!</string>
 
     <!-- Two-tone headline (design/i6c-peach-plum): "That's enough " + peach "for today." -->
-    <string name="overlay_main_title">That\'s enough </string>
+    <string name="overlay_main_title">"That\'s enough "</string>
     <string name="overlay_main_title_accent">for today.</string>
     <string name="overlay_watched_today">%1$s · %2$s today</string>
     <string name="overlay_used_all_time">Ask a parent for a little more, or enter a code if they gave you one.</string>

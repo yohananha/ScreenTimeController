@@ -284,7 +284,7 @@ private fun OutsideHoursView(
             textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(max = 1000.dp),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(36.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(36.dp), verticalAlignment = Alignment.CenterVertically) {
             TvPrimaryButton(text = stringResource(R.string.overlay_ask_parent_more_time), onClick = onRequestMore, focusRequester = focus)
             TvGhostButton(text = stringResource(R.string.overlay_enter_unlock_code), onClick = onEnterCode)
         }
@@ -335,7 +335,7 @@ private fun MainView(
             modifier = Modifier.widthIn(max = 1000.dp),
         )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(36.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(36.dp), verticalAlignment = Alignment.CenterVertically) {
             TvPrimaryButton(text = stringResource(R.string.overlay_ask_parent_more_time), onClick = onRequestMore, focusRequester = focus)
             TvGhostButton(text = stringResource(R.string.overlay_enter_unlock_code), onClick = onEnterCode)
         }
@@ -371,7 +371,7 @@ private fun RequestTimeView(
             textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(max = 1000.dp),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(36.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(36.dp), verticalAlignment = Alignment.CenterVertically) {
             TvPrimaryButton(
                 text = stringResource(R.string.overlay_request_15),
                 onClick = {
@@ -616,7 +616,7 @@ private fun WaitingView(onEnterCode: () -> Unit, onCancel: () -> Unit) {
             textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(max = 1000.dp),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(36.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(36.dp), verticalAlignment = Alignment.CenterVertically) {
             TvGhostButton(text = stringResource(R.string.overlay_enter_code_instead), onClick = onEnterCode, focusRequester = focus)
             TvGhostButton(text = stringResource(R.string.overlay_never_mind), onClick = onCancel)
         }
@@ -730,7 +730,7 @@ private fun DeniedView(onOkay: () -> Unit, onEnterCode: () -> Unit) {
             textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(max = 550.dp),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(36.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(36.dp), verticalAlignment = Alignment.CenterVertically) {
             TvGhostButton(text = stringResource(R.string.overlay_enter_unlock_code), onClick = onEnterCode)
             // Default focus = Okay (design/i6c-peach-plum README §4 "Denied").
             TvPrimaryButton(text = stringResource(R.string.overlay_okay), onClick = onOkay, focusRequester = focus)

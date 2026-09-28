@@ -43,7 +43,7 @@
     <string name="overlay_opens_again_at">זמן המסך נפתח שוב ב-%1$s — עוד רגע!</string>
     <string name="overlay_no_more_today">אין עוד זמן מסך מתוזמן להיום — נתראה מחר!</string>
 
-    <string name="overlay_main_title">זהו, מספיק </string>
+    <string name="overlay_main_title">זהו, מספיק\u0020</string>
     <string name="overlay_main_title_accent">להיום.</string>
     <string name="overlay_watched_today">%1$s · %2$s היום</string>
     <string name="overlay_used_all_time">אפשר לבקש מהורה עוד קצת זמן, או להקליד קוד אם קיבלת אחד.</string>
