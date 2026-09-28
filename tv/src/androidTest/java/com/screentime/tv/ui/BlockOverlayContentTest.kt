@@ -67,7 +67,12 @@ class BlockOverlayContentTest {
                 )
             }
         }
-        composeRule.onNodeWithText(targetContext.getString(R.string.overlay_main_title)).assertIsDisplayed()
+        // TwoToneHeadline renders title+accent as one merged Text node (see
+        // BlockOverlayContent.kt), so the node to look for is their concatenation,
+        // not overlay_main_title alone.
+        val expected = targetContext.getString(R.string.overlay_main_title) +
+            targetContext.getString(R.string.overlay_main_title_accent)
+        composeRule.onNodeWithText(expected).assertIsDisplayed()
     }
 
     @Test
@@ -177,6 +182,6 @@ class BlockOverlayContentTest {
         // that resource directory for why "he" alone doesn't resolve on this
         // toolchain — Android's runtime locale matching for Hebrew keys off the
         // legacy ISO-639 code "iw", not the modern "he".
-        composeRule.onNodeWithText("זהו, סיימנו להיום!").assertIsDisplayed()
+        composeRule.onNodeWithText("זהו, מספיק להיום.").assertIsDisplayed()
     }
 }
