@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -233,7 +234,7 @@ private fun TwoToneHeadline(first: String, accented: String, style: androidx.com
 @Composable
 private fun InstantLockedView() {
     Column(
-        modifier = Modifier.width(1280.dp),
+        modifier = Modifier.widthIn(max = 1280.dp).fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(40.dp),
     ) {
@@ -263,7 +264,7 @@ private fun OutsideHoursView(
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
     Column(
-        modifier = Modifier.width(1280.dp),
+        modifier = Modifier.widthIn(max = 1280.dp).fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(40.dp),
     ) {
@@ -308,7 +309,7 @@ private fun MainView(
     val resources = LocalContext.current.resources
 
     Column(
-        modifier = Modifier.width(1280.dp),
+        modifier = Modifier.widthIn(max = 1280.dp).fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(40.dp),
     ) {
@@ -354,7 +355,7 @@ private fun RequestTimeView(
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
     Column(
-        modifier = Modifier.width(1280.dp),
+        modifier = Modifier.widthIn(max = 1280.dp).fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(40.dp),
     ) {
@@ -410,12 +411,12 @@ private fun RequestCustomView(
     val valid = minutes in 1..240
  
     Row(
-        modifier = Modifier.width(1500.dp),
+        modifier = Modifier.widthIn(max = 1500.dp).fillMaxWidth().padding(horizontal = 96.dp),
         horizontalArrangement = Arrangement.spacedBy(120.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(
-            modifier = Modifier.width(760.dp),
+            modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(36.dp),
         ) {
             Text(
@@ -502,12 +503,12 @@ private fun NumPadView(
     }
 
     Row(
-        modifier = Modifier.width(1500.dp),
+        modifier = Modifier.widthIn(max = 1500.dp).fillMaxWidth().padding(horizontal = 96.dp),
         horizontalArrangement = Arrangement.spacedBy(120.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(
-            modifier = Modifier.width(760.dp),
+            modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(36.dp),
         ) {
             Text(
@@ -589,7 +590,7 @@ private fun WaitingView(onEnterCode: () -> Unit, onCancel: () -> Unit) {
     )
 
     Column(
-        modifier = Modifier.width(1280.dp),
+        modifier = Modifier.widthIn(max = 1280.dp).fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(40.dp),
     ) {
@@ -639,7 +640,7 @@ private fun ApprovedView(
     }
 
     Column(
-        modifier = Modifier.width(1280.dp),
+        modifier = Modifier.widthIn(max = 1280.dp).fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(40.dp),
     ) {
@@ -673,7 +674,7 @@ private fun UnlockedView(onBack: () -> Unit) {
     LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
 
     Column(
-        modifier = Modifier.width(1280.dp),
+        modifier = Modifier.widthIn(max = 1280.dp).fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(40.dp),
     ) {
@@ -707,7 +708,7 @@ private fun DeniedView(onOkay: () -> Unit, onEnterCode: () -> Unit) {
     LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
 
     Column(
-        modifier = Modifier.width(1280.dp),
+        modifier = Modifier.widthIn(max = 1280.dp).fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(40.dp),
     ) {
@@ -772,7 +773,7 @@ private fun LockedView(lockout: LockoutSettings, onTimerExpired: suspend () -> U
     LaunchedEffect(lockout.mode) { try { focus.requestFocus() } catch (_: Exception) {} }
 
     Column(
-        modifier = Modifier.width(1280.dp),
+        modifier = Modifier.widthIn(max = 1280.dp).fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(40.dp),
     ) {

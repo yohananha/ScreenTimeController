@@ -313,7 +313,7 @@ private fun PermissionWall(
     TvCanvas(footerContext = stringResource(R.string.permission_step_of, stepCurrent, stepTotal)) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(
-                modifier = Modifier.width(1280.dp),
+                modifier = Modifier.widthIn(max = 1280.dp).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(40.dp),
             ) {

@@ -3,7 +3,6 @@ package com.screentime.tv.ui.theme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -25,9 +24,9 @@ val RubikFont = FontFamily(
 /**
  * Field names kept from the old Sprout system; values now come from
  * design/i6c-peach-plum/tokens.json#type.tv — one family (Rubik) for
- * everything, no separate body face. Reference sizes are for the 1920px
- * design width, scaled by [rememberPeachPlumTypeScale] the same way the old
- * ramp was. `displayHero` = Block's 140, `displayLarge` = the 120 default,
+ * everything, no separate body face. Sizes are 1920px-design reference
+ * pixels used as-is: [ScreenTimeTvTheme] remaps density so 1dp/1sp is one
+ * reference pixel on the real screen. `displayHero` = Block's 140, `displayLarge` = the 120 default,
  * `titleLarge` = Keypad's 88; screens between those (Ask 132, Approved/
  * Denied/Unlocked 128, Locked 112, Pairing 104) apply a ratio against
  * `displayLarge` at the call site rather than adding a field per screen.
@@ -58,25 +57,6 @@ val PeachPlumTypeScale = PeachPlumTypography(
 )
 
 val LocalPeachPlumTypography = staticCompositionLocalOf { PeachPlumTypeScale }
-
-// Scales the type ramp proportionally to screen width.
-// Reference 1920px design width.
-@Composable
-internal fun rememberPeachPlumTypeScale(): PeachPlumTypography {
-    val w = LocalConfiguration.current.screenWidthDp
-    val s = w / 1920f
-    return PeachPlumTypography(
-        displayHero  = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.SemiBold, fontSize = (140 * s).sp, lineHeight = (143 * s).sp, letterSpacing = (-0.03f).em),
-        displayLarge = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.SemiBold, fontSize = (120 * s).sp, lineHeight = (122 * s).sp, letterSpacing = (-0.03f).em),
-        titleLarge   = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.SemiBold, fontSize = (88 * s).sp,  lineHeight = (90 * s).sp,  letterSpacing = (-0.03f).em),
-        bodyLarge    = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.Normal,   fontSize = (36 * s).sp,  lineHeight = (50 * s).sp),
-        bodyMedium   = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.Medium,   fontSize = (26 * s).sp,  lineHeight = (30 * s).sp),
-        button       = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.SemiBold, fontSize = (32 * s).sp,  lineHeight = (36 * s).sp),
-        label        = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.SemiBold, fontSize = (28 * s).sp,  lineHeight = (32 * s).sp),
-        keypadDigit  = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.SemiBold, fontSize = (56 * s).sp,  lineHeight = (56 * s).sp),
-        codeTile     = TextStyle(fontFamily = RubikFont, fontWeight = FontWeight.SemiBold, fontSize = (84 * s).sp,  lineHeight = (84 * s).sp, letterSpacing = (-0.02f).em),
-    )
-}
 
 /** Ratio-scales an already-resolved style to a different reference size without needing the raw 1920px scale factor. */
 fun TextStyle.atReferenceSize(target: Int, reference: Int = 120): TextStyle =
