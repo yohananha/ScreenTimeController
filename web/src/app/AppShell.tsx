@@ -3,6 +3,7 @@ import { colors } from '../theme/colors';
 import { SproutBottomNavBar } from '../components/BottomNavBar';
 import { NotificationsPrompt } from '../components/NotificationsPrompt';
 import { ForegroundToast } from '../components/ForegroundToast';
+import { AnnouncementModal } from '../components/AnnouncementModal';
 import { LimitsScreen } from '../screens/limits/LimitsScreen';
 import { TimeFrameScreen } from '../screens/limits/TimeFrameScreen';
 import { SettingsScreen } from '../screens/settings/SettingsScreen';
@@ -27,6 +28,7 @@ export function AppShell({ uid, familyId }: { uid: string; familyId: string }) {
   return (
     <div style={{ minHeight: '100vh', background: colors.background, display: 'flex', flexDirection: 'column' }}>
       <ForegroundToast />
+      <AnnouncementModal />
       {!isRedesign && (
         <div style={{ paddingTop: 8 }}>
           <NotificationsPrompt familyId={familyId} />

@@ -22,6 +22,10 @@
     "enable": "הפעלה",
     "enabling": "מפעיל…"
   },
+  "announcement": {
+    "share": "שתפו את דעתכם",
+    "later": "אולי אחר כך"
+  },
   "format": {
     "durationHM": "{{h}} שע׳ {{m}} דק׳",
     "durationH": "{{h}} שע׳",

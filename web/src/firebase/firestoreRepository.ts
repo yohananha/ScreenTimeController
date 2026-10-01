@@ -48,6 +48,7 @@ import type { Family, FamilyRole } from '../models/Family';
 import type { InstalledApp } from '../models/InstalledApp';
 import type { PairedDevice } from '../models/PairedDevice';
 import { DEFAULT_DEVICE_NAME } from '../models/PairedDevice';
+import type { Announcement } from '../models/Announcement';
 
 // ── field/path constants (verbatim from FirestoreRepository.kt's companion object) ──
 const FIELD_MINUTES = 'dailyLimitMinutes';
@@ -607,4 +608,34 @@ export async function claimPairing(code: string, familyId: string): Promise<bool
     if (isInvalidCodeError(e)) return false;
     throw e;
   }
+}
+
+// ── announcement ────────────────────────────────────────────────────────────
+
+/**
+ * config/announcement — a single doc edited by hand in the console (clients
+ * can only read it). Emits null when the doc is missing, inactive, or lacks
+ * an id/body, so a half-filled draft never shows up.
+ */
+export function subscribeAnnouncement(cb: (announcement: Announcement | null) => void): Unsubscribe {
+  return onSnapshot(
+    doc(db, 'config', 'announcement'),
+    (snap) => {
+      const data = snap.data();
+      const id = data?.id;
+      const body = data?.body;
+      if (!data || data.active !== true || typeof id !== 'string' || !id || typeof body !== 'string' || !body) {
+        cb(null);
+        return;
+      }
+      cb({
+        id,
+        title: typeof data.title === 'string' ? data.title : '',
+        body,
+        ctaEmail: typeof data.ctaEmail === 'string' && data.ctaEmail ? data.ctaEmail : null,
+        emailSubject: typeof data.emailSubject === 'string' && data.emailSubject ? data.emailSubject : null,
+      });
+    },
+    () => cb(null),
+  );
 }

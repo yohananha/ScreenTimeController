@@ -22,6 +22,10 @@
     "enable": "Enable",
     "enabling": "Enabling…"
   },
+  "announcement": {
+    "share": "Share your thoughts",
+    "later": "Maybe later"
+  },
   "format": {
     "durationHM": "{{h}}h {{m}}m",
     "durationH": "{{h}}h",

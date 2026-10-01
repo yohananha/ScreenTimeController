@@ -167,6 +167,14 @@ service cloud.firestore {
       }
     }
 
+    // ---- /config/{docId} ---------------------------------------------------
+    // App-wide config edited by hand in the Firebase console (e.g. the
+    // developer announcement). Any signed-in user may read; no client writes.
+    match /config/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
     // ---- /invites/{code} ---------------------------------------------------
     // Fully managed by Cloud Functions (admin SDK). Direct client access is
     // denied so codes can't be enumerated, forged, or read to harvest every
