@@ -189,6 +189,7 @@ class BlockOverlayController @Inject constructor(
             hostedView?.let { windowManager.removeView(it) }
             hostedView = null
             currentPackage.value = null
+            requestController.clearDecision()
         }
     }
 

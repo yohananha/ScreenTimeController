@@ -86,4 +86,50 @@ class RequestControllerTest {
             coVerify(exactly = 0) { bonusStore.addBonus(any()) }
         }
     }
+
+    @Test fun `clearDecision forgets an approval so the next overlay starts fresh`() = runTest {
+        coEvery { firestore.createRequest(any(), any(), any()) } returns "req-1"
+        every { firestore.requestFlow("fam-1", "req-1") } returns flowOf(
+            TimeRequest("req-1", "com.x", 10, status = TimeRequest.Status.Approved,
+                approvedMinutes = 15, respondedAt = Instant.now()),
+        )
+
+        val rc = RequestController(firestore, familyIdProvider, bonusStore)
+        rc.submit("com.x", 10)
+        rc.requestStatus.test {
+            var status = awaitItem()
+            while (status != TimeRequest.Status.Approved) status = awaitItem()
+            rc.clearDecision()
+            assertThat(awaitItem()).isNull()
+            assertThat(rc.approvedMinutes.value).isNull()
+        }
+    }
+
+    @Test fun `clearDecision leaves a pending request alone`() = runTest {
+        coEvery { firestore.createRequest(any(), any(), any()) } returns "req-1"
+        every { firestore.requestFlow(any(), any()) } returns flowOf(null)
+
+        val rc = RequestController(firestore, familyIdProvider, bonusStore)
+        rc.submit("com.x", 10)
+        rc.clearDecision()
+        assertThat(rc.requestStatus.value).isEqualTo(TimeRequest.Status.Pending)
+    }
+
+    @Test fun `repeated Approved snapshots apply the bonus only once`() = runTest {
+        val approved = TimeRequest("req-1", "com.x", 10, status = TimeRequest.Status.Approved,
+            approvedMinutes = 15, respondedAt = Instant.now())
+        coEvery { firestore.createRequest(any(), any(), any()) } returns "req-1"
+        every { firestore.requestFlow("fam-1", "req-1") } returns flowOf(approved, approved)
+
+        val rc = RequestController(firestore, familyIdProvider, bonusStore)
+        rc.submit("com.x", 10)
+        rc.requestStatus.test {
+            var status = awaitItem()
+            while (status != TimeRequest.Status.Approved) status = awaitItem()
+            rc.clearDecision()
+            assertThat(awaitItem()).isNull()
+            expectNoEvents()
+        }
+        coVerify(exactly = 1) { bonusStore.addBonus(15 * 60_000L) }
+    }
 }

@@ -12,7 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -48,31 +49,46 @@ class RequestController @Inject constructor(
         val familyId = familyIdProvider.familyId.value ?: return
         watcherJob?.cancel()
         watcherJob = scope.launch {
-            firestore.requestFlow(familyId, requestId).collectLatest { request ->
-                request ?: return@collectLatest
-                when (request.status) {
-                    TimeRequest.Status.Approved -> {
-                        // Apply the bonus BEFORE flipping requestStatus so the
-                        // overlay (which dismisses on status=Approved) can't
-                        // momentarily race with the accessibility-service tick
-                        // and re-block the app between the dismiss and the
-                        // bonus showing up in BonusStore.
-                        val granted = request.approvedMinutes ?: request.requestedMinutes
-                        bonusStore.addBonus(granted * 60_000L)
-                        _approvedMinutes.value = granted
-                        _requestStatus.value = request.status
-                        Log.i(TAG, "Request $requestId approved for $granted min (device-wide), triggered by $appPackage")
-                    }
-                    TimeRequest.Status.Denied -> {
-                        _requestStatus.value = request.status
-                        Log.i(TAG, "Request $requestId denied")
-                    }
-                    TimeRequest.Status.Pending -> {
-                        _requestStatus.value = request.status
-                    }
+            // Stop at the first decision: a later snapshot re-emitting the same
+            // Approved doc (metadata/cache refresh) must not add the bonus twice
+            // or resurrect a decision that clearDecision() already consumed.
+            val request = firestore.requestFlow(familyId, requestId)
+                .filterNotNull()
+                .firstOrNull { it.status != TimeRequest.Status.Pending }
+                ?: return@launch
+            when (request.status) {
+                TimeRequest.Status.Approved -> {
+                    // Apply the bonus BEFORE flipping requestStatus so the
+                    // overlay (which dismisses on status=Approved) can't
+                    // momentarily race with the accessibility-service tick
+                    // and re-block the app between the dismiss and the
+                    // bonus showing up in BonusStore.
+                    val granted = request.approvedMinutes ?: request.requestedMinutes
+                    bonusStore.addBonus(granted * 60_000L)
+                    _approvedMinutes.value = granted
+                    _requestStatus.value = request.status
+                    Log.i(TAG, "Request $requestId approved for $granted min (device-wide), triggered by $appPackage")
                 }
+                TimeRequest.Status.Denied -> {
+                    _requestStatus.value = request.status
+                    Log.i(TAG, "Request $requestId denied")
+                }
+                TimeRequest.Status.Pending -> Unit
             }
         }
+    }
+
+    /**
+     * Forgets the last decision once the overlay that displayed it is gone.
+     * Without this, the next time the overlay is shown (e.g. when the granted
+     * bonus runs out) it would read the stale Approved status and open on the
+     * "You got N more minutes" screen instead of the block screen. A request
+     * still awaiting a decision is left alone.
+     */
+    fun clearDecision() {
+        if (_requestStatus.value == TimeRequest.Status.Pending) return
+        _requestStatus.value = null
+        _approvedMinutes.value = null
     }
 
     private companion object {
