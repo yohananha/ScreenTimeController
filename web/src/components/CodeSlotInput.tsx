@@ -2,22 +2,30 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { peachPlumColor } from '../theme/tokens';
 
-/** 6-digit invite/pairing code entry. Hidden text input accepts input; visible slots render code. */
+/** Invite characters: no 0/O/1/I look-alikes — must match INVITE_ALPHABET in functions/src/codes.ts. */
+const NOT_INVITE_CHAR = /[^A-HJ-NP-Z2-9]/g;
+
+/**
+ * Slot-style code entry. Hidden text input accepts input; visible slots render code.
+ * Default: 6-digit pairing code. `alphanumeric`: 8-char invite code (uppercased).
+ */
 export function CodeSlotInput({
   value,
   onValueChange,
   slots = 6,
+  alphanumeric = false,
 }: {
   value: string;
   onValueChange: (value: string) => void;
   slots?: number;
+  alphanumeric?: boolean;
 }) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   return (
     <div style={{ position: 'relative', width: '100%' }}>
       {/* dir="ltr" keeps digit order stable under RTL — a Row would otherwise reverse it. */}
-      <div dir="ltr" style={{ display: 'flex', gap: 8, cursor: 'text' }} onClick={() => inputRef.current?.focus()}>
+      <div dir="ltr" style={{ display: 'flex', gap: slots > 6 ? 6 : 8, cursor: 'text' }} onClick={() => inputRef.current?.focus()}>
         {Array.from({ length: slots }).map((_, i) => {
           const active = i === value.length;
           return (
@@ -34,7 +42,8 @@ export function CodeSlotInput({
                 justifyContent: 'center',
                 fontFamily: 'Rubik, system-ui, sans-serif',
                 fontWeight: 600,
-                fontSize: 32,
+                fontSize: slots > 6 ? 24 : 32,
+                minWidth: 0,
                 color: peachPlumColor.ink,
               }}
             >
@@ -46,8 +55,16 @@ export function CodeSlotInput({
       <input
         ref={inputRef}
         value={value}
-        onChange={(e) => onValueChange(e.target.value.replace(/\D/g, '').slice(0, slots))}
-        inputMode="numeric"
+        onChange={(e) => {
+          const raw = e.target.value;
+          const cleaned = alphanumeric ? raw.toUpperCase().replace(NOT_INVITE_CHAR, '') : raw.replace(/\D/g, '');
+          onValueChange(cleaned.slice(0, slots));
+        }}
+        inputMode={alphanumeric ? 'text' : 'numeric'}
+        autoCapitalize={alphanumeric ? 'characters' : undefined}
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck={false}
         aria-label={t('common.code')}
         style={{
           position: 'absolute',

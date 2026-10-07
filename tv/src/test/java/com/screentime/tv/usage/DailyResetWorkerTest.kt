@@ -12,7 +12,6 @@ import io.mockk.verify
 import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
-import java.time.ZoneId
 
 /**
  * Pure-JVM test (no Robolectric) — DailyResetWorker.runIfOverdue only touches
@@ -25,6 +24,9 @@ class DailyResetWorkerTest {
     private lateinit var ctx: Context
     private lateinit var prefs: SharedPreferences
     private val store = mutableMapOf<String, String?>()
+
+    /** Trusted "today" (TrustedClock) — the worker no longer reads the device date itself. */
+    private val today = LocalDate.of(2026, 10, 7)
 
     @Before fun setUp() {
         store.clear()
@@ -50,34 +52,34 @@ class DailyResetWorkerTest {
 
     @Test fun `clears the bonus store on first run`() {
         val bonus: BonusStore = mockk(relaxed = true)
-        DailyResetWorker.runIfOverdue(ctx, bonus)
+        DailyResetWorker.runIfOverdue(ctx, bonus, today)
         verify { bonus.clear() }
         assertThat(store["last_reset_date"])
-            .isEqualTo(LocalDate.now(ZoneId.systemDefault()).toString())
+            .isEqualTo(today.toString())
     }
 
     @Test fun `no-op when already run today`() {
         val bonus: BonusStore = mockk(relaxed = true)
-        DailyResetWorker.runIfOverdue(ctx, bonus)
+        DailyResetWorker.runIfOverdue(ctx, bonus, today)
         clearMocks(bonus)
-        DailyResetWorker.runIfOverdue(ctx, bonus)
+        DailyResetWorker.runIfOverdue(ctx, bonus, today)
         verify(exactly = 0) { bonus.clear() }
     }
 
     @Test fun `re-runs when the stamped date is before today`() {
         store["last_reset_date"] =
-            LocalDate.now(ZoneId.systemDefault()).minusDays(1).toString()
+            today.minusDays(1).toString()
         val bonus: BonusStore = mockk(relaxed = true)
-        DailyResetWorker.runIfOverdue(ctx, bonus)
+        DailyResetWorker.runIfOverdue(ctx, bonus, today)
         verify { bonus.clear() }
         assertThat(store["last_reset_date"])
-            .isEqualTo(LocalDate.now(ZoneId.systemDefault()).toString())
+            .isEqualTo(today.toString())
     }
 
     @Test fun `tolerates a corrupt stamp`() {
         store["last_reset_date"] = "not-a-date"
         val bonus: BonusStore = mockk(relaxed = true)
-        DailyResetWorker.runIfOverdue(ctx, bonus)
+        DailyResetWorker.runIfOverdue(ctx, bonus, today)
         verify { bonus.clear() }
     }
 }

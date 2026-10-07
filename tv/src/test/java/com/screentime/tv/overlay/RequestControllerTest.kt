@@ -86,4 +86,36 @@ class RequestControllerTest {
             coVerify(exactly = 0) { bonusStore.addBonus(any()) }
         }
     }
+
+    @Test fun `asking again while a request is pending reuses it instead of sending another`() = runTest {
+        coEvery { firestore.createRequest(any(), any(), any()) } returns "req-1"
+        every { firestore.requestFlow(any(), any()) } returns flowOf(null)
+        val rc = RequestController(firestore, familyIdProvider, bonusStore)
+        rc.elapsedRealtime = { 0L }
+
+        assertThat(rc.submit("com.x", 10)).isEqualTo("req-1")
+        assertThat(rc.submit("com.x", 30)).isEqualTo("req-1")
+        coVerify(exactly = 1) { firestore.createRequest(any(), any(), any()) }
+    }
+
+    @Test fun `after an answer, a new request waits out the 60s cooldown`() = runTest {
+        coEvery { firestore.createRequest(any(), any(), any()) } returnsMany listOf("req-1", "req-2")
+        every { firestore.requestFlow("fam-1", "req-1") } returns flowOf(
+            TimeRequest("req-1", "com.x", 10, status = TimeRequest.Status.Denied, respondedAt = Instant.now()),
+        )
+        every { firestore.requestFlow("fam-1", "req-2") } returns flowOf(null)
+        val rc = RequestController(firestore, familyIdProvider, bonusStore)
+        var now = 0L
+        rc.elapsedRealtime = { now }
+
+        rc.submit("com.x", 10)
+        rc.requestStatus.test {
+            while (awaitItem() != TimeRequest.Status.Denied) Unit
+            cancelAndIgnoreRemainingEvents()
+        }
+        now = 30_000L
+        assertThat(rc.submit("com.x", 10)).isNull()
+        now = 61_000L
+        assertThat(rc.submit("com.x", 10)).isEqualTo("req-2")
+    }
 }

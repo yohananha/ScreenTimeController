@@ -8,6 +8,8 @@ interface ImportMetaEnv {
   readonly VITE_FIREBASE_MESSAGING_SENDER_ID: string;
   readonly VITE_FIREBASE_APP_ID: string;
   readonly VITE_FIREBASE_VAPID_KEY: string;
+  /** Optional: reCAPTCHA Enterprise site key; App Check is off when unset. */
+  readonly VITE_APPCHECK_SITE_KEY?: string;
 }
 
 interface ImportMeta {

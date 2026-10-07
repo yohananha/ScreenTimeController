@@ -148,12 +148,12 @@ fun FamilyOnboardingScreen(viewModel: FamilyViewModel = hiltViewModel()) {
                     color = PeachPlum.colors.inkFaint,
                 )
                 Spacer(Modifier.height(10.dp))
-                CodeSlotInput(value = code, onValueChange = { code = it })
+                CodeSlotInput(value = code, onValueChange = { code = it }, slots = 8, alphanumeric = true)
                 Spacer(Modifier.height(14.dp))
                 PeachPlumPrimaryButton(
                     text = if (state.joining) stringResource(R.string.family_onboarding_joining) else stringResource(R.string.action_continue),
                     onClick = { viewModel.joinByCode(code) },
-                    enabled = code.length == 6 && !state.joining,
+                    enabled = code.length == 8 && !state.joining,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }

@@ -1,9 +1,12 @@
+import { useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { colors } from '../theme/colors';
 import { SproutBottomNavBar } from '../components/BottomNavBar';
 import { NotificationsPrompt } from '../components/NotificationsPrompt';
 import { ForegroundToast } from '../components/ForegroundToast';
 import { AnnouncementModal } from '../components/AnnouncementModal';
+import { syncNotificationToken } from '../firebase/push';
+import { ensureFamilyTimezone } from '../firebase/firestoreRepository';
 import { LimitsScreen } from '../screens/limits/LimitsScreen';
 import { TimeFrameScreen } from '../screens/limits/TimeFrameScreen';
 import { SettingsScreen } from '../screens/settings/SettingsScreen';
@@ -25,13 +28,25 @@ export function AppShell({ uid, familyId }: { uid: string; familyId: string }) {
   // hook wiring — but are no longer linked from any nav.
   const isRedesign = REDESIGN_ROUTES.has(currentRoute);
 
+  // Keep this browser's push token current for the signed-in parent (no-op
+  // unless notification permission was already granted).
+  useEffect(() => {
+    void syncNotificationToken(uid).catch(() => {});
+  }, [uid]);
+
+  // The TV measures "today" in the family's zone; seed it from this browser
+  // if no parent has set it yet.
+  useEffect(() => {
+    void ensureFamilyTimezone(familyId, Intl.DateTimeFormat().resolvedOptions().timeZone).catch(() => {});
+  }, [familyId]);
+
   return (
     <div style={{ minHeight: '100vh', background: colors.background, display: 'flex', flexDirection: 'column' }}>
       <ForegroundToast />
       <AnnouncementModal />
       {!isRedesign && (
         <div style={{ paddingTop: 8 }}>
-          <NotificationsPrompt familyId={familyId} />
+          <NotificationsPrompt uid={uid} />
         </div>
       )}
       <div style={{ flex: 1, overflowY: 'auto' }}>

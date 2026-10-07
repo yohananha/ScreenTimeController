@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react';
 import * as repo from '../firebase/firestoreRepository';
 import type { UsageSnapshot } from '../models/UsageSnapshot';
-
-function isoDaysAgo(daysAgo: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - daysAgo);
-  return d.toISOString().slice(0, 10);
-}
+import { localIsoDateDaysAgo } from '../models/localDate';
 
 export function useHistory(familyId: string | null) {
   const [snapshots, setSnapshots] = useState<UsageSnapshot[]>([]);
@@ -17,7 +12,7 @@ export function useHistory(familyId: string | null) {
       return;
     }
     const byDate = new Map<string, UsageSnapshot>();
-    const dates = Array.from({ length: 7 }, (_, i) => isoDaysAgo(i));
+    const dates = Array.from({ length: 7 }, (_, i) => localIsoDateDaysAgo(i));
     const unsubs = dates.map((date) =>
       repo.subscribeUsage(familyId, date, (snap) => {
         byDate.set(date, snap);

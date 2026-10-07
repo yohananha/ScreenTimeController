@@ -2,6 +2,7 @@ package com.screentime.shared.limits
 
 import com.screentime.shared.room.AppDatabase
 import com.screentime.shared.room.BonusEntity
+import com.screentime.shared.time.TrustedClock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,11 +23,17 @@ import javax.inject.Singleton
  * next) would otherwise need its own separate grant, forcing the parent to
  * approve the same "let them use the TV" request once per app.
  *
+ * Expiry is measured on [TrustedClock], not the device clock — otherwise
+ * setting the TV's clock back stretched a 30-minute grant indefinitely.
+ *
  * The in-memory [StateFlow] is the fast path for enforcement checks; Room is
  * loaded on startup and written asynchronously on every mutation.
  */
 @Singleton
-class BonusStore @Inject constructor(db: AppDatabase) {
+class BonusStore @Inject constructor(
+    db: AppDatabase,
+    private val clock: TrustedClock,
+) {
     private val dao = db.bonusDao()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val state = MutableStateFlow<Instant?>(null)
@@ -34,7 +41,7 @@ class BonusStore @Inject constructor(db: AppDatabase) {
 
     init {
         scope.launch {
-            val now = Instant.now()
+            val now = clock.now()
             state.value = dao.getAll()
                 .map { Instant.ofEpochMilli(it.expiresAt) }
                 .maxOrNull()
@@ -44,14 +51,14 @@ class BonusStore @Inject constructor(db: AppDatabase) {
 
     /** Extends the device's exemption by [millis] from now or its current expiry, whichever is later. */
     fun addBonus(millis: Long) {
-        val now = Instant.now()
+        val now = clock.now()
         val base = state.value?.takeIf { it.isAfter(now) } ?: now
         val expiry = base.plusMillis(millis)
         state.value = expiry
         scope.launch { dao.upsert(BonusEntity(DEVICE_KEY, expiry.toEpochMilli())) }
     }
 
-    fun isActive(now: Instant = Instant.now()): Boolean = state.value?.isAfter(now) == true
+    fun isActive(now: Instant = clock.now()): Boolean = state.value?.isAfter(now) == true
 
     fun expiryFor(): Instant? = state.value
 

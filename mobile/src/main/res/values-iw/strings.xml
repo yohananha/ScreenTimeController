@@ -25,7 +25,7 @@
     <string name="family_onboarding_create_subtitle">התחילו מאפס. תהיו הבעלים.</string>
     <string name="family_onboarding_join_title">הצטרפות למשפחה</string>
     <string name="family_onboarding_join_subtitle">השתמשו בקוד ההזמנה מההורה השותף שלכם.</string>
-    <string name="family_onboarding_invite_code_label">הזינו את קוד ההזמנה בן 6 הספרות</string>
+    <string name="family_onboarding_invite_code_label">הזינו את קוד ההזמנה בן 8 התווים</string>
     <string name="family_onboarding_joining">מצטרפים…</string>
     <string name="action_continue">המשך</string>
 
@@ -212,7 +212,9 @@
     <string name="pairtv_add_another">+ חיבור טלוויזיה נוספת</string>
     <string name="pairtv_collapse">כיווץ</string>
     <string name="pairtv_expand">הרחבה</string>
-    <string name="pairtv_online_status">מקוונת · %1$s היום</string>
+    <string name="pairtv_protection_on">ההגנה פעילה</string>
+    <string name="pairtv_not_responding">לא מגיבה · נראתה לאחרונה לפני %1$s</string>
+    <string name="pairtv_waiting_for_check_in">ממתינים שהטלוויזיה תתחבר</string>
     <string name="pairtv_stat_today_label">היום</string>
     <string name="pairtv_stat_paired_label">מחוברת</string>
     <string name="pairtv_stat_paired_value">פעילה</string>
@@ -284,4 +286,15 @@
     <string name="whats_new_v0_1_15_title">מה חדש</string>
     <string name="whats_new_v0_1_15_bullet_1">מצב נעילה משתחרר עכשיו אוטומטית בחצות, במקום להישאר נעול עד שתכבו אותו ידנית.</string>
     <string name="whats_new_v0_1_15_bullet_2">תקציר שעות ההיתר מדגיש כעת את החלון של היום ומציג את הימים לפי הסדר המקומי, עם בורר חדש \"החל גם על\" להעתקת שעות לימים נוספים.</string>
+    <string name="account_title">חשבון</string>
+    <string name="account_sign_out">התנתקות</string>
+    <string name="account_delete_account">מחיקת החשבון שלי</string>
+    <string name="account_delete_family">מחיקת המשפחה</string>
+    <string name="account_delete_account_title">למחוק את החשבון?</string>
+    <string name="account_delete_account_body_owner">פעולה זו מוחקת לצמיתות את החשבון שלכם ואת המשפחה שבבעלותכם — עבור כל החברים: חוקים, היסטוריית שימוש, בקשות וטלוויזיות מחוברות. לא ניתן לבטל.</string>
+    <string name="account_delete_account_body_member">פעולה זו מוחקת לצמיתות את החשבון שלכם ומסירה אתכם מהמשפחה. המשפחה והנתונים שלה נשארים עבור שאר ההורים. לא ניתן לבטל.</string>
+    <string name="account_delete_family_title">למחוק את המשפחה?</string>
+    <string name="account_delete_family_body">פעולה זו מוחקת לצמיתות את המשפחה עבור כל החברים: חוקים, היסטוריית שימוש, בקשות וטלוויזיות מחוברות. הטלוויזיות יחזרו למסך החיבור. החשבון שלכם נשאר. לא ניתן לבטל.</string>
+    <string name="account_confirm_delete">מחיקה לצמיתות</string>
+    <string name="account_deleting">מוחקים…</string>
 </resources>

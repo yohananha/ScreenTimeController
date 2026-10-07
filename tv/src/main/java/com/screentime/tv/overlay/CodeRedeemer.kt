@@ -1,10 +1,10 @@
 package com.screentime.tv.overlay
 
+import android.util.Log
 import com.google.firebase.functions.FirebaseFunctionsException
 import com.screentime.shared.auth.FamilyIdProvider
 import com.screentime.shared.firestore.FirestoreRepository
 import com.screentime.shared.limits.BonusStore
-import com.screentime.shared.model.LockoutMode
 import com.screentime.shared.model.LockoutSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -67,8 +67,15 @@ class CodeRedeemer @Inject constructor(
      */
     suspend fun clearExpiredLockout() {
         val current = lockout.value
-        if (!current.locked || current.mode != LockoutMode.TIMER) return
+        if (!current.locked || current.needsParent) return
         val familyId = familyIdProvider.familyId.value ?: return
-        firestore.clearLockout(familyId)
+        // Denied until the server's clock has passed lockedUntil (see
+        // firestore.rules); LockedView retries. Never let it crash the overlay.
+        runCatching { firestore.clearLockout(familyId) }
+            .onFailure { Log.w(TAG, "clearLockout refused; will retry", it) }
+    }
+
+    private companion object {
+        const val TAG = "CodeRedeemer"
     }
 }

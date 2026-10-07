@@ -30,7 +30,7 @@
     <string name="family_onboarding_create_subtitle">Start fresh. You\'ll be the owner.</string>
     <string name="family_onboarding_join_title">Join a family</string>
     <string name="family_onboarding_join_subtitle">Use the invite code from your co-parent.</string>
-    <string name="family_onboarding_invite_code_label">ENTER THE 6-DIGIT INVITE CODE</string>
+    <string name="family_onboarding_invite_code_label">ENTER THE 8-CHARACTER INVITE CODE</string>
     <string name="family_onboarding_joining">Joining…</string>
     <string name="action_continue">Continue</string>
 
@@ -229,7 +229,9 @@
     <!-- "0m" usage figure is a hardcoded placeholder pending real per-device
          usage tracking — unrelated to i18n, kept as-is; only the sentence
          template is made translatable here. -->
-    <string name="pairtv_online_status">Online · %1$s today</string>
+    <string name="pairtv_protection_on">Protection on</string>
+    <string name="pairtv_not_responding">Not responding · last seen %1$s ago</string>
+    <string name="pairtv_waiting_for_check_in">Waiting for the TV to check in</string>
     <string name="pairtv_stat_today_label">Today</string>
     <string name="pairtv_stat_paired_label">Paired</string>
     <string name="pairtv_stat_paired_value">Active</string>
@@ -311,4 +313,15 @@
     <string name="whats_new_v0_1_15_title">What\'s new</string>
     <string name="whats_new_v0_1_15_bullet_1">Lock mode now automatically releases at midnight instead of staying locked until you manually switch it off.</string>
     <string name="whats_new_v0_1_15_bullet_2">The allowed-hours summary now highlights today\'s window and lists days in your locale\'s order, with a new \"Apply also to\" picker for copying hours to other days.</string>
+    <string name="account_title">Account</string>
+    <string name="account_sign_out">Sign out</string>
+    <string name="account_delete_account">Delete my account</string>
+    <string name="account_delete_family">Delete family</string>
+    <string name="account_delete_account_title">Delete your account?</string>
+    <string name="account_delete_account_body_owner">This permanently deletes your account and the family you own — for every member: rules, usage history, requests and paired TVs. This can\'t be undone.</string>
+    <string name="account_delete_account_body_member">This permanently deletes your account and removes you from the family. The family and its data stay for the other parents. This can\'t be undone.</string>
+    <string name="account_delete_family_title">Delete this family?</string>
+    <string name="account_delete_family_body">This permanently deletes the family for every member: rules, usage history, requests and paired TVs. TVs go back to the pairing screen. Your account stays. This can\'t be undone.</string>
+    <string name="account_confirm_delete">Delete permanently</string>
+    <string name="account_deleting">Deleting…</string>
 </resources>

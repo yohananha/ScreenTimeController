@@ -5,16 +5,12 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.screentime.mobile.MainActivity
 import com.screentime.mobile.R
-import com.screentime.shared.auth.FamilyIdProvider
+import com.screentime.shared.auth.AuthRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,14 +18,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class PushService : FirebaseMessagingService() {
 
-    @Inject lateinit var familyIdProvider: FamilyIdProvider
-    @Inject lateinit var firestore: FirebaseFirestore
+    @Inject lateinit var authRepository: AuthRepository
+    @Inject lateinit var pushTokenRegistrar: PushTokenRegistrar
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -66,20 +61,10 @@ class PushService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         scope.launch {
-            // Wait for sign-in; if the user signs out before a token arrives the
-            // refresh will be re-issued on next sign-in via FCM.
-            val resolved = familyIdProvider.familyId.filterNotNull().first()
-            try {
-                firestore.collection("families")
-                    .document(resolved)
-                    .set(
-                        mapOf("fcmTokens" to FieldValue.arrayUnion(token)),
-                        SetOptions.merge(),
-                    )
-                    .await()
-            } catch (t: Throwable) {
-                Log.e(TAG, "Failed to register FCM token for family $resolved", t)
-            }
+            // Wait for sign-in. If the process dies first, AuthViewModel
+            // re-saves the current token on the next signed-in launch.
+            val session = authRepository.currentSession.filterNotNull().first()
+            pushTokenRegistrar.register(session.uid, token)
         }
     }
 
@@ -97,7 +82,6 @@ class PushService : FirebaseMessagingService() {
     }
 
     private companion object {
-        const val TAG = "PushService"
         const val CHANNEL_ID = "time_requests"
         const val NOTIFICATION_ID = 1
         const val REQ_OPEN = 0

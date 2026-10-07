@@ -27,4 +27,13 @@ class LockoutSettingsTest {
         assertThat(s.copy(durationMinutes = 30).mode).isEqualTo(LockoutMode.PARENT_UNLOCK)
         assertThat(s.copy(durationMinutes = 30).locked).isTrue()
     }
+
+    @Test fun `needsParent covers parent mode and escalated timer locks, not countdown locks`() {
+        val until = java.time.Instant.parse("2026-10-07T12:00:00Z")
+        assertThat(LockoutSettings(mode = LockoutMode.PARENT_UNLOCK, locked = true).needsParent).isTrue()
+        // Escalated by the server: still TIMER mode, but no lockedUntil.
+        assertThat(LockoutSettings(mode = LockoutMode.TIMER, locked = true, lockedUntil = null).needsParent).isTrue()
+        assertThat(LockoutSettings(mode = LockoutMode.TIMER, locked = true, lockedUntil = until).needsParent).isFalse()
+        assertThat(LockoutSettings(mode = LockoutMode.PARENT_UNLOCK, locked = false).needsParent).isFalse()
+    }
 }

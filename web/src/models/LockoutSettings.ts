@@ -14,6 +14,15 @@ export interface LockoutSettings {
   lockedUntil: Date | null;
 }
 
+/**
+ * A lock with no `lockedUntil` — parent mode, or a timer lock the server
+ * escalated after repeated lockouts — only ends when a parent unlocks.
+ * Mirrors LockoutSettings.needsParent in shared/.../model/LockoutSettings.kt.
+ */
+export function needsParentUnlock(s: LockoutSettings): boolean {
+  return s.locked && (s.mode === 'PARENT_UNLOCK' || s.lockedUntil === null);
+}
+
 export function defaultLockoutSettings(): LockoutSettings {
   return {
     durationMinutes: DEFAULT_LOCKOUT_DURATION_MINUTES,

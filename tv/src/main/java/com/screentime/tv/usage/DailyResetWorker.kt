@@ -9,6 +9,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.screentime.shared.limits.BonusStore
+import com.screentime.shared.time.TrustedClock
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import java.time.Duration
@@ -35,12 +36,13 @@ class DailyResetWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted params: WorkerParameters,
     private val bonusStore: BonusStore,
+    private val clock: TrustedClock,
 ) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
         Log.i(TAG, "Daily reset: clearing bonus store.")
         bonusStore.clear()
-        markReset(applicationContext, LocalDate.now(ZoneId.systemDefault()))
+        markReset(applicationContext, clock.today())
         return Result.success()
     }
 
@@ -71,10 +73,10 @@ class DailyResetWorker @AssistedInject constructor(
          * Clears the bonus store immediately if we never recorded a reset for
          * today (TV was off across midnight, or this is the very first run).
          * Safe to call multiple times: the second call is a no-op once the
-         * date has been stamped. Call from `Application.onCreate`.
+         * date has been stamped. Call from `Application.onCreate` with the
+         * trusted [today] (TrustedClock), not the device's own date.
          */
-        fun runIfOverdue(context: Context, bonusStore: BonusStore) {
-            val today = LocalDate.now(ZoneId.systemDefault())
+        fun runIfOverdue(context: Context, bonusStore: BonusStore, today: LocalDate) {
             val prefs = context.applicationContext
                 .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val lastReset = prefs.getString(KEY_LAST_RESET_DATE, null)

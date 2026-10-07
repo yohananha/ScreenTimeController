@@ -12,6 +12,8 @@ import { useLimits } from '../../hooks/useLimits';
 import { useRequests } from '../../hooks/useRequests';
 import { usePairedDevices } from '../../hooks/usePairedDevices';
 import { UNLIMITED } from '../../models/Limits';
+import { heartbeatOf, worstHeartbeatDevice } from '../../models/PairedDevice';
+import { DeviceHeartbeat } from '../../components/DeviceHeartbeat';
 import { formatHoursMinutesClock, formatLimitLabel, formatRelativeTime, packageDisplayName } from '../../i18n/format';
 
 export function TodayScreen({
@@ -38,7 +40,11 @@ export function TodayScreen({
 
   const pendingRequest = requestsState.pending[0];
   const noTvPaired = devices.length === 0;
-  const tvName = devices.length > 0 ? devices[0]!.name : t('today.noTvPaired');
+  // With several TVs, name the one that needs attention (not responding first).
+  const now = new Date();
+  const summaryDevice = worstHeartbeatDevice(devices, now);
+  const summaryHealthy = summaryDevice !== null && heartbeatOf(summaryDevice, now) === 'ACTIVE';
+  const tvName = summaryDevice ? summaryDevice.name : t('today.noTvPaired');
 
   // README §4 "Today" — states beyond the static reference: Lock active dims
   // the gauge (there's nothing to track while the TV is fully locked), Allow
@@ -75,7 +81,16 @@ export function TodayScreen({
       }}
     >
       {devices.length > 0 && (
-        <span style={{ width: 8, height: 8, borderRadius: '50%', background: peachPlumColor.ok, animation: 'pp-live-pulse 2s ease-out infinite', flexShrink: 0 }} />
+        <span
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: summaryHealthy ? peachPlumColor.ok : peachPlumColor.over,
+            animation: summaryHealthy ? 'pp-live-pulse 2s ease-out infinite' : undefined,
+            flexShrink: 0,
+          }}
+        />
       )}
       {tvName}
     </span>
@@ -159,7 +174,7 @@ export function TodayScreen({
                     </span>
                     <span style={{ display: 'flex', flexDirection: 'column', gap: 2, flexGrow: 1 }}>
                       <span style={{ fontSize: 16, fontWeight: 600 }}>{tvName}</span>
-                      {devices.length > 0 && <span style={{ fontSize: 13, fontWeight: 500, color: peachPlumColor.muted }}>{t('settings.online')}</span>}
+                      {summaryDevice && <DeviceHeartbeat device={summaryDevice} okColor={peachPlumColor.muted} />}
                     </span>
                     <SecondaryButton onClick={onOpenFamily} style={{ height: 40, padding: '0 16px', fontSize: 13, border: `1.5px solid ${peachPlumColor.hairline}` }}>
                       {t('today.navFamily')}

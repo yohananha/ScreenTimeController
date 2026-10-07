@@ -1,5 +1,6 @@
 package com.screentime.tv.overlay
 
+import android.os.SystemClock
 import android.util.Log
 import com.screentime.shared.auth.FamilyIdProvider
 import com.screentime.shared.firestore.FirestoreRepository
@@ -25,6 +26,11 @@ class RequestController @Inject constructor(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var watcherJob: Job? = null
+    private var pendingRequestId: String? = null
+    private var lastSubmitAt: Long? = null
+
+    /** Monotonic clock (not settable by the child); swapped in tests. */
+    internal var elapsedRealtime: () -> Long = { SystemClock.elapsedRealtime() }
 
     private val _requestStatus = MutableStateFlow<TimeRequest.Status?>(null)
     private val _approvedMinutes = MutableStateFlow<Int?>(null)
@@ -35,11 +41,27 @@ class RequestController @Inject constructor(
     /** Minutes granted in the most recently approved request. */
     val approvedMinutes: StateFlow<Int?> = _approvedMinutes.asStateFlow()
 
+    /**
+     * Sends a time request to the parents. Limits, so a child can't flood
+     * the parents' phones with notifications:
+     *  - while one is still pending, asking again reuses it (no new request);
+     *  - otherwise at most one per [SUBMIT_COOLDOWN_MS] (the server rate-limits
+     *    the same window — see onNewTimeRequest).
+     * Returns the request id, or null if nothing was (re)submitted.
+     */
     suspend fun submit(appPackage: String, requestedMinutes: Int): String? {
         val familyId = familyIdProvider.familyId.value ?: return null
+        pendingRequestId?.let { pending ->
+            if (_requestStatus.value == TimeRequest.Status.Pending) return pending
+        }
+        val now = elapsedRealtime()
+        lastSubmitAt?.let { if (now - it < SUBMIT_COOLDOWN_MS) return null }
+
         _requestStatus.value = TimeRequest.Status.Pending
         _approvedMinutes.value = null
         val id = firestore.createRequest(familyId, appPackage, requestedMinutes)
+        pendingRequestId = id
+        lastSubmitAt = now
         watch(id, appPackage)
         return id
     }
@@ -77,5 +99,6 @@ class RequestController @Inject constructor(
 
     private companion object {
         const val TAG = "RequestController"
+        const val SUBMIT_COOLDOWN_MS = 60_000L
     }
 }

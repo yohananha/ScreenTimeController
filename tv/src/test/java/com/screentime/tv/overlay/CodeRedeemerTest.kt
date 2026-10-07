@@ -13,8 +13,13 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import java.time.Instant
 
 class CodeRedeemerTest {
 
@@ -77,16 +82,38 @@ class CodeRedeemerTest {
         coVerify(exactly = 0) { firestore.clearLockout(any()) }
     }
 
-    @Test fun `clearExpiredLockout clears in TIMER mode when locked`() = runTest {
-        every { firestore.lockoutFlow(any()) } returns
-            flowOf(LockoutSettings(locked = true, mode = LockoutMode.TIMER))
+    private suspend fun redeemerWithLockout(settings: LockoutSettings): CodeRedeemer {
+        every { firestore.lockoutFlow(any()) } returns flowOf(settings)
         val r = CodeRedeemer(firestore, familyIdProvider, bonusStore)
-        var attempts = 0
-        while (!r.lockout.value.locked && attempts < 50) {
-            kotlinx.coroutines.delay(10)
-            attempts++
+        // CodeRedeemer collects on the real Dispatchers.Default, so wait in
+        // real time — a delay() loop inside runTest is virtual and can give
+        // up before the collector has emitted.
+        withContext(Dispatchers.Default) {
+            withTimeout(5_000) { r.lockout.first { it == settings } }
         }
+        return r
+    }
+
+    @Test fun `clearExpiredLockout clears a TIMER lock with a lockedUntil`() = runTest {
+        val r = redeemerWithLockout(
+            LockoutSettings(locked = true, mode = LockoutMode.TIMER, lockedUntil = Instant.now().minusSeconds(1)),
+        )
         r.clearExpiredLockout()
+        coVerify { firestore.clearLockout("fam-1") }
+    }
+
+    @Test fun `clearExpiredLockout no-ops on an escalated lock (TIMER mode, no lockedUntil)`() = runTest {
+        val r = redeemerWithLockout(LockoutSettings(locked = true, mode = LockoutMode.TIMER, lockedUntil = null))
+        r.clearExpiredLockout()
+        coVerify(exactly = 0) { firestore.clearLockout(any()) }
+    }
+
+    @Test fun `clearExpiredLockout swallows a refused write so the overlay keeps running`() = runTest {
+        coEvery { firestore.clearLockout(any()) } throws RuntimeException("PERMISSION_DENIED")
+        val r = redeemerWithLockout(
+            LockoutSettings(locked = true, mode = LockoutMode.TIMER, lockedUntil = Instant.now().plusSeconds(5)),
+        )
+        r.clearExpiredLockout() // must not throw
         coVerify { firestore.clearLockout("fam-1") }
     }
 }

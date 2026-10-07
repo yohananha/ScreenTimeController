@@ -22,3 +22,11 @@ export function isOwner(family: Family, uid: string): boolean {
 export function isAdmin(family: Family, uid: string): boolean {
   return family.members[uid] === 'ADMIN';
 }
+
+/**
+ * Shows an 8-char invite as "ABCD-EFGH" for easier reading. Display only —
+ * the server and the code input both strip the dash.
+ */
+export function formatInviteCode(code: string): string {
+  return code.length === 8 ? `${code.slice(0, 4)}-${code.slice(4)}` : code;
+}

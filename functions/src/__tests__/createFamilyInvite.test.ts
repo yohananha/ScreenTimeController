@@ -27,7 +27,7 @@ describe("createFamilyInvite", () => {
       auth: { uid: ADMIN },
     })) as { code: string };
 
-    expect(result.code).toMatch(/^\d{6}$/);
+    expect(result.code).toMatch(/^[A-HJ-NP-Z2-9]{8}$/);
 
     const inviteSnap = await db().collection("invites").doc(result.code).get();
     expect(inviteSnap.exists).toBe(true);

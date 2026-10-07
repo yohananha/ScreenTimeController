@@ -23,3 +23,7 @@ functions/.env
 # OS
 .DS_Store
 Thumbs.db
+
+# Firebase CLI debug logs (written by deploy/emulators)
+firebase-debug.log
+firebase-debug.*.log

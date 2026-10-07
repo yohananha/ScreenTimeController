@@ -13,17 +13,17 @@ function readPermission(): NotificationStatus {
  * a persistent way to check status and (re-)enable push notifications for new
  * time requests, since a dismissed banner doesn't come back within a session.
  */
-export function useNotificationStatus(familyId: string) {
+export function useNotificationStatus(uid: string) {
   const [status, setStatus] = useState<NotificationStatus>(readPermission);
   const [enabling, setEnabling] = useState(false);
 
   const enable = useCallback(() => {
     setEnabling(true);
-    enableNotifications(familyId)
+    enableNotifications(uid)
       .catch(() => false)
       .then(() => setStatus(readPermission()))
       .finally(() => setEnabling(false));
-  }, [familyId]);
+  }, [uid]);
 
   return { status, enabling, enable };
 }

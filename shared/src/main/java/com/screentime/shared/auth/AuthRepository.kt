@@ -43,6 +43,9 @@ class AuthRepository @Inject constructor(
             .addOnFailureListener { Log.e(TAG, "syncDisplayName(${user.uid}) failed", it) }
     }
 
+    /** The signed-in uid right now, or null — for one-shot reads (e.g. just before sign-out). */
+    val currentUid: String? get() = auth.currentUser?.uid
+
     suspend fun signInWithGoogle(idToken: String) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential).await()

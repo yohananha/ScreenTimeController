@@ -1,7 +1,7 @@
 import { Timestamp } from "firebase-admin/firestore";
-import { initFFT, loadFunctions, db, seedFamily } from "./helpers";
+import { initFFT, loadFunctions, db, seedFamily, parentAuth } from "./helpers";
 
-let wrapped: (req: { data: unknown; auth: { uid: string } }) => Promise<unknown>;
+let wrapped: (req: { data: unknown; auth: unknown }) => Promise<unknown>;
 
 beforeAll(() => {
   const fft = initFFT();
@@ -30,11 +30,11 @@ describe("joinFamilyWithInvite", () => {
   });
 
   it("adds the user to roles, sets familyId on user doc, marks invite used", async () => {
-    await seedInvite("123456");
+    await seedInvite("ABCD2345");
 
     const result = (await wrapped({
-      data: { code: "123456" },
-      auth: { uid: JOINER },
+      data: { code: "ABCD2345" },
+      auth: parentAuth(JOINER),
     })) as { familyId: string };
 
     expect(result.familyId).toBe(FAM);
@@ -45,26 +45,26 @@ describe("joinFamilyWithInvite", () => {
     const user = await db().collection("users").doc(JOINER).get();
     expect(user.get("familyId")).toBe(FAM);
 
-    const invite = await db().collection("invites").doc("123456").get();
+    const invite = await db().collection("invites").doc("ABCD2345").get();
     expect(invite.get("used")).toBe(true);
     expect(invite.get("usedBy")).toBe(JOINER);
   });
 
   it("rejects an unknown code", async () => {
     await expect(
-      wrapped({ data: { code: "999999" }, auth: { uid: JOINER } }),
+      wrapped({ data: { code: "ZZZZ9999" }, auth: parentAuth(JOINER) }),
     ).rejects.toMatchObject({ code: "not-found" });
   });
 
   it("rejects an already-used code", async () => {
-    await seedInvite("123456", { used: true });
+    await seedInvite("ABCD2345", { used: true });
     await expect(
-      wrapped({ data: { code: "123456" }, auth: { uid: JOINER } }),
+      wrapped({ data: { code: "ABCD2345" }, auth: parentAuth(JOINER) }),
     ).rejects.toMatchObject({ code: "not-found" });
   });
 
   it("rejects an expired code", async () => {
-    await db().collection("invites").doc("123456").set({
+    await db().collection("invites").doc("ABCD2345").set({
       familyId: FAM,
       createdBy: ADMIN,
       createdAt: Timestamp.now(),
@@ -72,35 +72,35 @@ describe("joinFamilyWithInvite", () => {
       used: false,
     });
     await expect(
-      wrapped({ data: { code: "123456" }, auth: { uid: JOINER } }),
+      wrapped({ data: { code: "ABCD2345" }, auth: parentAuth(JOINER) }),
     ).rejects.toMatchObject({ code: "not-found" });
   });
 
   it("rejects when the referenced family is gone", async () => {
-    await seedInvite("123456");
+    await seedInvite("ABCD2345");
     await db().collection("families").doc(FAM).delete();
     await expect(
-      wrapped({ data: { code: "123456" }, auth: { uid: JOINER } }),
+      wrapped({ data: { code: "ABCD2345" }, auth: parentAuth(JOINER) }),
     ).rejects.toMatchObject({ code: "not-found" });
   });
 
   it("requires authentication", async () => {
     await expect(
-      wrapped({ data: { code: "123456" }, auth: undefined as never }),
+      wrapped({ data: { code: "ABCD2345" }, auth: undefined as never }),
     ).rejects.toThrow(/unauthenticated|Sign-in/i);
   });
 
   it("requires a code", async () => {
     await expect(
-      wrapped({ data: {}, auth: { uid: JOINER } }),
+      wrapped({ data: {}, auth: parentAuth(JOINER) }),
     ).rejects.toMatchObject({ code: "invalid-argument" });
   });
 
   it("under concurrent joins of the same code, only one wins", async () => {
-    await seedInvite("777777");
+    await seedInvite("WXYZ7777");
     const results = await Promise.allSettled([
-      wrapped({ data: { code: "777777" }, auth: { uid: "u1" } }),
-      wrapped({ data: { code: "777777" }, auth: { uid: "u2" } }),
+      wrapped({ data: { code: "WXYZ7777" }, auth: parentAuth("u1") }),
+      wrapped({ data: { code: "WXYZ7777" }, auth: parentAuth("u2") }),
     ]);
     const winners = results.filter((r) => r.status === "fulfilled");
     expect(winners).toHaveLength(1);

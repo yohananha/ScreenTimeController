@@ -6,6 +6,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.Source
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.functions.FirebaseFunctionsException
@@ -23,6 +24,7 @@ import com.screentime.shared.model.TimeFrameSchedule
 import com.screentime.shared.model.TimeFrameWindow
 import com.screentime.shared.model.TimeRequest
 import com.screentime.shared.model.UsageSnapshot
+import com.screentime.shared.time.TrustedClock
 import java.time.DayOfWeek
 import java.util.UUID
 import kotlinx.coroutines.channels.awaitClose
@@ -34,7 +36,7 @@ import java.time.Instant
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.random.Random
+import java.security.SecureRandom
 
 /** State of the `limits/allDay` doc — see [FirestoreRepository.setAllowAllDay]. */
 data class AllowAllDayState(val date: String?, val indefinite: Boolean)
@@ -54,6 +56,7 @@ data class InstantLockState(val locked: Boolean, val date: String?)
 class FirestoreRepository @Inject constructor(
     private val db: FirebaseFirestore,
     private val functions: FirebaseFunctions,
+    private val clock: TrustedClock,
 ) {
 
     fun limitsFlow(familyId: String): Flow<Limits> = combine(
@@ -76,13 +79,17 @@ class FirestoreRepository @Inject constructor(
     private fun overallLimitFlow(familyId: String): Flow<Int> = callbackFlow {
         val ref = db.collection("families").document(familyId)
             .collection("limits").document("overall")
+        var lastKnown: Int? = null
         val registration = ref.addSnapshotListener { snap, error ->
             if (error != null) {
                 Log.e(TAG, "overallLimitFlow($familyId) listener failed", error)
-                trySend(Limits.DEFAULT_OVERALL_MINUTES)
+                // Fail-secure: keep enforcing the last limit we saw (see instantLockFlow).
+                trySend(lastKnown ?: Limits.DEFAULT_OVERALL_MINUTES)
                 return@addSnapshotListener
             }
-            trySend(snap?.getLong(FIELD_OVERALL_MINUTES)?.toInt() ?: Limits.DEFAULT_OVERALL_MINUTES)
+            val value = snap?.intOrNull(FIELD_OVERALL_MINUTES) ?: Limits.DEFAULT_OVERALL_MINUTES
+            lastKnown = value
+            trySend(value)
         }
         awaitClose { registration.remove() }
     }
@@ -91,18 +98,21 @@ class FirestoreRepository @Inject constructor(
         val ref = db.collection("families").document(familyId)
             .collection("limits").document("perApp")
             .collection("apps")
+        var lastKnown: Map<String, AppLimit>? = null
         val registration = ref.addSnapshotListener { snap, error ->
             if (error != null) {
                 Log.e(TAG, "perAppLimitsFlow($familyId) listener failed", error)
-                trySend(emptyMap())
+                // Fail-secure: an empty map would mean "no per-app limits".
+                trySend(lastKnown ?: emptyMap())
                 return@addSnapshotListener
             }
             val entries = snap?.documents.orEmpty().mapNotNull { doc ->
                 val pkg = doc.id
-                val minutes = doc.getLong(FIELD_MINUTES)?.toInt() ?: return@mapNotNull null
+                val minutes = doc.intOrNull(FIELD_MINUTES) ?: return@mapNotNull null
                 pkg to AppLimit(pkg, minutes)
-            }
-            trySend(entries.toMap())
+            }.toMap()
+            lastKnown = entries
+            trySend(entries)
         }
         awaitClose { registration.remove() }
     }
@@ -129,30 +139,23 @@ class FirestoreRepository @Inject constructor(
     fun timeFrameFlow(familyId: String): Flow<TimeFrameSchedule> = callbackFlow {
         val ref = db.collection("families").document(familyId)
             .collection("limits").document("timeFrame")
+        var lastKnown: TimeFrameSchedule? = null
         val registration = ref.addSnapshotListener { snap, error ->
             if (error != null) {
                 Log.e(TAG, "timeFrameFlow($familyId) listener failed", error)
-                trySend(TimeFrameSchedule.DEFAULT)
+                trySend(lastKnown ?: TimeFrameSchedule.DEFAULT)
                 return@addSnapshotListener
             }
-            if (snap == null || !snap.exists()) {
-                trySend(TimeFrameSchedule.DEFAULT)
-                return@addSnapshotListener
+            val schedule = if (snap == null || !snap.exists()) {
+                TimeFrameSchedule.DEFAULT
+            } else {
+                TimeFrameSchedule(
+                    enabled = snap.boolOrNull(FIELD_TF_ENABLED) ?: false,
+                    windowsByDay = parseWindowsByDay(snap.get(FIELD_TF_WINDOWS_BY_DAY)),
+                )
             }
-            val enabled = snap.getBoolean(FIELD_TF_ENABLED) ?: false
-            @Suppress("UNCHECKED_CAST")
-            val rawDays = snap.get(FIELD_TF_WINDOWS_BY_DAY) as? Map<String, List<Map<String, Long>>>
-                ?: emptyMap()
-            val windowsByDay = rawDays.mapNotNull { (dayName, windows) ->
-                val day = runCatching { DayOfWeek.valueOf(dayName) }.getOrNull() ?: return@mapNotNull null
-                val parsed = windows.mapNotNull { w ->
-                    val start = w[FIELD_TF_START]?.toInt() ?: return@mapNotNull null
-                    val end = w[FIELD_TF_END]?.toInt() ?: return@mapNotNull null
-                    TimeFrameWindow(start, end)
-                }
-                day to parsed
-            }.toMap()
-            trySend(TimeFrameSchedule(enabled, windowsByDay))
+            lastKnown = schedule
+            trySend(schedule)
         }
         awaitClose { registration.remove() }
     }
@@ -178,8 +181,8 @@ class FirestoreRepository @Inject constructor(
             }
             trySend(
                 AllowAllDayState(
-                    date = snap?.getString(FIELD_ALLDAY_DATE),
-                    indefinite = snap?.getBoolean(FIELD_ALLDAY_INDEFINITE) ?: false,
+                    date = snap?.stringOrNull(FIELD_ALLDAY_DATE),
+                    indefinite = snap?.boolOrNull(FIELD_ALLDAY_INDEFINITE) ?: false,
                 ),
             )
         }
@@ -216,12 +219,12 @@ class FirestoreRepository @Inject constructor(
                 // (as of today) if we never received one. Defaulting to unlocked
                 // here would allow a child to bypass an active instant-lock by
                 // forcing listener errors.
-                trySend(lastKnown ?: InstantLockState(locked = true, date = LocalDate.now().toString()))
+                trySend(lastKnown ?: InstantLockState(locked = true, date = clock.today().toString()))
                 return@addSnapshotListener
             }
             val value = InstantLockState(
-                locked = snap?.getBoolean(FIELD_INSTANT_LOCKED) ?: false,
-                date = snap?.getString(FIELD_INSTANT_LOCK_DATE),
+                locked = snap?.boolOrNull(FIELD_INSTANT_LOCKED) ?: false,
+                date = snap?.stringOrNull(FIELD_INSTANT_LOCK_DATE),
             )
             lastKnown = value
             trySend(value)
@@ -238,7 +241,7 @@ class FirestoreRepository @Inject constructor(
         val ref = db.collection("families").document(familyId)
             .collection("limits").document("instantLock")
         if (locked) {
-            ref.set(mapOf(FIELD_INSTANT_LOCKED to true, FIELD_INSTANT_LOCK_DATE to LocalDate.now().toString())).await()
+            ref.set(mapOf(FIELD_INSTANT_LOCKED to true, FIELD_INSTANT_LOCK_DATE to clock.today().toString())).await()
         } else {
             ref.set(mapOf(FIELD_INSTANT_LOCKED to false, FIELD_INSTANT_LOCK_DATE to FieldValue.delete()), SetOptions.merge()).await()
         }
@@ -279,7 +282,7 @@ class FirestoreRepository @Inject constructor(
                 return@addSnapshotListener
             }
             val apps = snap?.documents.orEmpty().mapNotNull { doc ->
-                val label = doc.getString(FIELD_LABEL) ?: return@mapNotNull null
+                val label = doc.stringOrNull(FIELD_LABEL) ?: return@mapNotNull null
                 InstalledApp(doc.id, label)
             }.sortedBy { it.label }
             trySend(apps)
@@ -295,22 +298,26 @@ class FirestoreRepository @Inject constructor(
     fun lockoutFlow(familyId: String): Flow<LockoutSettings> = callbackFlow {
         val ref = db.collection("families").document(familyId)
             .collection("settings").document("lockout")
+        var lastKnown: LockoutSettings? = null
         val registration = ref.addSnapshotListener { snap, error ->
             if (error != null) {
                 Log.e(TAG, "lockoutFlow($familyId) listener failed", error)
-                trySend(LockoutSettings())
+                // Fail-secure: a fresh LockoutSettings() would read as "unlocked".
+                trySend(lastKnown ?: LockoutSettings())
                 return@addSnapshotListener
             }
-            val durationMinutes = snap?.getLong("durationMinutes")?.toInt()
+            val durationMinutes = snap?.intOrNull("durationMinutes")
                 ?: LockoutSettings.DEFAULT_DURATION_MINUTES
-            val mode = if (snap?.getString("mode") == "parent") {
+            val mode = if (snap?.stringOrNull("mode") == "parent") {
                 LockoutMode.PARENT_UNLOCK
             } else {
                 LockoutMode.TIMER
             }
-            val locked = snap?.getBoolean("locked") ?: false
-            val lockedUntil = snap?.getTimestamp("lockedUntil")?.toDate()?.toInstant()
-            trySend(LockoutSettings(durationMinutes, mode, locked, lockedUntil))
+            val locked = snap?.boolOrNull("locked") ?: false
+            val lockedUntil = snap?.instantOrNull("lockedUntil")
+            val settings = LockoutSettings(durationMinutes, mode, locked, lockedUntil)
+            lastKnown = settings
+            trySend(settings)
         }
         awaitClose { registration.remove() }
     }
@@ -365,7 +372,7 @@ class FirestoreRepository @Inject constructor(
                 trySend(null)
                 return@addSnapshotListener
             }
-            trySend(snap?.getString(FIELD_LANGUAGE_CODE))
+            trySend(snap?.stringOrNull(FIELD_LANGUAGE_CODE))
         }
         awaitClose { registration.remove() }
     }
@@ -394,13 +401,13 @@ class FirestoreRepository @Inject constructor(
                 trySend(null)
                 return@addSnapshotListener
             }
-            trySend(snap?.getString(FIELD_USER_LANGUAGE))
+            trySend(snap?.stringOrNull(FIELD_USER_LANGUAGE))
         }
         awaitClose { registration.remove() }
     }
 
     /**
-     * Merge-write only: /users/{uid} also holds familyId and fcmTokens, so
+     * Merge-write only: /users/{uid} also holds familyId and displayName, so
      * this must never overwrite the whole document.
      */
     suspend fun setUserLanguage(uid: String, code: String?) {
@@ -455,6 +462,7 @@ class FirestoreRepository @Inject constructor(
         val payload = mapOf(
             FIELD_PER_APP_MILLIS to entries,
             "updatedAt" to FieldValue.serverTimestamp(),
+            FIELD_EXPIRE_AT to retentionExpiry(date.atStartOfDay(clock.zone()).toInstant()),
         )
         db.collection("families").document(familyId)
             .collection("usage").document(date.toString())
@@ -473,7 +481,7 @@ class FirestoreRepository @Inject constructor(
         val expiresAt = Instant.now().plusSeconds(CODE_TTL_SECONDS)
         val codesCollection = db.collection("families").document(familyId).collection("codes")
         repeat(MAX_CODE_ATTEMPTS) {
-            val candidate = "%06d".format(Random.nextInt(0, 1_000_000))
+            val candidate = "%06d".format(secureRandom.nextInt(1_000_000))
             val docRef = codesCollection.document(candidate)
             val snap = docRef.get().await()
             if (snap.exists()) return@repeat
@@ -521,6 +529,7 @@ class FirestoreRepository @Inject constructor(
                     "requestedMinutes" to requestedMinutes,
                     "status" to "pending",
                     "createdAt" to FieldValue.serverTimestamp(),
+                    FIELD_EXPIRE_AT to retentionExpiry(clock.now()),
                 ),
             )
             .await()
@@ -629,6 +638,16 @@ class FirestoreRepository @Inject constructor(
         }
     }
 
+    /** Deletes the caller's account (and any family they own) server-side. Sign out locally afterwards. */
+    suspend fun deleteAccount() {
+        functions.getHttpsCallable("deleteAccount").call(emptyMap<String, Any>()).await()
+    }
+
+    /** Owner-only: deletes the family and all of its data, for every member. */
+    suspend fun deleteFamily(familyId: String) {
+        functions.getHttpsCallable("deleteFamily").call(mapOf("familyId" to familyId)).await()
+    }
+
     fun familyFlow(familyId: String): Flow<Family?> = callbackFlow {
         val ref = db.collection("families").document(familyId)
         val registration = ref.addSnapshotListener { snap, error ->
@@ -663,7 +682,7 @@ class FirestoreRepository @Inject constructor(
                     return@addSnapshotListener
                 }
                 val names = snap?.documents.orEmpty()
-                    .mapNotNull { doc -> doc.getString("displayName")?.let { doc.id to it } }
+                    .mapNotNull { doc -> doc.stringOrNull("displayName")?.let { doc.id to it } }
                     .toMap()
                 trySend(names)
             }
@@ -723,7 +742,7 @@ class FirestoreRepository @Inject constructor(
                 trySend(null)
                 return@addSnapshotListener
             }
-            trySend(snap?.getString("familyId"))
+            trySend(snap?.stringOrNull("familyId"))
         }
         awaitClose { registration.remove() }
     }
@@ -739,10 +758,11 @@ class FirestoreRepository @Inject constructor(
     fun pairedDevicesFlow(familyId: String): Flow<List<PairedDevice>> = callbackFlow {
         var ids = emptyList<String>()
         val names = mutableMapOf<String, String>()
+        val lastSeen = mutableMapOf<String, Instant?>()
         val deviceRegistrations = mutableMapOf<String, ListenerRegistration>()
 
         fun emitDevices() {
-            trySend(ids.map { PairedDevice(it, names[it] ?: PairedDevice.DEFAULT_NAME) })
+            trySend(ids.map { PairedDevice(it, names[it] ?: PairedDevice.DEFAULT_NAME, lastSeen[it]) })
         }
 
         val registration = db.collection("families").document(familyId)
@@ -761,6 +781,7 @@ class FirestoreRepository @Inject constructor(
                 (deviceRegistrations.keys - ids.toSet()).forEach { id ->
                     deviceRegistrations.remove(id)?.remove()
                     names.remove(id)
+                    lastSeen.remove(id)
                 }
                 ids.filterNot { it in deviceRegistrations }.forEach { id ->
                     deviceRegistrations[id] = db.collection("devices").document(id)
@@ -768,8 +789,9 @@ class FirestoreRepository @Inject constructor(
                             if (deviceError != null) {
                                 Log.e(TAG, "pairedDevicesFlow($familyId) device $id listener failed", deviceError)
                             }
-                            names[id] = deviceSnap?.getString(FIELD_DEVICE_NAME)
+                            names[id] = deviceSnap?.stringOrNull(FIELD_DEVICE_NAME)
                                 ?: PairedDevice.DEFAULT_NAME
+                            lastSeen[id] = deviceSnap?.instantOrNull(FIELD_LAST_SEEN)
                             emitDevices()
                         }
                 }
@@ -784,6 +806,44 @@ class FirestoreRepository @Inject constructor(
         }
     }
 
+    /**
+     * The TV's heartbeat: stamps /devices/{deviceId}.lastSeen with the
+     * server's clock and reads it back from the server. Returns that server
+     * time — the TV's TrustedClock anchors to it — and the stamp tells
+     * parents when enforcement was last running.
+     */
+    suspend fun stampLastSeen(deviceId: String): Instant {
+        val ref = db.collection("devices").document(deviceId)
+        ref.set(mapOf(FIELD_LAST_SEEN to FieldValue.serverTimestamp()), SetOptions.merge()).await()
+        return ref.get(Source.SERVER).await().instantOrNull(FIELD_LAST_SEEN)
+            ?: error("stampLastSeen: server returned no lastSeen")
+    }
+
+    /**
+     * Watches /families/{id}/settings/timezone — the IANA zone ("Asia/Jerusalem")
+     * the TV measures "today" and allowed hours in, so changing the TV's own
+     * time zone doesn't move them. Null until a parent's app has set it.
+     */
+    fun timezoneFlow(familyId: String): Flow<String?> = callbackFlow {
+        val ref = db.collection("families").document(familyId)
+            .collection("settings").document("timezone")
+        val registration = ref.addSnapshotListener { snap, error ->
+            if (error != null) {
+                Log.e(TAG, "timezoneFlow($familyId) listener failed", error)
+                return@addSnapshotListener
+            }
+            trySend(snap?.stringOrNull(FIELD_ZONE))
+        }
+        awaitClose { registration.remove() }
+    }
+
+    /** Sets the family time zone to [zoneId] if no parent has set one yet. */
+    suspend fun ensureFamilyTimezone(familyId: String, zoneId: String) {
+        val ref = db.collection("families").document(familyId)
+            .collection("settings").document("timezone")
+        if (!ref.get().await().exists()) ref.set(mapOf(FIELD_ZONE to zoneId)).await()
+    }
+
     /** Renames a paired TV as shown on the mobile pairing screen. */
     suspend fun renameDevice(deviceId: String, name: String) {
         db.collection("devices").document(deviceId)
@@ -796,14 +856,45 @@ class FirestoreRepository @Inject constructor(
      * loses its familyId and falls back to the pairing screen.
      */
     suspend fun unpairDevice(familyId: String, deviceId: String) {
-        db.collection("families").document(familyId)
-            .update(FIELD_DEVICES, FieldValue.arrayRemove(deviceId))
-            .await()
-        db.collection("devices").document(deviceId).delete().await()
+        // One batch: if only the first write landed, the TV would keep its
+        // familyId pointer but lose read access - unenforced while still
+        // looking paired.
+        db.runBatch { batch ->
+            batch.update(db.collection("families").document(familyId), FIELD_DEVICES, FieldValue.arrayRemove(deviceId))
+            batch.delete(db.collection("devices").document(deviceId))
+        }.await()
     }
 
+    /**
+     * windowsByDay is `{ "MONDAY": [ {start, end}, ... ], ... }`. Parsed without
+     * unchecked casts: a generic cast like `as Map<String, List<Map<String,
+     * Long>>>` succeeds on anything map-shaped and then throws
+     * ClassCastException at first use (e.g. a Double where a Long was
+     * assumed) - inside the listener, crashing the TV.
+     */
+    private fun parseWindowsByDay(raw: Any?): Map<DayOfWeek, List<TimeFrameWindow>> =
+        (raw as? Map<*, *>).orEmpty().mapNotNull { (dayName, windows) ->
+            val day = (dayName as? String)?.let { runCatching { DayOfWeek.valueOf(it) }.getOrNull() }
+                ?: return@mapNotNull null
+            val parsed = (windows as? List<*>).orEmpty().mapNotNull { w ->
+                val window = w as? Map<*, *> ?: return@mapNotNull null
+                val start = (window[FIELD_TF_START] as? Number)?.toInt() ?: return@mapNotNull null
+                val end = (window[FIELD_TF_END] as? Number)?.toInt() ?: return@mapNotNull null
+                TimeFrameWindow(start, end)
+            }
+            day to parsed
+        }.toMap()
+
+    /**
+     * When a usage/request doc may be deleted: a Firestore TTL policy on
+     * `expireAt` (firestore.indexes.json) removes it then, so a child's
+     * viewing history isn't kept forever. History shows 7 days.
+     */
+    private fun retentionExpiry(from: Instant): Timestamp =
+        Timestamp(from.plus(RETENTION).epochSecond, 0)
+
     private fun snapToFamily(doc: com.google.firebase.firestore.DocumentSnapshot): Family? {
-        val ownerUid = doc.getString("ownerUid") ?: return null
+        val ownerUid = doc.stringOrNull("ownerUid") ?: return null
         val rawRoles = doc.get("roles") as? Map<*, *> ?: emptyMap<Any, Any>()
         val members = rawRoles.mapNotNull { (k, v) ->
             val uid = k as? String ?: return@mapNotNull null
@@ -820,20 +911,22 @@ class FirestoreRepository @Inject constructor(
             code == FirebaseFunctionsException.Code.FAILED_PRECONDITION
 
     private fun snapToRequest(doc: com.google.firebase.firestore.DocumentSnapshot): TimeRequest? {
-        val appPackage = doc.getString("appPackage") ?: return null
-        val requestedMinutes = doc.getLong("requestedMinutes")?.toInt() ?: return null
-        val status = when (doc.getString("status")) {
+        val appPackage = doc.stringOrNull("appPackage") ?: return null
+        val requestedMinutes = doc.intOrNull("requestedMinutes") ?: return null
+        val status = when (doc.stringOrNull("status")) {
             "approved" -> TimeRequest.Status.Approved
             "denied" -> TimeRequest.Status.Denied
             else -> TimeRequest.Status.Pending
         }
-        val approvedMinutes = doc.getLong("approvedMinutes")?.toInt()
-        val createdAt = doc.getTimestamp("createdAt")?.toDate()?.toInstant() ?: Instant.EPOCH
-        val respondedAt = doc.getTimestamp("respondedAt")?.toDate()?.toInstant()
+        val approvedMinutes = doc.intOrNull("approvedMinutes")
+        val createdAt = doc.instantOrNull("createdAt") ?: Instant.EPOCH
+        val respondedAt = doc.instantOrNull("respondedAt")
         return TimeRequest(doc.id, appPackage, requestedMinutes, status, approvedMinutes, createdAt, respondedAt)
     }
 
     private companion object {
+        /** Unlock codes must not be predictable from earlier ones (kotlin.random is not a CSPRNG). */
+        val secureRandom = SecureRandom()
         const val TAG = "FirestoreRepository"
         const val FIELD_MINUTES = "dailyLimitMinutes"
         const val FIELD_OVERALL_MINUTES = "overallDailyMinutes"
@@ -841,6 +934,10 @@ class FirestoreRepository @Inject constructor(
         const val FIELD_PER_APP_MILLIS = "perAppMillis"
         const val FIELD_DEVICES = "devices"
         const val FIELD_DEVICE_NAME = "name"
+        const val FIELD_LAST_SEEN = "lastSeen"
+        const val FIELD_EXPIRE_AT = "expireAt"
+        val RETENTION: java.time.Duration = java.time.Duration.ofDays(90)
+        const val FIELD_ZONE = "zone"
         const val ROLE_ADMIN = "admin"
         const val ROLE_USER = "user"
         const val CODE_TTL_SECONDS = 5 * 60L

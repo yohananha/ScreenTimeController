@@ -2,6 +2,7 @@ package com.screentime.shared.auth
 
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.screentime.shared.firestore.stringOrNull
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CoroutineScope
@@ -46,7 +47,7 @@ class FirestoreFamilyIdProvider @Inject constructor(
                 trySend(null)
                 return@addSnapshotListener
             }
-            trySend(snap?.getString("familyId"))
+            trySend(snap?.stringOrNull("familyId"))
         }
         awaitClose { registration.remove() }
     }

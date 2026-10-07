@@ -49,6 +49,7 @@ import type { InstalledApp } from '../models/InstalledApp';
 import type { PairedDevice } from '../models/PairedDevice';
 import { DEFAULT_DEVICE_NAME } from '../models/PairedDevice';
 import type { Announcement } from '../models/Announcement';
+import { localIsoDate } from '../models/localDate';
 
 // ── field/path constants (verbatim from FirestoreRepository.kt's companion object) ──
 const FIELD_MINUTES = 'dailyLimitMinutes';
@@ -57,6 +58,7 @@ const FIELD_LABEL = 'label';
 const FIELD_PER_APP_MILLIS = 'perAppMillis';
 const FIELD_DEVICES = 'devices';
 const FIELD_DEVICE_NAME = 'name';
+const FIELD_LAST_SEEN = 'lastSeen';
 const ROLE_ADMIN = 'admin';
 const ROLE_USER = 'user';
 const CODE_TTL_SECONDS = 5 * 60;
@@ -67,9 +69,22 @@ const FIELD_TF_START = 'start';
 const FIELD_TF_END = 'end';
 const FIELD_ALLDAY_DATE = 'date';
 const FIELD_INSTANT_LOCKED = 'locked';
+const FIELD_INSTANT_LOCK_DATE = 'date';
 
 function familyRef(familyId: string) {
   return doc(db, 'families', familyId);
+}
+
+/**
+ * Reads a Firestore Timestamp field as a Date without trusting its type —
+ * a malformed value (string, number, map) must not throw inside a snapshot
+ * callback. Duck-typed rather than `instanceof Timestamp` so it also holds
+ * for test doubles.
+ */
+function toDateOrNull(value: unknown): Date | null {
+  return typeof (value as { toDate?: unknown } | null)?.toDate === 'function'
+    ? (value as Timestamp).toDate()
+    : null;
 }
 
 // ── limits ──────────────────────────────────────────────────────────────────
@@ -147,8 +162,9 @@ export function subscribeTimeFrame(
       const rawDays = (data[FIELD_TF_WINDOWS_BY_DAY] as Record<string, { start: number; end: number }[]> | undefined) ?? {};
       const windowsByDay: TimeFrameSchedule['windowsByDay'] = {};
       for (const [dayName, windows] of Object.entries(rawDays)) {
+        if (!Array.isArray(windows)) continue;
         const parsed: TimeFrameWindow[] = windows
-          .filter((w) => typeof w[FIELD_TF_START] === 'number' && typeof w[FIELD_TF_END] === 'number')
+          .filter((w) => typeof w?.[FIELD_TF_START] === 'number' && typeof w?.[FIELD_TF_END] === 'number')
           .map((w) => ({ startMinute: w[FIELD_TF_START], endMinute: w[FIELD_TF_END] }));
         windowsByDay[dayName as DayOfWeek] = parsed;
       }
@@ -194,6 +210,10 @@ export async function setAllowAllDay(familyId: string, date: string | null): Pro
 }
 
 /**
+ * Emits whether an instant lock is active *today*. The TV only honours a lock
+ * stamped with today's date (it self-clears at midnight), so a lock with no
+ * date — or an older date — is shown as inactive here too.
+ *
  * Fail-secure: on a listener error, re-emit the last known value, or default
  * to locked if none was ever received. Defaulting to unlocked would allow a
  * child to bypass an active instant-lock by forcing listener errors.
@@ -207,7 +227,8 @@ export function subscribeInstantLock(
   return onSnapshot(
     ref,
     (snap) => {
-      const value = (snap.data()?.[FIELD_INSTANT_LOCKED] as boolean | undefined) ?? false;
+      const data = snap.data();
+      const value = data?.[FIELD_INSTANT_LOCKED] === true && data?.[FIELD_INSTANT_LOCK_DATE] === localIsoDate();
       lastKnown = value;
       cb(value);
     },
@@ -215,10 +236,18 @@ export function subscribeInstantLock(
   );
 }
 
+/**
+ * [locked] = true stamps today's (local) date alongside the flag — the TV
+ * ignores an instant lock without today's date, so the old `{ locked: true }`
+ * write locked nothing. Mirrors FirestoreRepository.setInstantLock (Kotlin).
+ */
 export async function setInstantLock(familyId: string, locked: boolean): Promise<void> {
-  await setDoc(doc(db, 'families', familyId, 'limits', 'instantLock'), {
-    [FIELD_INSTANT_LOCKED]: locked,
-  });
+  const ref = doc(db, 'families', familyId, 'limits', 'instantLock');
+  if (locked) {
+    await setDoc(ref, { [FIELD_INSTANT_LOCKED]: true, [FIELD_INSTANT_LOCK_DATE]: localIsoDate() });
+  } else {
+    await setDoc(ref, { [FIELD_INSTANT_LOCKED]: false, [FIELD_INSTANT_LOCK_DATE]: deleteField() }, { merge: true });
+  }
 }
 
 /** Combines the 5 limits sub-docs into one Limits object, mirroring FirestoreRepository.limitsFlow. */
@@ -296,8 +325,7 @@ export function subscribeLockout(
       const durationMinutes = (data?.durationMinutes as number | undefined) ?? defaultLockoutSettings().durationMinutes;
       const mode: LockoutMode = data?.mode === 'parent' ? 'PARENT_UNLOCK' : 'TIMER';
       const locked = (data?.locked as boolean | undefined) ?? false;
-      const lockedUntilTs = data?.lockedUntil as Timestamp | undefined;
-      cb({ durationMinutes, mode, locked, lockedUntil: lockedUntilTs ? lockedUntilTs.toDate() : null });
+      cb({ durationMinutes, mode, locked, lockedUntil: toDateOrNull(data?.lockedUntil) });
     },
     () => cb(defaultLockoutSettings()),
   );
@@ -356,7 +384,7 @@ export function subscribeUserLanguage(uid: string, cb: (tag: 'en' | 'he' | null)
   );
 }
 
-/** null clears the preference (back to "follow device"); always merges so familyId/fcmTokens survive. */
+/** null clears the preference (back to "follow device"); always merges so familyId/displayName survive. */
 export async function setUserLanguage(uid: string, tag: 'en' | 'he' | null): Promise<void> {
   await setDoc(doc(db, 'users', uid), { language: tag ?? deleteField() }, { merge: true });
 }
@@ -387,11 +415,23 @@ export function subscribeUsage(
  * 1,000,000-code space combined with the server-side lockout (5 wrong / 60s)
  * makes online brute force infeasible. Retries on the (very rare) collision.
  */
+/**
+ * A uniformly random 6-digit string from the Web Crypto CSPRNG — Math.random
+ * is predictable from earlier outputs. Rejection sampling avoids modulo bias.
+ */
+export function secureSixDigits(): string {
+  const limit = Math.floor(0x1_0000_0000 / 1_000_000) * 1_000_000;
+  const buf = new Uint32Array(1);
+  do crypto.getRandomValues(buf);
+  while (buf[0]! >= limit);
+  return String(buf[0]! % 1_000_000).padStart(6, '0');
+}
+
 export async function createCode(familyId: string, extraMinutes: number): Promise<OneTimeCode> {
   const expiresAt = new Date(Date.now() + CODE_TTL_SECONDS * 1000);
   const codesCollection = collection(db, 'families', familyId, 'codes');
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
-    const candidate = String(Math.floor(Math.random() * 1_000_000)).padStart(6, '0');
+    const candidate = secureSixDigits();
     const docRef = doc(codesCollection, candidate);
     const snap = await getDoc(docRef);
     if (snap.exists()) continue;
@@ -417,8 +457,8 @@ function snapToRequest(snap: QueryDocumentSnapshot<DocumentData>): TimeRequest |
   const status: TimeRequestStatus =
     data.status === 'approved' ? 'Approved' : data.status === 'denied' ? 'Denied' : 'Pending';
   const approvedMinutes = (data.approvedMinutes as number | undefined) ?? null;
-  const createdAt = data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(0);
-  const respondedAt = data.respondedAt ? (data.respondedAt as Timestamp).toDate() : null;
+  const createdAt = toDateOrNull(data.createdAt) ?? new Date(0);
+  const respondedAt = toDateOrNull(data.respondedAt);
   return { id: snap.id, appPackage, requestedMinutes, status, approvedMinutes, createdAt, respondedAt };
 }
 
@@ -530,30 +570,73 @@ export async function removeMember(familyId: string, uid: string): Promise<void>
 // ── devices / TV pairing ─────────────────────────────────────────────────────
 // createPairing (createTvPairing callable) is TV-only — not ported.
 
+/**
+ * Watches families/{id}.devices and each device doc live — a one-shot read
+ * would freeze lastSeen, making a healthy TV look "not responding" after
+ * 15 minutes. Mirrors FirestoreRepository.pairedDevicesFlow (Kotlin).
+ */
 export function subscribePairedDevices(
   familyId: string,
   cb: (devices: PairedDevice[]) => void,
 ): Unsubscribe {
-  return onSnapshot(
+  let ids: string[] = [];
+  const known = new Map<string, PairedDevice>();
+  const deviceUnsubs = new Map<string, Unsubscribe>();
+  const emit = () => {
+    if (ids.every((id) => known.has(id))) cb(ids.map((id) => known.get(id)!));
+  };
+
+  const unsubFamily = onSnapshot(
     familyRef(familyId),
-    async (snap) => {
-      const ids = ((snap.data()?.[FIELD_DEVICES] as string[] | undefined) ?? []).filter(
+    (snap) => {
+      ids = ((snap.data()?.[FIELD_DEVICES] as unknown[] | undefined) ?? []).filter(
         (id): id is string => typeof id === 'string',
       );
-      const devices = await Promise.all(
-        ids.map(async (id) => {
-          try {
-            const deviceSnap = await getDoc(doc(db, 'devices', id));
-            return { id, name: (deviceSnap.data()?.[FIELD_DEVICE_NAME] as string | undefined) ?? DEFAULT_DEVICE_NAME };
-          } catch {
-            return { id, name: DEFAULT_DEVICE_NAME };
-          }
-        }),
-      );
-      cb(devices);
+      for (const [id, unsub] of deviceUnsubs) {
+        if (!ids.includes(id)) {
+          unsub();
+          deviceUnsubs.delete(id);
+          known.delete(id);
+        }
+      }
+      for (const id of ids) {
+        if (deviceUnsubs.has(id)) continue;
+        deviceUnsubs.set(
+          id,
+          onSnapshot(
+            doc(db, 'devices', id),
+            (deviceSnap) => {
+              const data = deviceSnap.data();
+              const name = typeof data?.[FIELD_DEVICE_NAME] === 'string' ? (data[FIELD_DEVICE_NAME] as string) : DEFAULT_DEVICE_NAME;
+              known.set(id, { id, name, lastSeen: toDateOrNull(data?.[FIELD_LAST_SEEN]) });
+              emit();
+            },
+            () => {
+              known.set(id, { id, name: DEFAULT_DEVICE_NAME, lastSeen: null });
+              emit();
+            },
+          ),
+        );
+      }
+      emit();
     },
     () => cb([]),
   );
+
+  return () => {
+    unsubFamily();
+    deviceUnsubs.forEach((u) => u());
+  };
+}
+
+/**
+ * Sets families/{id}/settings/timezone to this browser's zone if no parent
+ * has yet — the TV measures "today" and allowed hours in the family zone,
+ * not its own (which the child can change).
+ */
+export async function ensureFamilyTimezone(familyId: string, zone: string): Promise<void> {
+  const ref = doc(db, 'families', familyId, 'settings', 'timezone');
+  if (!(await getDoc(ref)).exists()) await setDoc(ref, { zone });
 }
 
 /** Renames a paired TV as shown on the pairing screen. */
@@ -561,10 +644,17 @@ export async function renameDevice(deviceId: string, name: string): Promise<void
   await setDoc(doc(db, 'devices', deviceId), { [FIELD_DEVICE_NAME]: name }, { merge: true });
 }
 
-/** Removes deviceId from the family and deletes its device doc. The TV falls back to the pairing screen. */
+/**
+ * Removes deviceId from the family and deletes its device doc, in one batch:
+ * if only the first write landed, the TV would keep its familyId pointer but
+ * lose read access — unenforced while still looking paired. The TV falls
+ * back to the pairing screen.
+ */
 export async function unpairDevice(familyId: string, deviceId: string): Promise<void> {
-  await updateDoc(familyRef(familyId), { [FIELD_DEVICES]: arrayRemove(deviceId) });
-  await deleteDoc(doc(db, 'devices', deviceId));
+  const batch = writeBatch(db);
+  batch.update(familyRef(familyId), { [FIELD_DEVICES]: arrayRemove(deviceId) });
+  batch.delete(doc(db, 'devices', deviceId));
+  await batch.commit();
 }
 
 // ── Cloud Functions callables ────────────────────────────────────────────────
@@ -608,6 +698,16 @@ export async function claimPairing(code: string, familyId: string): Promise<bool
     if (isInvalidCodeError(e)) return false;
     throw e;
   }
+}
+
+/** Deletes the caller's account (and any family they own) server-side. Sign out locally afterwards. */
+export async function deleteAccount(): Promise<void> {
+  await httpsCallable(functions, 'deleteAccount')({});
+}
+
+/** Owner-only: deletes the family and all its data, for every member. */
+export async function deleteFamily(familyId: string): Promise<void> {
+  await httpsCallable<{ familyId: string }>(functions, 'deleteFamily')({ familyId });
 }
 
 // ── announcement ────────────────────────────────────────────────────────────
