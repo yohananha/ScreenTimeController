@@ -3,7 +3,6 @@ package com.screentime.mobile.ui.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
@@ -36,26 +35,13 @@ internal fun AccountSection(viewModel: AccountViewModel = hiltViewModel()) {
     val isOwner by viewModel.isOwner.collectAsState()
     var pending by remember { mutableStateOf<PendingDeletion?>(null) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(PeachPlum.colors.surface, PeachPlum.radius.card)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Text(stringResource(R.string.account_title), style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
-        PeachPlumGhostButton(
-            text = stringResource(R.string.account_sign_out),
-            onClick = viewModel::signOut,
-            enabled = !state.busy,
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (isOwner) {
-                PeachPlumGhostButton(text = stringResource(R.string.account_delete_family), onClick = { pending = PendingDeletion.FAMILY })
-            }
-            PeachPlumGhostButton(text = stringResource(R.string.account_delete_account), onClick = { pending = PendingDeletion.ACCOUNT })
-        }
-    }
+    AccountButtons(
+        isOwner = isOwner,
+        busy = state.busy,
+        onSignOut = viewModel::signOut,
+        onDeleteFamily = { pending = PendingDeletion.FAMILY },
+        onDeleteAccount = { pending = PendingDeletion.ACCOUNT },
+    )
 
     pending?.let { which ->
         val body = when {
@@ -98,6 +84,53 @@ internal fun AccountSection(viewModel: AccountViewModel = hiltViewModel()) {
                     Text(stringResource(SharedR.string.action_cancel))
                 }
             },
+        )
+    }
+}
+
+/**
+ * The Account card's buttons, stateless (rendered by the screenshot test).
+ *
+ * Full-width and stacked rather than side by side: the Hebrew labels are long
+ * enough to wrap or clip in a shared row on a phone, and a co-parent (no
+ * "Delete family") would get a lopsided row. Delete actions are red so they
+ * never look like Sign out.
+ */
+@Composable
+internal fun AccountButtons(
+    isOwner: Boolean,
+    busy: Boolean,
+    onSignOut: () -> Unit,
+    onDeleteFamily: () -> Unit,
+    onDeleteAccount: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(PeachPlum.colors.surface, PeachPlum.radius.card)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(stringResource(R.string.account_title), style = PeachPlum.typography.headline, color = PeachPlum.colors.ink)
+        PeachPlumGhostButton(
+            text = stringResource(R.string.account_sign_out),
+            onClick = onSignOut,
+            enabled = !busy,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        if (isOwner) {
+            PeachPlumGhostButton(
+                text = stringResource(R.string.account_delete_family),
+                onClick = onDeleteFamily,
+                destructive = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        PeachPlumGhostButton(
+            text = stringResource(R.string.account_delete_account),
+            onClick = onDeleteAccount,
+            destructive = true,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
