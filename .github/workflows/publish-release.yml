@@ -1,0 +1,89 @@
+name: Publish beta release
+
+# Builds the mobile + TV debug APKs and publishes them as a GitHub release,
+# so a release no longer needs a developer machine. Run it from the Actions
+# tab (or the API) once the version bump is on main.
+#
+# Needs two repository secrets (Settings → Secrets and variables → Actions):
+#   GOOGLE_SERVICES_JSON   — the real Firebase google-services.json, as-is.
+#   DEBUG_KEYSTORE_BASE64  — `base64 -w0 ~/.android/debug.keystore` from the
+#                            machine that built earlier releases. Every beta
+#                            must be signed with the same key, or it can't be
+#                            installed over the previous one and Google
+#                            sign-in (registered by SHA-1 in Firebase) breaks.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, e.g. v0.1.21-beta"
+        required: true
+      notes:
+        description: "Release notes (Markdown)"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build APKs and publish release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the tag matches the app version
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          for d in mobile tv; do
+            name=$(sed -n 's/^ *versionName = "\(.*\)"/\1/p' "$d/build.gradle.kts")
+            if [ "v$name-beta" != "$TAG" ]; then
+              echo "::error::$d versionName is $name, which doesn't match tag $TAG"
+              exit 1
+            fi
+          done
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
+            echo "::error::Tag $TAG already exists"
+            exit 1
+          fi
+      - name: Install Firebase config and signing key
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          DEBUG_KEYSTORE_BASE64: ${{ secrets.DEBUG_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ] || [ -z "$DEBUG_KEYSTORE_BASE64" ]; then
+            echo "::error::Set the GOOGLE_SERVICES_JSON and DEBUG_KEYSTORE_BASE64 repository secrets (see the comment at the top of this workflow)."
+            exit 1
+          fi
+          for d in mobile tv; do
+            printf '%s' "$GOOGLE_SERVICES_JSON" > "$d/google-services.json"
+          done
+          mkdir -p ~/.android
+          echo "$DEBUG_KEYSTORE_BASE64" | base64 -d > ~/.android/debug.keystore
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+      - name: Build debug APKs
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon :mobile:assembleDebug :tv:assembleDebug
+          mkdir -p dist
+          cp mobile/build/outputs/apk/debug/mobile-debug.apk dist/
+          cp tv/build/outputs/apk/debug/tv-debug.apk dist/
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          printf '%s\n' "$NOTES" > notes.md
+          gh release create "$TAG" dist/mobile-debug.apk dist/tv-debug.apk \
+            --target "$GITHUB_SHA" --title "$TAG" --notes-file notes.md
