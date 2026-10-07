@@ -17,8 +17,8 @@ android {
         applicationId = "com.screentime.tv"
         minSdk = 26
         targetSdk = 35
-        versionCode = 20
-        versionName = "0.1.21"
+        versionCode = 21
+        versionName = "0.1.22"
     }
 
     buildTypes {

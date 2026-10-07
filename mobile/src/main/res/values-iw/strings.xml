@@ -286,6 +286,10 @@
     <string name="whats_new_v0_1_15_title">מה חדש</string>
     <string name="whats_new_v0_1_15_bullet_1">מצב נעילה משתחרר עכשיו אוטומטית בחצות, במקום להישאר נעול עד שתכבו אותו ידנית.</string>
     <string name="whats_new_v0_1_15_bullet_2">תקציר שעות ההיתר מדגיש כעת את החלון של היום ומציג את הימים לפי הסדר המקומי, עם בורר חדש \"החל גם על\" להעתקת שעות לימים נוספים.</string>
+    <string name="whats_new_v0_1_22_title">מה חדש</string>
+    <string name="whats_new_v0_1_22_bullet_1">קודי הזמנה למשפחה הם עכשיו בני 8 תווים (כמו ABCD-2345), כך שקשה מאוד לנחש אותם. אם יש לכם קוד ישן בן 6 ספרות, בקשו קוד חדש.</string>
+    <string name="whats_new_v0_1_22_bullet_2">ליד כל טלוויזיה מוצג עכשיו \"ההגנה פעילה\" — או \"לא מגיבה\" אם הטלוויזיה לא התחברה 15 דקות, כך שתדעו אם הגנת זמן המסך כובתה.</string>
+    <string name="whats_new_v0_1_22_bullet_3">אזור חשבון חדש במסך המשפחה: התנתקות, או מחיקת החשבון או המשפחה.</string>
     <string name="account_title">חשבון</string>
     <string name="account_sign_out">התנתקות</string>
     <string name="account_delete_account">מחיקת החשבון שלי</string>
