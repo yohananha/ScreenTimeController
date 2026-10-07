@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { AccountSection } from './AccountSection';
@@ -41,9 +41,17 @@ describe('AccountSection', () => {
     expect(actions.deleteFamily).toHaveBeenCalled();
   });
 
-  it('Sign out signs out directly (no confirm needed)', async () => {
+  it('Sign out asks first: Cancel does nothing, confirming signs out', async () => {
     setup(false);
     await userEvent.click(screen.getByRole('button', { name: 'Sign out' }));
-    expect(signOut).toHaveBeenCalled();
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('Sign out?')).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    expect(signOut).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Sign out' }));
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sign out' }));
+    expect(signOut).toHaveBeenCalledTimes(1);
   });
 });

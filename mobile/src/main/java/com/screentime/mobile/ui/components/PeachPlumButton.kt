@@ -55,10 +55,6 @@ fun PeachPlumPrimaryButton(
     }
 }
 
-/**
- * Outlined button. [destructive] draws it in the error red — for actions
- * like deleting an account, so they don't read the same as e.g. Sign out.
- */
 @Composable
 fun PeachPlumGhostButton(
     text: String,
@@ -66,14 +62,12 @@ fun PeachPlumGhostButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     contentPadding: PaddingValues = PaddingValues(horizontal = 22.dp, vertical = 13.dp),
-    destructive: Boolean = false,
     leading: @Composable (RowScope.() -> Unit)? = null,
 ) {
-    val accent = if (destructive) PeachPlum.colors.overText else null
     Row(
         modifier = modifier
             .clip(PeachPlumRadius.pill)
-            .border(BorderStroke(1.5.dp, accent ?: PeachPlum.colors.outline), PeachPlumRadius.pill)
+            .border(BorderStroke(1.5.dp, PeachPlum.colors.outline), PeachPlumRadius.pill)
             .semantics { role = Role.Button }
             .clickable(enabled = enabled, onClick = onClick)
             .padding(contentPadding),
@@ -84,7 +78,7 @@ fun PeachPlumGhostButton(
         Text(
             text = text,
             style = PeachPlum.typography.label,
-            color = accent ?: PeachPlum.colors.ink,
+            color = PeachPlum.colors.ink,
         )
     }
 }

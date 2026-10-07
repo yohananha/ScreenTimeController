@@ -18,6 +18,8 @@ export function Modal({ onClose, children }: { onClose: () => void; children: Re
       }}
     >
       <div
+        role="dialog"
+        aria-modal="true"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: colors.surface,
