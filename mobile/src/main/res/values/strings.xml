@@ -313,6 +313,10 @@
     <string name="whats_new_v0_1_15_title">What\'s new</string>
     <string name="whats_new_v0_1_15_bullet_1">Lock mode now automatically releases at midnight instead of staying locked until you manually switch it off.</string>
     <string name="whats_new_v0_1_15_bullet_2">The allowed-hours summary now highlights today\'s window and lists days in your locale\'s order, with a new \"Apply also to\" picker for copying hours to other days.</string>
+    <string name="whats_new_v0_1_22_title">What\'s new</string>
+    <string name="whats_new_v0_1_22_bullet_1">Family invite codes are now 8 characters (like ABCD-2345), making them much harder to guess. Ask for a new code if you have an older 6-digit one.</string>
+    <string name="whats_new_v0_1_22_bullet_2">Each TV now shows \"Protection on\" — or \"Not responding\" if the TV hasn\'t checked in for 15 minutes, so you\'ll know if screen-time protection was turned off.</string>
+    <string name="whats_new_v0_1_22_bullet_3">New Account section in Family: sign out, or delete your account or family.</string>
     <string name="account_title">Account</string>
     <string name="account_sign_out">Sign out</string>
     <string name="account_delete_account">Delete my account</string>
