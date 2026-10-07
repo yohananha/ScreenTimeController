@@ -11,7 +11,9 @@ import { useFamily } from '../../hooks/useFamily';
 import { usePairedDevices } from '../../hooks/usePairedDevices';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useNotificationStatus } from '../../hooks/useNotifications';
-import { isAdmin, isOwner } from '../../models/Family';
+import { formatInviteCode, isAdmin, isOwner } from '../../models/Family';
+import { DeviceHeartbeat } from '../../components/DeviceHeartbeat';
+import { AccountSection } from '../../components/AccountSection';
 import type { PairedDevice } from '../../models/PairedDevice';
 import type { LangTag } from '../../i18n/i18n';
 
@@ -20,7 +22,7 @@ export function FamilyScreen({ familyId, uid }: { familyId: string; uid: string 
   const { state, removeMember, generateInvite } = useFamily(familyId);
   const { devices, state: pairState, claim, reset, rename, unpair } = usePairedDevices(familyId);
   const { select, current } = useLanguage(uid, familyId);
-  const notifications = useNotificationStatus(familyId);
+  const notifications = useNotificationStatus(uid);
 
   const [showInvite, setShowInvite] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
@@ -137,7 +139,7 @@ export function FamilyScreen({ familyId, uid }: { familyId: string; uid: string 
           <span style={{ fontSize: 13, fontWeight: 500, color: peachPlumColor.muted }}>{t('settings.shareInviteCode')}</span>
           {state.inviteCode ? (
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <span style={{ flexGrow: 1, background: peachPlumColor.surface, borderRadius: 999, padding: '10px 16px', fontSize: 16, fontWeight: 600 }}>{state.inviteCode}</span>
+              <span style={{ flexGrow: 1, background: peachPlumColor.surface, borderRadius: 999, padding: '10px 16px', fontSize: 16, fontWeight: 600 }} dir="ltr">{formatInviteCode(state.inviteCode)}</span>
               <PrimaryButton style={{ height: 44, fontSize: 14 }} onClick={() => void navigator.clipboard.writeText(state.inviteCode!)}>
                 {t('settings.copy')}
               </PrimaryButton>
@@ -165,10 +167,7 @@ export function FamilyScreen({ familyId, uid }: { familyId: string; uid: string 
               </span>
               <span style={{ display: 'flex', flexDirection: 'column', gap: 2, flexGrow: 1 }}>
                 <span style={{ fontSize: 16, fontWeight: 600 }}>{device.name}</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500, color: '#9FE9CE' }}>
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: peachPlumColor.ok, animation: 'pp-live-pulse 2s ease-out infinite' }} />
-                  {t('settings.online')}
-                </span>
+                <DeviceHeartbeat device={device} okColor="#9FE9CE" />
               </span>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -270,6 +269,10 @@ export function FamilyScreen({ familyId, uid }: { familyId: string; uid: string 
             </div>
 
             <div style={{ marginTop: isWide ? 0 : 22 }}>{isWide ? <div style={wideCardStyle}>{settingsCard}</div> : <WhiteCard>{settingsCard}</WhiteCard>}</div>
+
+            <div style={{ marginTop: isWide ? 0 : 22 }}>
+              <AccountSection familyId={familyId} isOwner={family ? isOwner(family, uid) : false} />
+            </div>
           </div>
 
           {confirmRemove && (

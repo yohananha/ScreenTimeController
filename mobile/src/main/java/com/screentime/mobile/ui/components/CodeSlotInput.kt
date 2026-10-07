@@ -25,6 +25,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -36,8 +37,9 @@ import androidx.compose.foundation.clickable
 import com.screentime.mobile.ui.theme.PeachPlum
 
 /**
- * Phone-side 6-digit invite/pair-code entry. Hidden text field accepts
- * input; visible slots render the code.
+ * Phone-side code entry. Hidden text field accepts input; visible slots
+ * render the code. Default: 6-digit TV pairing code. [alphanumeric]: the
+ * 8-char family invite code, uppercased and limited to [INVITE_ALPHABET].
  *
  * The visible slot `Row` is forced LTR — see [CodeTilesRow] for why: without
  * it, a partially-typed code renders its digits in reverse order under RTL.
@@ -48,6 +50,7 @@ fun CodeSlotInput(
     onValueChange: (String) -> Unit,
     slots: Int = 6,
     modifier: Modifier = Modifier,
+    alphanumeric: Boolean = false,
 ) {
     val focusRequester = remember { FocusRequester() }
     var tfv by remember { mutableStateOf(TextFieldValue(value)) }
@@ -57,7 +60,7 @@ fun CodeSlotInput(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { focusRequester.requestFocus() },
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(if (slots > 6) 6.dp else 8.dp),
         ) {
             repeat(slots) { i ->
                 val filled = i < value.length
@@ -81,7 +84,7 @@ fun CodeSlotInput(
                         style = TextStyle(
                             fontFamily = com.screentime.mobile.ui.theme.RubikFont,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 32.sp,
+                            fontSize = if (slots > 6) 24.sp else 32.sp,
                             color = PeachPlum.colors.ink,
                             textAlign = TextAlign.Center,
                         ),
@@ -93,14 +96,26 @@ fun CodeSlotInput(
         BasicTextField(
             value = tfv,
             onValueChange = { v ->
-                val digits = v.text.filter { it.isDigit() }.take(slots)
-                tfv = TextFieldValue(digits, selection = androidx.compose.ui.text.TextRange(digits.length))
-                onValueChange(digits)
+                val cleaned = if (alphanumeric) {
+                    v.text.uppercase().filter { it in INVITE_ALPHABET }
+                } else {
+                    v.text.filter { it.isDigit() }
+                }.take(slots)
+                tfv = TextFieldValue(cleaned, selection = androidx.compose.ui.text.TextRange(cleaned.length))
+                onValueChange(cleaned)
             },
             modifier = Modifier
                 .matchParentSize()
                 .focusRequester(focusRequester),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+            keyboardOptions = if (alphanumeric) {
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Ascii,
+                    capitalization = KeyboardCapitalization.Characters,
+                    autoCorrectEnabled = false,
+                )
+            } else {
+                KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
+            },
             textStyle = TextStyle(color = androidx.compose.ui.graphics.Color.Transparent),
             cursorBrush = androidx.compose.ui.graphics.SolidColor(androidx.compose.ui.graphics.Color.Transparent),
         )
@@ -113,3 +128,10 @@ private fun PreviewHook() {
     // ensure size import retained
     Box(Modifier.size(0.dp))
 }
+
+/** No 0/O/1/I look-alikes — must match INVITE_ALPHABET in functions/src/codes.ts. */
+private const val INVITE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+/** Shows an 8-char invite as "ABCD-EFGH". Display only — the server strips the dash. */
+fun formatInviteCode(code: String): String =
+    if (code.length == 8) "${code.take(4)}-${code.drop(4)}" else code

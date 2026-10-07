@@ -10,11 +10,11 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.screentime.shared.auth.FamilyIdProvider
 import com.screentime.shared.limits.LimitsProvider
+import com.screentime.shared.time.TrustedClock
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
-import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 
 /**
@@ -35,6 +35,7 @@ class UsageWorker @AssistedInject constructor(
     private val familyIdProvider: FamilyIdProvider,
     private val installedAppsReporter: InstalledAppsReporter,
     private val limitsProvider: LimitsProvider,
+    private val clock: TrustedClock,
 ) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
@@ -43,7 +44,7 @@ class UsageWorker @AssistedInject constructor(
             return Result.success()
         }
 
-        val today = LocalDate.now()
+        val today = clock.today()
         // FirestoreLimitsProvider awaits its first snapshot, which never
         // arrives offline. A worker must not hang on that; missing the
         // always-count set for one sample only risks under-counting a
@@ -53,7 +54,7 @@ class UsageWorker @AssistedInject constructor(
             limitsProvider.limits().first()
         }?.perApp?.keys.orEmpty()
 
-        val perPackage = tracker.millisPerPackage(date = today, alwaysCount = alwaysCount)
+        val perPackage = tracker.millisPerPackage(alwaysCount = alwaysCount)
         Log.d(TAG, "Usage sample $today: $perPackage")
 
         if (!recorder.record(today, perPackage)) return Result.retry()

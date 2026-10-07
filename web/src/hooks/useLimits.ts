@@ -9,6 +9,7 @@ import { defaultLockoutSettings } from '../models/LockoutSettings';
 import type { TimeFrameSchedule } from '../models/TimeFrameSchedule';
 import { DEFAULT_TIME_FRAME_SCHEDULE } from '../models/TimeFrameSchedule';
 import { totalMillis } from '../models/UsageSnapshot';
+import { localIsoDate } from '../models/localDate';
 
 export interface LimitsUiState {
   limits: AppLimit[];
@@ -20,10 +21,6 @@ export interface LimitsUiState {
   instantLocked: boolean;
   usagePerApp: Record<string, number>;
   totalUsageMillis: number;
-}
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
 }
 
 const initialState: LimitsUiState = {
@@ -71,14 +68,14 @@ export function useLimits(familyId: string | null) {
         commit();
       }),
       repo.subscribeAllowAllDay(familyId, (date) => {
-        partial.allowAllDayActive = date === todayIso();
+        partial.allowAllDayActive = date === localIsoDate();
         commit();
       }),
       repo.subscribeInstantLock(familyId, (locked) => {
         partial.instantLocked = locked;
         commit();
       }),
-      repo.subscribeUsage(familyId, todayIso(), (usage) => {
+      repo.subscribeUsage(familyId, localIsoDate(), (usage) => {
         partial.usagePerApp = usage.perAppMillis;
         partial.totalUsageMillis = totalMillis(usage);
         commit();
@@ -130,7 +127,7 @@ export function useLimits(familyId: string | null) {
       familyId &&
       write(async () => {
         await repo.setInstantLock(familyId, false);
-        await repo.setAllowAllDay(familyId, todayIso());
+        await repo.setAllowAllDay(familyId, localIsoDate());
       }),
     [familyId, write],
   );

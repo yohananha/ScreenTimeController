@@ -1,8 +1,8 @@
 import { Timestamp } from "firebase-admin/firestore";
-import { initFFT, loadFunctions, db, seedFamily } from "./helpers";
+import { initFFT, loadFunctions, db, seedFamily, parentAuth, anonAuth } from "./helpers";
 
-let createTv: (req: { data: unknown; auth: { uid: string } }) => Promise<unknown>;
-let claimTv: (req: { data: unknown; auth: { uid: string } }) => Promise<unknown>;
+let createTv: (req: { data: unknown; auth: unknown }) => Promise<unknown>;
+let claimTv: (req: { data: unknown; auth: unknown }) => Promise<unknown>;
 
 beforeAll(() => {
   const fft = initFFT();
@@ -28,7 +28,7 @@ async function seedPairing(code: string, extra: Record<string, unknown> = {}) {
 describe("createTvPairing", () => {
   it("creates a 6-digit pairing doc with 10m TTL", async () => {
     const before = Date.now();
-    const result = (await createTv({ data: {}, auth: { uid: TV } })) as {
+    const result = (await createTv({ data: {}, auth: anonAuth(TV) })) as {
       code: string;
     };
     expect(result.code).toMatch(/^\d{6}$/);
@@ -60,7 +60,7 @@ describe("claimTvPairing", () => {
 
     const result = (await claimTv({
       data: { code: "424242", familyId: FAM },
-      auth: { uid: OWNER },
+      auth: parentAuth(OWNER),
     })) as { success: boolean };
     expect(result.success).toBe(true);
 
@@ -78,13 +78,13 @@ describe("claimTvPairing", () => {
   it("denies non-owners (even other admins)", async () => {
     await seedPairing("424242");
     await expect(
-      claimTv({ data: { code: "424242", familyId: FAM }, auth: { uid: NOT_OWNER } }),
+      claimTv({ data: { code: "424242", familyId: FAM }, auth: parentAuth(NOT_OWNER) }),
     ).rejects.toMatchObject({ code: "permission-denied" });
   });
 
   it("rejects an unknown code", async () => {
     await expect(
-      claimTv({ data: { code: "999999", familyId: FAM }, auth: { uid: OWNER } }),
+      claimTv({ data: { code: "999999", familyId: FAM }, auth: parentAuth(OWNER) }),
     ).rejects.toMatchObject({ code: "not-found" });
   });
 
@@ -93,7 +93,7 @@ describe("claimTvPairing", () => {
       expiresAt: Timestamp.fromMillis(Date.now() - 1000),
     });
     await expect(
-      claimTv({ data: { code: "424242", familyId: FAM }, auth: { uid: OWNER } }),
+      claimTv({ data: { code: "424242", familyId: FAM }, auth: parentAuth(OWNER) }),
     ).rejects.toMatchObject({ code: "not-found" });
     const after = await db().collection("pairings").doc("424242").get();
     expect(after.exists).toBe(false);
@@ -107,7 +107,7 @@ describe("claimTvPairing", () => {
     await seedPairing("424242");
     const result = (await claimTv({
       data: { code: "424242", familyId: FAM },
-      auth: { uid: OWNER },
+      auth: parentAuth(OWNER),
     })) as { success: boolean };
     expect(result.success).toBe(true);
     const fam = await db().collection("families").doc(FAM).get();
@@ -124,7 +124,7 @@ describe("claimTvPairing", () => {
     await seedPairing("424242");
     const result = (await claimTv({
       data: { code: "424242", familyId: FAM },
-      auth: { uid: OWNER },
+      auth: parentAuth(OWNER),
     })) as { success: boolean };
     expect(result.success).toBe(true);
     const fam = await db().collection("families").doc(FAM).get();
@@ -138,16 +138,16 @@ describe("claimTvPairing", () => {
     await db().collection("devices").doc(TV).set({ familyId: "other-fam" });
     await seedPairing("424242");
     await expect(
-      claimTv({ data: { code: "424242", familyId: FAM }, auth: { uid: OWNER } }),
+      claimTv({ data: { code: "424242", familyId: FAM }, auth: parentAuth(OWNER) }),
     ).rejects.toMatchObject({ code: "failed-precondition" });
   });
 
   it("requires both code and familyId", async () => {
     await expect(
-      claimTv({ data: { code: "424242" }, auth: { uid: OWNER } }),
+      claimTv({ data: { code: "424242" }, auth: parentAuth(OWNER) }),
     ).rejects.toMatchObject({ code: "invalid-argument" });
     await expect(
-      claimTv({ data: { familyId: FAM }, auth: { uid: OWNER } }),
+      claimTv({ data: { familyId: FAM }, auth: parentAuth(OWNER) }),
     ).rejects.toMatchObject({ code: "invalid-argument" });
   });
 });

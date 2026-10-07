@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.screentime.shared.room.AppDatabase
+import com.screentime.shared.time.TrustedClock
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -12,6 +13,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.Instant
+import java.time.ZoneId
 
 /**
  * Tests run against an unencrypted in-memory Room build to side-step SQLCipher's
@@ -24,12 +27,19 @@ class BonusStoreTest {
     private lateinit var db: AppDatabase
     private lateinit var store: BonusStore
 
+    /** Trusted time the test controls; the device wall clock plays no part. */
+    private val clock = object : TrustedClock {
+        var now: Instant = Instant.now()
+        override fun now(): Instant = now
+        override fun zone(): ZoneId = ZoneId.of("UTC")
+    }
+
     @Before fun setUp() {
         db = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
             AppDatabase::class.java,
         ).allowMainThreadQueries().build()
-        store = BonusStore(db)
+        store = BonusStore(db, clock)
     }
 
     @After fun tearDown() = db.close()
@@ -63,5 +73,14 @@ class BonusStoreTest {
         store.clear()
         assertThat(store.isActive()).isFalse()
         assertThat(store.expiryFor()).isNull()
+    }
+
+    @Test fun `expiry is measured on trusted time, not the device clock`() = runTest {
+        store.addBonus(60_000L)
+        delay(20)
+        assertThat(store.isActive()).isTrue()
+        // Trusted time moves on 61s — whatever the TV's own clock says.
+        clock.now = clock.now.plusSeconds(61)
+        assertThat(store.isActive()).isFalse()
     }
 }

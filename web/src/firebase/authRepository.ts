@@ -2,6 +2,8 @@ import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut as fbS
 import type { Unsubscribe } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from './app';
+import { disableNotifications } from './push';
+import { deleteAccount } from './firestoreRepository';
 
 export interface Session {
   uid: string;
@@ -28,6 +30,23 @@ export async function signInWithGoogle(): Promise<void> {
   await signInWithPopup(auth, new GoogleAuthProvider());
 }
 
-export function signOut(): Promise<void> {
-  return fbSignOut(auth);
+/**
+ * Unregisters this browser's push token first (best-effort — sign-out must
+ * never be blocked by a messaging/network failure), then signs out.
+ */
+/**
+ * Deletes the account server-side, then signs out. The push token is
+ * unregistered first, while the user (and their push doc) still exist.
+ */
+export async function deleteAccountAndSignOut(): Promise<void> {
+  const uid = auth.currentUser?.uid;
+  if (uid) await disableNotifications(uid).catch(() => {});
+  await deleteAccount();
+  await fbSignOut(auth);
+}
+
+export async function signOut(): Promise<void> {
+  const uid = auth.currentUser?.uid;
+  if (uid) await disableNotifications(uid).catch(() => {});
+  await fbSignOut(auth);
 }

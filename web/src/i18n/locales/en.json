@@ -53,7 +53,7 @@
     "createSubtitle": "Start fresh. You'll be the owner.",
     "joinTitle": "Join a family",
     "joinSubtitle": "Use the invite code from your co-parent.",
-    "inviteCodeLabel": "ENTER THE 6-DIGIT INVITE CODE",
+    "inviteCodeLabel": "ENTER THE 8-CHARACTER INVITE CODE",
     "joining": "Joining…",
     "continue": "Continue"
   },
@@ -267,7 +267,9 @@
     "enterCodeShown": "Enter the 6-digit code shown on the TV's pairing screen.",
     "pairing": "Pairing…",
     "pair": "Pair",
-    "online": "Online",
+    "protectionOn": "Protection on",
+    "notResponding": "Not responding · last seen {{ago}}",
+    "waitingForCheckIn": "Waiting for the TV to check in",
     "statToday": "Today",
     "statPaired": "Paired",
     "statActive": "Active",
@@ -291,8 +293,22 @@
     "tvAlreadyPaired": "This TV is already paired to another family.",
     "deviceNotPaired": "This device isn't paired to this family.",
     "lockedOut": "Code entry is locked.",
+    "rateLimited": "Too many attempts. Please try again later.",
     "signInRequired": "Sign-in required.",
     "permissionDenied": "You don't have permission to do that.",
     "network": "Couldn't connect. Check your internet connection and try again."
+  },
+  "account": {
+    "signOut": "Sign out",
+    "title": "Account",
+    "deleteAccount": "Delete my account",
+    "deleteFamily": "Delete family",
+    "deleteAccountTitle": "Delete your account?",
+    "deleteAccountBodyOwner": "This permanently deletes your account and the family you own — for every member: rules, usage history, requests and paired TVs. This can’t be undone.",
+    "deleteAccountBodyMember": "This permanently deletes your account and removes you from the family. The family and its data stay for the other parents. This can’t be undone.",
+    "deleteFamilyTitle": "Delete this family?",
+    "deleteFamilyBody": "This permanently deletes the family for every member: rules, usage history, requests and paired TVs. TVs go back to the pairing screen. Your account stays. This can’t be undone.",
+    "confirmDelete": "Delete permanently",
+    "deleting": "Deleting…"
   }
 }

@@ -14,7 +14,20 @@ import {
   assertFails,
   assertSucceeds,
 } from "@firebase/rules-unit-testing";
-import { setDoc, getDoc, updateDoc, deleteDoc, doc, getDocs, collection } from "firebase/firestore";
+import {
+  setDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  getDocs,
+  collection,
+  serverTimestamp,
+  deleteField,
+  writeBatch,
+  arrayRemove,
+  Timestamp,
+} from "firebase/firestore";
 
 const RULES = fs.readFileSync(
   path.resolve(__dirname, "../../../firestore.rules"),
@@ -58,6 +71,13 @@ beforeEach(async () => {
   });
 });
 
+/** A code payload exactly as the web/Android apps write it. */
+const validCode = () => ({
+  extraMinutes: 30,
+  createdAt: serverTimestamp(),
+  expiresAt: Timestamp.fromMillis(Date.now() + 5 * 60_000),
+});
+
 const ctx = (uid: string | null) =>
   uid ? env.authenticatedContext(uid).firestore() : env.unauthenticatedContext().firestore();
 
@@ -84,6 +104,23 @@ describe("/users/{uid}", () => {
       setDoc(doc(ctx(ADMIN2), "users", USER), { familyId: FAM, displayName: "Hijacked" }),
     );
     await assertFails(getDoc(doc(ctx(STRANGER), "users", USER)));
+  });
+});
+
+describe("/users/{uid}/private/push", () => {
+  it("the user can save and read their own push tokens", async () => {
+    await assertSucceeds(setDoc(doc(ctx(USER), "users", USER, "private", "push"), { tokens: ["t"] }));
+    await assertSucceeds(getDoc(doc(ctx(USER), "users", USER, "private", "push")));
+  });
+  it("fellow family members, the TV and strangers can neither read nor write them", async () => {
+    await env.withSecurityRulesDisabled(async (adminCtx) => {
+      await setDoc(doc(adminCtx.firestore(), "users", USER), { familyId: FAM });
+      await setDoc(doc(adminCtx.firestore(), "users", USER, "private", "push"), { tokens: ["t"] });
+    });
+    for (const other of [OWNER, ADMIN2, TV, STRANGER]) {
+      await assertFails(getDoc(doc(ctx(other), "users", USER, "private", "push")));
+      await assertFails(setDoc(doc(ctx(other), "users", USER, "private", "push"), { tokens: ["evil"] }));
+    }
   });
 });
 
@@ -157,19 +194,20 @@ describe("/families/{id}/usage/{date}", () => {
   it("TV (device) can write; stranger cannot", async () => {
     await assertSucceeds(
       setDoc(doc(ctx(TV), "families", FAM, "usage", "2026-06-18"), {
-        totalMs: 1000,
+        perAppMillis: { "com.x": 1000 },
+        updatedAt: serverTimestamp(),
       }),
     );
     await assertFails(
       setDoc(doc(ctx(STRANGER), "families", FAM, "usage", "2026-06-18"), {
-        totalMs: 1000,
+        perAppMillis: { "com.x": 1000 },
       }),
     );
   });
   it("admin can write; member can read", async () => {
     await assertSucceeds(
       setDoc(doc(ctx(ADMIN2), "families", FAM, "usage", "2026-06-18"), {
-        totalMs: 1000,
+        perAppMillis: {},
       }),
     );
     await assertSucceeds(getDoc(doc(ctx(USER), "families", FAM, "usage", "2026-06-18")));
@@ -179,18 +217,18 @@ describe("/families/{id}/usage/{date}", () => {
 describe("/families/{id}/limits/*", () => {
   it("only members can write", async () => {
     await assertSucceeds(
-      setDoc(doc(ctx(USER), "families", FAM, "limits", "default"), {
-        dailyMinutes: 60,
+      setDoc(doc(ctx(USER), "families", FAM, "limits", "overall"), {
+        overallDailyMinutes: 60,
       }),
     );
     await assertFails(
-      setDoc(doc(ctx(TV), "families", FAM, "limits", "default"), {
-        dailyMinutes: 60,
+      setDoc(doc(ctx(TV), "families", FAM, "limits", "overall"), {
+        overallDailyMinutes: 60,
       }),
     );
     await assertFails(
-      setDoc(doc(ctx(STRANGER), "families", FAM, "limits", "default"), {
-        dailyMinutes: 60,
+      setDoc(doc(ctx(STRANGER), "families", FAM, "limits", "overall"), {
+        overallDailyMinutes: 60,
       }),
     );
   });
@@ -199,14 +237,10 @@ describe("/families/{id}/limits/*", () => {
 describe("/families/{id}/codes/*", () => {
   it("members can create + delete; TV cannot", async () => {
     await assertSucceeds(
-      setDoc(doc(ctx(USER), "families", FAM, "codes", "111111"), {
-        extraMinutes: 10,
-      }),
+      setDoc(doc(ctx(USER), "families", FAM, "codes", "111111"), validCode()),
     );
     await assertFails(
-      setDoc(doc(ctx(TV), "families", FAM, "codes", "222222"), {
-        extraMinutes: 10,
-      }),
+      setDoc(doc(ctx(TV), "families", FAM, "codes", "222222"), validCode()),
     );
   });
   it("no client may UPDATE a code (server-only consume via Cloud Function)", async () => {
@@ -230,6 +264,7 @@ describe("/families/{id}/requests/*", () => {
         appPackage: "com.x",
         requestedMinutes: 15,
         status: "pending",
+        createdAt: serverTimestamp(),
       }),
     );
   });
@@ -239,6 +274,7 @@ describe("/families/{id}/requests/*", () => {
         appPackage: "com.x",
         requestedMinutes: 9999,
         status: "pending",
+        createdAt: serverTimestamp(),
       }),
     );
     await assertFails(
@@ -246,6 +282,7 @@ describe("/families/{id}/requests/*", () => {
         appPackage: "com.x",
         requestedMinutes: 0,
         status: "pending",
+        createdAt: serverTimestamp(),
       }),
     );
   });
@@ -255,28 +292,63 @@ describe("/families/{id}/requests/*", () => {
         appPackage: "com.x",
         requestedMinutes: 10,
         status: "approved",
+        createdAt: serverTimestamp(),
       }),
     );
   });
 });
 
 describe("/families/{id}/settings/lockout", () => {
-  it("TV may only clear the lock (locked=false); cannot SET locked=true", async () => {
+  async function seedLock(data: Record<string, unknown>) {
     await env.withSecurityRulesDisabled(async (c) => {
-      await setDoc(
-        doc(c.firestore(), "families", FAM, "settings", "lockout"),
-        { locked: true, lockedUntil: new Date(Date.now() + 60000) },
-      );
+      await setDoc(doc(c.firestore(), "families", FAM, "settings", "lockout"), data);
     });
-    await assertSucceeds(
-      updateDoc(doc(ctx(TV), "families", FAM, "settings", "lockout"), {
-        locked: false,
-      }),
+  }
+  const tvClear = () =>
+    updateDoc(doc(ctx(TV), "families", FAM, "settings", "lockout"), {
+      locked: false,
+      lockedUntil: deleteField(),
+    });
+
+  it("TV may clear a timer lock once lockedUntil has passed", async () => {
+    await seedLock({ mode: "timer", locked: true, lockedUntil: new Date(Date.now() - 1000) });
+    await assertSucceeds(tvClear());
+  });
+  it("TV may NOT clear a timer lock early", async () => {
+    await seedLock({ mode: "timer", locked: true, lockedUntil: new Date(Date.now() + 60000) });
+    await assertFails(tvClear());
+  });
+  it("TV may NOT clear a parent-unlock lock (no lockedUntil, or parent mode)", async () => {
+    await seedLock({ mode: "timer", locked: true });
+    await assertFails(tvClear());
+    await seedLock({ mode: "parent", locked: true, lockedUntil: new Date(Date.now() - 1000) });
+    await assertFails(tvClear());
+  });
+  it("TV may never SET locked=true or touch the config", async () => {
+    await seedLock({ mode: "timer", locked: false });
+    await assertFails(
+      updateDoc(doc(ctx(TV), "families", FAM, "settings", "lockout"), { locked: true }),
     );
     await assertFails(
-      updateDoc(doc(ctx(TV), "families", FAM, "settings", "lockout"), {
-        locked: true,
-      }),
+      updateDoc(doc(ctx(TV), "families", FAM, "settings", "lockout"), { mode: "timer", durationMinutes: 1 }),
+    );
+  });
+  it("parents may set the config and unlock; bad values are rejected", async () => {
+    await seedLock({ mode: "parent", locked: true, failureCount: 0 });
+    await assertSucceeds(
+      setDoc(doc(ctx(USER), "families", FAM, "settings", "lockout"), { durationMinutes: 30, mode: "timer" }, { merge: true }),
+    );
+    await assertSucceeds(
+      setDoc(doc(ctx(USER), "families", FAM, "settings", "lockout"), { locked: false, lockedUntil: deleteField() }, { merge: true }),
+    );
+    await assertFails(
+      setDoc(doc(ctx(USER), "families", FAM, "settings", "lockout"), { mode: "forever" }, { merge: true }),
+    );
+    await assertFails(
+      setDoc(doc(ctx(USER), "families", FAM, "settings", "lockout"), { durationMinutes: "15" }, { merge: true }),
+    );
+    await assertFails(
+      setDoc(doc(ctx(USER), "families", FAM, "settings", "lockout"), { failureCount: 99 }, { merge: true }),
     );
   });
 });
@@ -315,6 +387,14 @@ describe("/invites and /pairings", () => {
   });
 });
 
+describe("/rateLimits", () => {
+  it("clients can neither read nor reset their own counters", async () => {
+    await assertFails(getDoc(doc(ctx(USER), "rateLimits", `join_${USER}`)));
+    await assertFails(setDoc(doc(ctx(USER), "rateLimits", `join_${USER}`), { count: 0 }));
+    await assertFails(deleteDoc(doc(ctx(USER), "rateLimits", `join_${USER}`)));
+  });
+});
+
 describe("/devices/{id}", () => {
   it("TV can read its own device doc; stranger cannot", async () => {
     await assertSucceeds(getDoc(doc(ctx(TV), "devices", TV)));
@@ -337,5 +417,192 @@ describe("/devices/{id}", () => {
   });
   it("LIST is disallowed", async () => {
     await assertFails(getDocs(collection(ctx(OWNER), "devices")));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Schema validation (security plan Phase 4). Each "ok" case is the payload the
+// web/Android apps actually write, so a rules change that breaks a real client
+// write fails here.
+// ---------------------------------------------------------------------------
+
+const anonCtx = (uid: string) =>
+  env.authenticatedContext(uid, { firebase: { sign_in_provider: "anonymous" } }).firestore();
+const parentCtx = (uid: string) =>
+  env.authenticatedContext(uid, { firebase: { sign_in_provider: "google.com" } }).firestore();
+
+describe("schema: family doc", () => {
+  it("a Google account can create its own family (app payload, in the createFamily batch)", async () => {
+    const db = parentCtx(STRANGER);
+    const batch = writeBatch(db);
+    batch.set(doc(db, "families", "newfam"), { ownerUid: STRANGER, roles: { [STRANGER]: "admin" }, devices: [] });
+    batch.set(doc(db, "users", STRANGER), { familyId: "newfam" }, { merge: true });
+    await assertSucceeds(batch.commit());
+  });
+  it("an anonymous (TV) account cannot create a family", async () => {
+    await assertFails(
+      setDoc(doc(anonCtx("anon-1"), "families", "f2"), { ownerUid: "anon-1", roles: { "anon-1": "admin" }, devices: [] }),
+    );
+  });
+  it("create rejects extra fields", async () => {
+    await assertFails(
+      setDoc(doc(parentCtx(STRANGER), "families", "f3"), {
+        ownerUid: STRANGER,
+        roles: { [STRANGER]: "admin" },
+        devices: [],
+        fcmTokens: ["x"],
+      }),
+    );
+  });
+  it("admins can change roles but not write stray fields or invent roles", async () => {
+    await assertSucceeds(updateDoc(doc(ctx(ADMIN2), "families", FAM), { [`roles.${USER}`]: "admin" }));
+    await assertFails(updateDoc(doc(ctx(ADMIN2), "families", FAM), { fcmTokens: ["t"] }));
+    await assertFails(updateDoc(doc(ctx(ADMIN2), "families", FAM), { [`roles.${USER}`]: "superadmin" }));
+  });
+  it("the owner can unpair a TV atomically, but cannot add a device directly", async () => {
+    const db = ctx(OWNER);
+    const batch = writeBatch(db);
+    batch.update(doc(db, "families", FAM), { devices: arrayRemove(TV) });
+    batch.delete(doc(db, "devices", TV));
+    await assertSucceeds(batch.commit());
+    await assertFails(updateDoc(doc(ctx(OWNER), "families", FAM), { devices: ["some-other-uid"] }));
+  });
+});
+
+describe("schema: users/{uid}", () => {
+  it("accepts the app's writes (displayName incl. null, language, own familyId)", async () => {
+    await assertSucceeds(setDoc(doc(ctx(USER), "users", USER), { displayName: "Jamie" }, { merge: true }));
+    await assertSucceeds(setDoc(doc(ctx(USER), "users", USER), { displayName: null }, { merge: true }));
+    await assertSucceeds(setDoc(doc(ctx(USER), "users", USER), { language: "he" }, { merge: true }));
+    await assertSucceeds(setDoc(doc(ctx(USER), "users", USER), { familyId: FAM }, { merge: true }));
+  });
+  it("cannot point familyId at a family you are not in", async () => {
+    await assertFails(setDoc(doc(ctx(STRANGER), "users", STRANGER), { familyId: FAM }, { merge: true }));
+  });
+  it("rejects stray fields and bad values", async () => {
+    await assertFails(setDoc(doc(ctx(USER), "users", USER), { fcmTokens: ["t"] }, { merge: true }));
+    await assertFails(setDoc(doc(ctx(USER), "users", USER), { role: "admin" }, { merge: true }));
+    await assertFails(setDoc(doc(ctx(USER), "users", USER), { displayName: "x".repeat(101) }, { merge: true }));
+    await assertFails(setDoc(doc(ctx(USER), "users", USER), { language: 7 }, { merge: true }));
+  });
+  it("a legacy doc with retired fields stays writable for allowed fields", async () => {
+    await env.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), "users", USER), { familyId: FAM, fcmTokens: ["old"] });
+    });
+    await assertSucceeds(setDoc(doc(ctx(USER), "users", USER), { displayName: "Jamie" }, { merge: true }));
+  });
+});
+
+describe("schema: limits", () => {
+  const lim = (uid: string, ...path: string[]) =>
+    doc(ctx(uid), "families", FAM, "limits", ...(path as [string, ...string[]]));
+
+  it("accepts app payloads", async () => {
+    await assertSucceeds(setDoc(lim(USER, "overall"), { overallDailyMinutes: -1 }));
+    await assertSucceeds(setDoc(lim(USER, "perApp", "apps", "com.google.android.youtube"), { dailyLimitMinutes: 45 }));
+    await assertSucceeds(
+      setDoc(lim(USER, "timeFrame"), { enabled: true, windowsByDay: { MONDAY: [{ start: 480, end: 1200 }] } }),
+    );
+    await assertSucceeds(setDoc(lim(USER, "allDay"), { date: "2026-10-07", indefinite: false }));
+    await assertSucceeds(setDoc(lim(USER, "allDay"), { date: null, indefinite: true }));
+    await assertSucceeds(setDoc(lim(USER, "allDay"), { date: deleteField(), indefinite: deleteField() }, { merge: true }));
+    await assertSucceeds(setDoc(lim(USER, "instantLock"), { locked: true, date: "2026-10-07" }));
+    await assertSucceeds(setDoc(lim(USER, "instantLock"), { locked: false }));
+    await assertSucceeds(deleteDoc(lim(USER, "perApp", "apps", "com.google.android.youtube")));
+  });
+  it("rejects wrong types and out-of-range values (these used to crash the TV)", async () => {
+    await assertFails(setDoc(lim(USER, "overall"), { overallDailyMinutes: "60" }));
+    await assertFails(setDoc(lim(USER, "overall"), { overallDailyMinutes: 99999 }));
+    await assertFails(setDoc(lim(USER, "perApp", "apps", "com.x"), { dailyLimitMinutes: "lots" }));
+    await assertFails(setDoc(lim(USER, "perApp", "apps", "com.x"), { dailyLimitMinutes: 30, extra: 1 }));
+    await assertFails(setDoc(lim(USER, "timeFrame"), { enabled: "yes", windowsByDay: {} }));
+    await assertFails(setDoc(lim(USER, "allDay"), { date: "tomorrow" }));
+    await assertFails(setDoc(lim(USER, "instantLock"), { locked: 1 }));
+    await assertFails(setDoc(lim(USER, "somethingElse"), { x: 1 }));
+  });
+  it("the TV still cannot write any limit", async () => {
+    await assertFails(setDoc(lim(TV, "instantLock"), { locked: false }));
+  });
+});
+
+describe("schema: codes", () => {
+  const code = (id: string) => doc(ctx(USER), "families", FAM, "codes", id);
+  it("rejects huge grants, far-future expiry, bad ids and extra fields", async () => {
+    await assertFails(setDoc(code("111111"), { ...validCode(), extraMinutes: 99999 }));
+    await assertFails(
+      setDoc(code("111111"), { ...validCode(), expiresAt: Timestamp.fromMillis(Date.now() + 7 * 86_400_000) }),
+    );
+    await assertFails(setDoc(code("12ab56"), validCode()));
+    await assertFails(setDoc(code("111111"), { ...validCode(), note: "x" }));
+    await assertFails(setDoc(code("111111"), { extraMinutes: 30, expiresAt: Timestamp.fromMillis(Date.now()) }));
+  });
+});
+
+describe("schema: requests", () => {
+  const req = (uid: string, id: string) => doc(ctx(uid), "families", FAM, "requests", id);
+  const pending = () => ({
+    appPackage: "com.google.android.youtube",
+    requestedMinutes: 15,
+    status: "pending",
+    createdAt: serverTimestamp(),
+  });
+
+  it("TV rejects junk package names and extra fields", async () => {
+    await assertFails(setDoc(req(TV, "r1"), { ...pending(), appPackage: "../../x" }));
+    await assertFails(setDoc(req(TV, "r1"), { ...pending(), appPackage: 42 }));
+    await assertFails(setDoc(req(TV, "r1"), { ...pending(), approvedMinutes: 240 }));
+  });
+  it("parents approve/deny with the app payload; bad updates are rejected", async () => {
+    await env.withSecurityRulesDisabled(async (c) => {
+      await setDoc(doc(c.firestore(), "families", FAM, "requests", "r9"), {
+        appPackage: "com.x",
+        requestedMinutes: 15,
+        status: "pending",
+      });
+    });
+    await assertFails(updateDoc(req(USER, "r9"), { status: "approved", approvedMinutes: "lots" }));
+    await assertFails(updateDoc(req(USER, "r9"), { status: "pending" }));
+    await assertFails(updateDoc(req(USER, "r9"), { requestedMinutes: 240 }));
+    await assertSucceeds(
+      updateDoc(req(USER, "r9"), { status: "approved", respondedAt: serverTimestamp(), approvedMinutes: 30 }),
+    );
+    await assertFails(updateDoc(req(TV, "r9"), { status: "approved" }));
+  });
+});
+
+describe("schema: tvApps, language, devices", () => {
+  it("tvApps: label must be a short string on a package-name id", async () => {
+    const app = (id: string) => doc(ctx(TV), "families", FAM, "tvApps", id);
+    await assertSucceeds(setDoc(app("com.google.android.youtube"), { label: "YouTube" }));
+    await assertFails(setDoc(app("com.x"), { label: "x".repeat(101) }));
+    await assertFails(setDoc(app("com.x"), { label: 5 }));
+    await assertFails(setDoc(app("com.x"), { label: "X", extra: true }));
+  });
+  it("language: parents set a language code; the TV cannot", async () => {
+    const lang = (uid: string) => doc(ctx(uid), "families", FAM, "settings", "language");
+    await assertSucceeds(setDoc(lang(USER), { code: "he" }));
+    await assertSucceeds(setDoc(lang(USER), { code: "fr" }));
+    await assertFails(setDoc(lang(USER), { code: "not a language" }));
+    await assertFails(setDoc(lang(TV), { code: "en" }));
+  });
+  it("devices: parents rename (bounded); the TV may only stamp lastSeen", async () => {
+    await assertSucceeds(setDoc(doc(ctx(USER), "devices", TV), { name: "Living room" }, { merge: true }));
+    await assertFails(setDoc(doc(ctx(USER), "devices", TV), { name: "x".repeat(61) }, { merge: true }));
+    await assertFails(setDoc(doc(ctx(USER), "devices", TV), { name: "" }, { merge: true }));
+    await assertFails(setDoc(doc(ctx(TV), "devices", TV), { name: "Mine now" }, { merge: true }));
+    await assertSucceeds(setDoc(doc(ctx(TV), "devices", TV), { lastSeen: serverTimestamp() }, { merge: true }));
+  });
+});
+
+describe("schema: settings/timezone", () => {
+  const tz = (uid: string) => doc(ctx(uid), "families", FAM, "settings", "timezone");
+  it("parents set an IANA zone; the TV and junk values are rejected", async () => {
+    await assertSucceeds(setDoc(tz(USER), { zone: "Asia/Jerusalem" }));
+    await assertSucceeds(setDoc(tz(USER), { zone: "America/Argentina/Buenos_Aires" }));
+    await assertFails(setDoc(tz(USER), { zone: "<script>" }));
+    await assertFails(setDoc(tz(USER), { zone: 3 }));
+    await assertFails(setDoc(tz(USER), { zone: "UTC", extra: 1 }));
+    await assertFails(setDoc(tz(TV), { zone: "Pacific/Kiritimati" }));
+    await assertSucceeds(getDoc(tz(TV)));
   });
 });

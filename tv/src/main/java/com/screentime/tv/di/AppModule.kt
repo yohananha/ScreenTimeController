@@ -6,6 +6,8 @@ import com.screentime.shared.auth.FamilyIdProvider
 import com.screentime.shared.limits.FirestoreLimitsProvider
 import com.screentime.shared.limits.LimitsProvider
 import com.screentime.shared.room.AppDatabase
+import com.screentime.shared.time.TrustedClock
+import com.screentime.tv.time.TvTrustedClock
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -25,6 +27,10 @@ abstract class AppModule {
     @Binds
     @Singleton
     abstract fun familyIdProvider(impl: DeviceFamilyIdProvider): FamilyIdProvider
+
+    @Binds
+    @Singleton
+    abstract fun trustedClock(impl: TvTrustedClock): TrustedClock
 
     companion object {
         @Provides

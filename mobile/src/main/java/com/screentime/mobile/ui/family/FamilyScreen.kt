@@ -27,6 +27,7 @@ import com.screentime.mobile.ui.settings.AboutSection
 import com.screentime.mobile.ui.settings.EditLockoutDialog
 import com.screentime.mobile.ui.settings.FamilyMembersSection
 import com.screentime.mobile.ui.settings.LanguageSection
+import com.screentime.mobile.ui.settings.AccountSection
 import com.screentime.mobile.ui.settings.LockoutCard
 import com.screentime.mobile.ui.settings.NotificationsSection
 import com.screentime.mobile.ui.settings.SettingsViewModel
@@ -80,6 +81,7 @@ fun FamilyScreen(
                 )
             }
             item { AboutSection() }
+            item { AccountSection() }
         }
     }
 

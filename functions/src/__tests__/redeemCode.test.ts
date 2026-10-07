@@ -96,6 +96,74 @@ describe("redeemCode", () => {
         .collection("codes").doc("111111").get();
       expect(codeSnap.exists).toBe(true);
     });
+
+    it("treats a timer lock whose lockedUntil has passed as over, and clears it", async () => {
+      await seedFamily({ familyId: FAMILY, ownerUid: "parent", devices: [DEVICE] });
+      await seedCode(FAMILY, "111111", 30);
+      await seedLockout(FAMILY, {
+        mode: "timer",
+        locked: true,
+        lockedUntil: Timestamp.fromMillis(Date.now() - 1000),
+      });
+
+      await expect(call({ familyId: FAMILY, code: "111111" })).resolves.toEqual({ extraMinutes: 30 });
+      const lockout = await readLockout(FAMILY);
+      expect(lockout?.locked).toBe(false);
+      expect(lockout?.lockedUntil).toBeUndefined();
+    });
+
+    it("keeps a parent-mode lock even if a stale lockedUntil has passed", async () => {
+      await seedFamily({ familyId: FAMILY, ownerUid: "parent", devices: [DEVICE] });
+      await seedCode(FAMILY, "111111", 30);
+      await seedLockout(FAMILY, {
+        mode: "parent",
+        locked: true,
+        lockedUntil: Timestamp.fromMillis(Date.now() - 1000),
+      });
+      await expect(call({ familyId: FAMILY, code: "111111" })).rejects.toMatchObject({
+        code: "failed-precondition",
+      });
+    });
+
+    it("escalates the 3rd timer lockout within 24h to a parent-unlock lock", async () => {
+      await seedFamily({ familyId: FAMILY, ownerUid: "parent", devices: [DEVICE] });
+      await seedLockout(FAMILY, {
+        mode: "timer",
+        durationMinutes: 15,
+        failureCount: 4,
+        failureWindowStart: Timestamp.now(),
+        lockoutCount: 2,
+        lockoutWindowStart: Timestamp.fromMillis(Date.now() - 60 * 60_000),
+        // Left over from the previous (expired) timer lock.
+        lockedUntil: Timestamp.fromMillis(Date.now() - 1000),
+        locked: true,
+      });
+      await expect(call({ familyId: FAMILY, code: "999999" })).rejects.toMatchObject({
+        code: "not-found",
+      });
+      const lockout = await readLockout(FAMILY);
+      expect(lockout?.locked).toBe(true);
+      expect(lockout?.lockoutCount).toBe(3);
+      expect(lockout?.lockedUntil).toBeUndefined();
+    });
+
+    it("starts a new escalation window after 24h", async () => {
+      await seedFamily({ familyId: FAMILY, ownerUid: "parent", devices: [DEVICE] });
+      await seedLockout(FAMILY, {
+        mode: "timer",
+        durationMinutes: 15,
+        failureCount: 4,
+        failureWindowStart: Timestamp.now(),
+        lockoutCount: 2,
+        lockoutWindowStart: Timestamp.fromMillis(Date.now() - 25 * 60 * 60_000),
+      });
+      await expect(call({ familyId: FAMILY, code: "999999" })).rejects.toMatchObject({
+        code: "not-found",
+      });
+      const lockout = await readLockout(FAMILY);
+      expect(lockout?.lockoutCount).toBe(1);
+      expect(lockout?.lockedUntil).toBeDefined();
+    });
   });
 
   describe("wrong code + failure counter", () => {

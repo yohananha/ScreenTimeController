@@ -33,6 +33,16 @@ export function loadFunctions(): typeof import("../index") {
   return _fns!;
 }
 
+/** Callable auth for a Google-signed-in parent (vs. the TV's anonymous uid). */
+export function parentAuth(uid: string) {
+  return { uid, token: { firebase: { sign_in_provider: "google.com" } } };
+}
+
+/** Callable auth for an anonymous account, as the TV uses. */
+export function anonAuth(uid: string) {
+  return { uid, token: { firebase: { sign_in_provider: "anonymous" } } };
+}
+
 export function db() {
   return getFirestore();
 }
@@ -53,8 +63,16 @@ export async function seedFamily(opts: {
   });
 }
 
-export async function seedUser(uid: string, fcmTokens: string[] = []) {
-  await db().collection("users").doc(uid).set({ familyId: "", fcmTokens });
+/** A user whose users/{uid}.familyId is [familyId], with FCM [tokens] in their private push doc. */
+export async function seedUser(uid: string, familyId: string, tokens: string[] = []) {
+  const userRef = db().collection("users").doc(uid);
+  await userRef.set({ familyId });
+  await userRef.collection("private").doc("push").set({ tokens });
+}
+
+export async function readPushTokens(uid: string): Promise<string[] | undefined> {
+  const snap = await db().collection("users").doc(uid).collection("private").doc("push").get();
+  return snap.get("tokens") as string[] | undefined;
 }
 
 export async function seedCode(

@@ -35,7 +35,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
-import com.screentime.shared.model.LockoutMode
 import com.screentime.shared.model.LockoutSettings
 import com.screentime.shared.model.TimeRequest
 import com.screentime.shared.model.Limits
@@ -757,20 +756,25 @@ private fun LockedView(lockout: LockoutSettings, onTimerExpired: suspend () -> U
         }
     }
     var nowElapsed by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
+    // Once the countdown hits zero, ask to clear the lock — and keep asking
+    // every CLEAR_RETRY_MS until the snapshot shows it cleared. The rules
+    // only accept the clear once the server's own clock has passed
+    // lockedUntil, so a TV whose clock runs fast (or was moved forward) is
+    // refused at first and gets through on a later retry.
     LaunchedEffect(anchor) {
-        var expiredFired = false
+        var lastClearAttempt: Long? = null
         while (true) {
             nowElapsed = SystemClock.elapsedRealtime()
-            if (!expiredFired && anchor != null &&
-                nowElapsed - anchor.startElapsedMs >= anchor.totalRemainingMs) {
-                expiredFired = true
+            val expired = anchor != null && nowElapsed - anchor.startElapsedMs >= anchor.totalRemainingMs
+            if (expired && (lastClearAttempt == null || nowElapsed - lastClearAttempt >= CLEAR_RETRY_MS)) {
+                lastClearAttempt = nowElapsed
                 onTimerExpired()
             }
             delay(1000)
         }
     }
     val focus = remember { FocusRequester() }
-    LaunchedEffect(lockout.mode) { try { focus.requestFocus() } catch (_: Exception) {} }
+    LaunchedEffect(lockout.needsParent) { try { focus.requestFocus() } catch (_: Exception) {} }
 
     Column(
         modifier = Modifier.widthIn(max = 1280.dp).fillMaxWidth(),
@@ -784,13 +788,13 @@ private fun LockedView(lockout: LockoutSettings, onTimerExpired: suspend () -> U
             haloRing = true,
         )
         Text(
-            if (lockout.mode == LockoutMode.PARENT_UNLOCK) stringResource(R.string.overlay_locked_parent_title) else stringResource(R.string.overlay_locked_timer_title),
+            if (lockout.needsParent) stringResource(R.string.overlay_locked_parent_title) else stringResource(R.string.overlay_locked_timer_title),
             style = PeachPlum.typography.displayLarge.atReferenceSize(112),
             color = PeachPlum.colors.tvCream,
             textAlign = TextAlign.Center,
         )
         Text(
-            if (lockout.mode == LockoutMode.PARENT_UNLOCK)
+            if (lockout.needsParent)
                 stringResource(R.string.overlay_locked_parent_body)
             else
                 stringResource(R.string.overlay_locked_timer_body),
@@ -799,11 +803,13 @@ private fun LockedView(lockout: LockoutSettings, onTimerExpired: suspend () -> U
             textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(max = 1000.dp),
         )
-        when (lockout.mode) {
-            LockoutMode.PARENT_UNLOCK -> {
+        // An escalated lock is a TIMER-mode lock with no lockedUntil: it shows
+        // the parent screen, not a countdown that would never end.
+        when (lockout.needsParent) {
+            true -> {
                 TvGhostButton(text = stringResource(R.string.overlay_locked_ask_parent), onClick = onAskParent, focusRequester = focus)
             }
-            LockoutMode.TIMER -> {
+            false -> {
                 val remaining = anchor?.let {
                     val elapsed = nowElapsed - it.startElapsedMs
                     Duration.ofMillis((it.totalRemainingMs - elapsed).coerceAtLeast(0))
@@ -820,3 +826,5 @@ private fun LockedView(lockout: LockoutSettings, onTimerExpired: suspend () -> U
 }
 
 private data class LockoutAnchor(val startElapsedMs: Long, val totalRemainingMs: Long)
+
+private const val CLEAR_RETRY_MS = 15_000L

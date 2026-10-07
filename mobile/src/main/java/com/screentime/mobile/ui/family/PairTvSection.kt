@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,9 +54,14 @@ import com.screentime.shared.R as SharedR
 import com.screentime.mobile.ui.components.CodeSlotInput
 import com.screentime.mobile.ui.components.PeachPlumGhostButton
 import com.screentime.mobile.ui.components.PeachPlumPrimaryButton
+import com.screentime.mobile.ui.theme.LocalFormats
 import com.screentime.mobile.ui.theme.PeachPlum
 import com.screentime.mobile.ui.theme.PeachPlumRadius
 import com.screentime.shared.model.PairedDevice
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.delay
+import java.time.Duration
+import java.time.Instant
 
 @Composable
 fun PairTvSection(
@@ -245,6 +251,47 @@ fun PairTvSection(
     }
 }
 
+/**
+ * "Protection on" / "Not responding · last seen 2h ago" / "Waiting for the TV
+ * to check in", from the TV's heartbeat (devices/{id}.lastSeen). Replaces a
+ * hardcoded "Online · 0m" that showed even when enforcement was off.
+ * Re-evaluated every minute so it flips to not-responding without new data.
+ */
+@Composable
+private fun DeviceHeartbeatRow(device: PairedDevice) {
+    val now by produceState(initialValue = Instant.now()) {
+        while (true) {
+            delay(60_000)
+            value = Instant.now()
+        }
+    }
+    val heartbeat = device.heartbeatAt(now)
+    val (dot, textColor) = when (heartbeat) {
+        PairedDevice.Heartbeat.ACTIVE -> PeachPlum.colors.positiveDisplay to Color(0xFF9FE9CE)
+        PairedDevice.Heartbeat.NOT_RESPONDING -> PeachPlum.colors.overText to Color(0xFFFFB4A8)
+        PairedDevice.Heartbeat.NEVER_SEEN -> Color.White.copy(alpha = 0.35f) to Color.White.copy(alpha = 0.6f)
+    }
+    val label = when (heartbeat) {
+        PairedDevice.Heartbeat.ACTIVE -> stringResource(R.string.pairtv_protection_on)
+        PairedDevice.Heartbeat.NOT_RESPONDING -> {
+            val minutes = Duration.between(device.lastSeen, now).toMinutes().toInt()
+            stringResource(
+                R.string.pairtv_not_responding,
+                LocalFormats.current.duration.minutes(LocalContext.current.resources, minutes),
+            )
+        }
+        PairedDevice.Heartbeat.NEVER_SEEN -> stringResource(R.string.pairtv_waiting_for_check_in)
+    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.padding(top = 2.dp),
+    ) {
+        Box(modifier = Modifier.size(5.dp).background(dot, CircleShape))
+        Text(label, style = PeachPlum.typography.caption, color = textColor)
+    }
+}
+
 @Composable
 private fun DeviceListRow(
     device: PairedDevice,
@@ -290,22 +337,7 @@ private fun DeviceListRow(
                     style = PeachPlum.typography.bodyStrong,
                     color = PeachPlum.colors.surface,
                 )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.padding(top = 2.dp),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(5.dp)
-                            .background(PeachPlum.colors.positiveDisplay, CircleShape),
-                    )
-                    Text(
-                        stringResource(R.string.pairtv_online_status, "0m"),
-                        style = PeachPlum.typography.caption,
-                        color = Color(0xFF9FE9CE),
-                    )
-                }
+                DeviceHeartbeatRow(device)
             }
 
             Icon(

@@ -29,6 +29,7 @@ fun Throwable.toErrorRes(): Int {
         "tv_already_paired" -> R.string.error_tv_already_paired
         "device_not_paired" -> R.string.error_device_not_paired
         "locked_out" -> R.string.error_locked_out
+        "rate_limited" -> R.string.error_rate_limited
         else -> when (fe.code) {
             FirebaseFunctionsException.Code.UNAUTHENTICATED -> R.string.error_signin_required
             FirebaseFunctionsException.Code.PERMISSION_DENIED -> R.string.error_permission_denied

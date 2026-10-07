@@ -45,6 +45,7 @@
     <string name="error_tv_already_paired">This TV is already paired with another family.</string>
     <string name="error_device_not_paired">Device not paired to this family.</string>
     <string name="error_locked_out">Code entry is locked.</string>
+    <string name="error_rate_limited">Too many attempts. Please try again later.</string>
     <string name="error_signin_required">Sign-in required.</string>
     <string name="error_permission_denied">You don\'t have permission to do that.</string>
     <string name="error_network">Couldn\'t connect. Check your internet connection and try again.</string>

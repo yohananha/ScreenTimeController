@@ -46,6 +46,8 @@ export function describeFunctionsError(error: unknown): string {
       return i18n.t('errors.deviceNotPaired');
     case 'locked_out':
       return i18n.t('errors.lockedOut');
+    case 'rate_limited':
+      return i18n.t('errors.rateLimited');
     default:
       switch (error.code) {
         case 'functions/unauthenticated':

@@ -74,7 +74,7 @@ internal fun LockoutCard(
                 style = PeachPlum.typography.caption,
                 modifier = Modifier.padding(top = 6.dp),
             )
-            if (lockout.mode == LockoutMode.PARENT_UNLOCK) {
+            if (lockout.needsParent) {
                 Row(modifier = Modifier.padding(top = 8.dp)) {
                     PeachPlumPrimaryButton(text = stringResource(R.string.limits_lockout_unlock_now), onClick = onUnlockNow)
                 }

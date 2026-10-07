@@ -29,7 +29,7 @@ describe('FamilyScreen', () => {
       removeMember: vi.fn(),
     });
     vi.mocked(usePairedDevices).mockReturnValue({
-      devices: [{ id: 'tv-1', name: 'Living Room TV' }],
+      devices: [{ id: 'tv-1', name: 'Living Room TV', lastSeen: null }],
       state: { busy: false, success: false, message: null },
       claim: vi.fn(),
       reset: vi.fn(),

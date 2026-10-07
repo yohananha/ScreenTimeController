@@ -115,7 +115,7 @@ fun RulesScreen(
                         onClick = { editingLockout = true },
                         showTopBorder = true,
                     )
-                    if (lockout.locked && lockout.mode == LockoutMode.PARENT_UNLOCK) {
+                    if (lockout.needsParent) {
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,

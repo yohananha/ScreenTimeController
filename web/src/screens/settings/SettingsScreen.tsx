@@ -13,9 +13,10 @@ import { usePairedDevices } from '../../hooks/usePairedDevices';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useLockout } from '../../hooks/useLockout';
 import { useNotificationStatus, type NotificationStatus } from '../../hooks/useNotifications';
-import { isAdmin, isOwner, type Family, type FamilyRole } from '../../models/Family';
+import { formatInviteCode, isAdmin, isOwner, type Family, type FamilyRole } from '../../models/Family';
+import { DeviceHeartbeat } from '../../components/DeviceHeartbeat';
 import type { PairedDevice } from '../../models/PairedDevice';
-import type { LockoutMode, LockoutSettings } from '../../models/LockoutSettings';
+import { needsParentUnlock, type LockoutMode, type LockoutSettings } from '../../models/LockoutSettings';
 import { formatLimitLabel } from '../../i18n/format';
 import type { LangTag } from '../../i18n/i18n';
 
@@ -24,7 +25,7 @@ export function SettingsScreen({ familyId, uid }: { familyId: string; uid: strin
   const { state, removeMember, generateInvite } = useFamily(familyId);
   const { select, current } = useLanguage(uid, familyId);
   const { lockout, setLockoutConfig, unlockNow } = useLockout(familyId);
-  const notifications = useNotificationStatus(familyId);
+  const notifications = useNotificationStatus(uid);
   const [editingLockout, setEditingLockout] = useState(false);
   const hPad = useResponsivePadding();
 
@@ -161,7 +162,7 @@ function LockoutCard({
       {lockout.locked && (
         <>
           <div style={{ ...typography.caption, color: colors.overText, marginTop: 6 }}>{t('limits.lockoutLockedNotice')}</div>
-          {lockout.mode === 'PARENT_UNLOCK' && (
+          {needsParentUnlock(lockout) && (
             <div style={{ marginTop: 8 }}>
               <SproutPrimaryButton onClick={onUnlockNow}>{t('limits.unlockNow')}</SproutPrimaryButton>
             </div>
@@ -388,8 +389,8 @@ function InvitePanel({ inviteCode, onRefresh }: { inviteCode: string | null; onR
       <span style={{ ...typography.caption, color: colors.inkMuted }}>{t('settings.shareInviteCode')}</span>
       {inviteCode ? (
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <div style={{ flex: 1, background: colors.surface, borderRadius: radius.pill, padding: '10px 16px', ...typography.bodyStrong, color: colors.ink }}>
-            {inviteCode}
+          <div style={{ flex: 1, background: colors.surface, borderRadius: radius.pill, padding: '10px 16px', ...typography.bodyStrong, color: colors.ink }} dir="ltr">
+            {formatInviteCode(inviteCode)}
           </div>
           <SproutPrimaryButton
             onClick={() => {
@@ -555,9 +556,8 @@ function DeviceRow({
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ ...typography.bodyStrong, color: colors.surface }}>{device.name}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: colors.positiveDisplay, display: 'inline-block' }} />
-            <span style={{ ...typography.caption, color: '#9FE9CE' }}>{t('settings.online')}</span>
+          <div style={{ marginTop: 2 }}>
+            <DeviceHeartbeat device={device} okColor="#9FE9CE" dotSize={5} fontSize={12} />
           </div>
         </div>
         <span style={{ color: 'rgba(255,255,255,0.35)' }}>{isExpanded ? '▲' : '▼'}</span>

@@ -5,6 +5,19 @@ import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError, CallableRequest } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions";
 import { PUSH_TIME_REQUEST, resolveLang } from "./strings";
+import {
+  FAMILY_ID_RE,
+  SIX_DIGIT_RE,
+  inviteCode,
+  isInviteCode,
+  normalizeInviteCode,
+  numericCode,
+  requireNonAnonymous,
+  requireString,
+} from "./codes";
+import { consume } from "./rateLimit";
+
+export { deleteAccount, deleteFamily } from "./deletion";
 
 initializeApp();
 
@@ -13,10 +26,21 @@ const PAIRING_TTL_MS = 10 * 60 * 1000;
 const MAX_CODE_ATTEMPTS = 10;
 const DEFAULT_DEVICE_NAME = "Android TV";
 
+// Per-uid attempt budgets for the guessable endpoints. Counted on every call
+// (not just failures) so the check-and-increment is one atomic transaction;
+// a real parent joins or pairs a handful of times, far below these.
+const JOIN_LIMIT = { max: 10, windowMs: 60 * 60 * 1000 };
+const CLAIM_LIMIT = { max: 10, windowMs: 10 * 60 * 1000 };
+const CREATE_PAIRING_LIMIT = { max: 5, windowMs: 10 * 60 * 1000 };
+
 // Must stay in sync with LockoutSettings.kt companion constants.
 const MAX_WRONG_CODE_ATTEMPTS = 5;
 const ATTEMPT_WINDOW_MS = 60 * 1000;
 const DEFAULT_LOCKOUT_MINUTES = 15;
+// The Nth timer lockout within LOCKOUT_ESCALATION_WINDOW_MS escalates to a
+// lock only a parent can lift.
+const ESCALATE_AFTER_LOCKOUTS = 3;
+const LOCKOUT_ESCALATION_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 // Bounds for /requests/{id}.requestedMinutes. Anything outside is rejected.
 const MAX_REQUESTED_MINUTES = 240;
@@ -41,8 +65,17 @@ export const onNewTimeRequest = onDocumentCreated(
 
     const familyId = event.params.familyId;
     const requestId = event.params.requestId;
-    const appPackage = data.appPackage as string;
+    const appPackage = data.appPackage as unknown;
     const requestedMinutes = data.requestedMinutes as number;
+
+    // appPackage comes from the TV and is used in a Firestore path below
+    // (tvApps/{appPackage}) and in the push payload — accept only a real
+    // Android package name.
+    if (typeof appPackage !== "string" || !PACKAGE_NAME_RE.test(appPackage)) {
+      logger.warn(`Rejecting request ${requestId}: malformed appPackage.`);
+      await event.data?.ref.set({ status: "denied", deniedReason: "invalid_package" }, { merge: true });
+      return;
+    }
 
     // Defense-in-depth: the Firestore rule already bounds this on create,
     // but if anything writes an out-of-range value we drop the notification
@@ -63,13 +96,28 @@ export const onNewTimeRequest = onDocumentCreated(
       return;
     }
 
-    const tokens = await loadMemberTokens(familyId);
+    // One push per family per REQUEST_COOLDOWN_MS: a child (or a tampered
+    // TV) spamming "ask for more time" must not flood the parents' phones.
+    // This request is itself in the window, so a second doc means a recent one.
+    const db = getFirestore();
+    const recent = await db
+      .collection(`families/${familyId}/requests`)
+      .where("createdAt", ">", Timestamp.fromMillis(Date.now() - REQUEST_COOLDOWN_MS))
+      .limit(2)
+      .get();
+    if (recent.size > 1) {
+      logger.info(`Rate-limiting request ${requestId} for family ${familyId}.`);
+      await event.data?.ref.set({ status: "denied", deniedReason: "rate_limited" }, { merge: true });
+      return;
+    }
+
+    const owners = await loadMemberTokens(familyId);
+    const tokens = Array.from(owners.keys());
     if (tokens.length === 0) {
       logger.info(`No FCM tokens registered for family ${familyId}; skipping.`);
       return;
     }
 
-    const db = getFirestore();
     const [langSnap, appSnap] = await Promise.all([
       db.doc(`families/${familyId}/settings/language`).get(),
       db.doc(`families/${familyId}/tvApps/${appPackage}`).get(),
@@ -78,62 +126,130 @@ export const onNewTimeRequest = onDocumentCreated(
     // Falls back to the raw package name only if the TV hasn't reported a
     // label yet — previously this was the *only* path, so a notification
     // always read "+30 min for com.google.android.youtube".
-    const appLabel = (appSnap.get("label") as string | undefined) ?? appPackage;
+    const appLabel = sanitizeLabel(appSnap.get("label")) ?? appPackage;
     const copy = PUSH_TIME_REQUEST[lang];
 
-    const response = await getMessaging().sendEachForMulticast({
-      tokens,
-      notification: {
-        title: copy.title,
-        body: copy.body(requestedMinutes, appLabel),
-      },
-      data: {
-        familyId,
-        requestId,
-        appPackage,
-        appLabel,
-        requestedMinutes: String(requestedMinutes),
-      },
-      android: {
-        priority: "high",
-      },
-    });
+    let sent = 0;
+    const dead: string[] = [];
+    for (let i = 0; i < tokens.length; i += FCM_MULTICAST_LIMIT) {
+      const batch = tokens.slice(i, i + FCM_MULTICAST_LIMIT);
+      const response = await getMessaging().sendEachForMulticast({
+        tokens: batch,
+        notification: {
+          title: copy.title,
+          body: copy.body(requestedMinutes, appLabel),
+        },
+        data: {
+          familyId,
+          requestId,
+          appPackage,
+          appLabel,
+          requestedMinutes: String(requestedMinutes),
+        },
+        android: {
+          priority: "high",
+        },
+      });
+      sent += response.successCount;
+      response.responses.forEach((r, idx) => {
+        if (r.error && DEAD_TOKEN_ERRORS.has(r.error.code)) dead.push(batch[idx]);
+      });
+    }
+    await pruneTokens(owners, dead);
 
-    logger.info(
-      `Sent ${response.successCount}/${tokens.length} pushes for ${requestId}.`,
-    );
+    logger.info(`Sent ${sent}/${tokens.length} pushes for ${requestId}.`);
   },
 );
 
-/**
- * Collects FCM tokens for everyone who should be notified about a family's
- * requests: every member in the family's `roles` map (admins + users).
- * Falls back to the legacy `fcmTokens` array and legacy `admins` array.
- */
-async function loadMemberTokens(familyId: string): Promise<string[]> {
-  const db = getFirestore();
-  const familyDoc = await db.collection("families").doc(familyId).get();
+const FCM_MULTICAST_LIMIT = 500;
 
-  // Legacy demo-family path: tokens stored directly on the family doc.
-  const direct = (familyDoc.get("fcmTokens") as string[] | undefined) ?? [];
-  if (direct.length > 0) return Array.from(new Set(direct));
+/** Same shape the Firestore rules accept for package-name doc ids. */
+const PACKAGE_NAME_RE = /^[A-Za-z0-9_.]{1,255}$/;
+const REQUEST_COOLDOWN_MS = 60 * 1000;
+const MAX_LABEL_CHARS = 60;
+
+/**
+ * The app label is written by the TV and shown in the parents' notification.
+ * Strip control and bidi-override characters (which can visually reorder or
+ * hide text, e.g. to disguise a message as a system alert) and cap the length.
+ * Returns null when nothing usable is left, so the caller falls back to the
+ * package name.
+ */
+export function sanitizeLabel(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const cleaned = raw
+    // Whitespace (incl. newlines/tabs) first becomes single spaces, so
+    // "Kids\nTV" stays two words; then the remaining C0/C1 controls and
+    // Unicode bidi overrides/isolates are dropped.
+    .replace(/\s+/g, " ")
+    .replace(/[\u0000-\u001F\u007F-\u009F\u202A-\u202E\u2066-\u2069\u200E\u200F\u061C]/g, "")
+    .trim();
+  if (!cleaned) return null;
+  return cleaned.length > MAX_LABEL_CHARS ? `${cleaned.slice(0, MAX_LABEL_CHARS - 1)}…` : cleaned;
+}
+
+/** FCM errors meaning the token will never work again (app uninstalled, token rotated). */
+const DEAD_TOKEN_ERRORS = new Set([
+  "messaging/registration-token-not-registered",
+  "messaging/invalid-registration-token",
+]);
+
+/** Where a member's FCM tokens live — readable/writable only by that user (see firestore.rules). */
+function pushDoc(uid: string) {
+  return getFirestore().collection("users").doc(uid).collection("private").doc("push");
+}
+
+/**
+ * Maps each FCM token to the member who registered it, for everyone who
+ * should hear about a family's requests: each uid in the family's `roles`
+ * whose own users/{uid}.familyId still points here. A removed member drops
+ * out of `roles`; a member who switched family fails the familyId check —
+ * either way their devices stop getting this family's notifications.
+ *
+ * Tokens used to live on the family doc (readable by every member and the
+ * TV, never removed). That field is ignored and deleted here.
+ */
+async function loadMemberTokens(familyId: string): Promise<Map<string, string>> {
+  const db = getFirestore();
+  const familyRef = db.collection("families").doc(familyId);
+  const familyDoc = await familyRef.get();
+  if (familyDoc.get("fcmTokens") !== undefined) {
+    await familyRef.update({ fcmTokens: FieldValue.delete() });
+  }
 
   const roles = (familyDoc.get("roles") as Record<string, string> | undefined) ?? {};
   const uids = Object.keys(roles);
-  if (uids.length === 0) {
-    // Legacy schema fallback.
-    const admins = (familyDoc.get("admins") as string[] | undefined) ?? [];
-    uids.push(...admins);
-  }
-  if (uids.length === 0) return [];
+  const owners = new Map<string, string>();
+  if (uids.length === 0) return owners;
 
-  const tokens: string[] = [];
-  for (const uid of uids) {
-    const userDoc = await db.collection("users").doc(uid).get();
-    const userTokens = (userDoc.get("fcmTokens") as string[] | undefined) ?? [];
-    tokens.push(...userTokens);
+  const userDocs = await db.getAll(...uids.map((uid) => db.collection("users").doc(uid)));
+  const current = userDocs.filter((d) => d.get("familyId") === familyId).map((d) => d.id);
+  if (current.length === 0) return owners;
+
+  const pushDocs = await db.getAll(...current.map(pushDoc));
+  for (const snap of pushDocs) {
+    const uid = snap.ref.parent.parent!.id;
+    for (const token of (snap.get("tokens") as string[] | undefined) ?? []) {
+      if (typeof token === "string" && token) owners.set(token, uid);
+    }
   }
-  return Array.from(new Set(tokens));
+  return owners;
+}
+
+/** Removes tokens FCM reported as permanently invalid from their owners' push docs. */
+async function pruneTokens(owners: Map<string, string>, dead: string[]): Promise<void> {
+  if (dead.length === 0) return;
+  const byUid = new Map<string, string[]>();
+  for (const token of dead) {
+    const uid = owners.get(token);
+    if (uid) byUid.set(uid, [...(byUid.get(uid) ?? []), token]);
+  }
+  const batch = getFirestore().batch();
+  byUid.forEach((tokens, uid) => {
+    batch.set(pushDoc(uid), { tokens: FieldValue.arrayRemove(...tokens) }, { merge: true });
+  });
+  await batch.commit();
+  logger.info(`Pruned ${dead.length} dead FCM token(s).`);
 }
 
 // ---------------------------------------------------------------------------
@@ -146,22 +262,25 @@ function requireAuth(req: CallableRequest): string {
   return uid;
 }
 
-function sixDigit(): string {
-  return Math.floor(Math.random() * 1_000_000).toString().padStart(6, "0");
-}
-
-/** Allocates a collision-free 6-digit code in [collection]. */
+/**
+ * Allocates a collision-free code from [generate] in [collection]. A doc whose
+ * expiresAt has passed counts as free and is overwritten — otherwise expired
+ * pairings (only deleted when claimed) would gradually fill the code space.
+ */
 async function allocateCode(
   collection: string,
+  generate: () => string,
   build: (code: string) => Record<string, unknown>,
 ): Promise<string> {
   const db = getFirestore();
   for (let i = 0; i < MAX_CODE_ATTEMPTS; i++) {
-    const code = sixDigit();
+    const code = generate();
     const ref = db.collection(collection).doc(code);
     const created = await db.runTransaction(async (tx) => {
       const snap = await tx.get(ref);
-      if (snap.exists) return false;
+      const expiresAt = snap.get("expiresAt") as Timestamp | undefined;
+      const live = snap.exists && (!expiresAt || expiresAt.toMillis() >= Date.now());
+      if (live) return false;
       tx.set(ref, build(code));
       return true;
     });
@@ -180,8 +299,7 @@ async function allocateCode(
 /** An admin creates a 6-digit invite for their family (48h TTL). */
 export const createFamilyInvite = onCall(async (req) => {
   const uid = requireAuth(req);
-  const familyId = req.data?.familyId as string | undefined;
-  if (!familyId) throw new HttpsError("invalid-argument", "familyId is required.");
+  const familyId = requireString(req, "familyId", FAMILY_ID_RE);
 
   const db = getFirestore();
   const fam = await db.collection("families").doc(familyId).get();
@@ -195,7 +313,7 @@ export const createFamilyInvite = onCall(async (req) => {
     });
   }
 
-  const code = await allocateCode("invites", () => ({
+  const code = await allocateCode("invites", inviteCode, () => ({
     familyId,
     createdBy: uid,
     createdAt: FieldValue.serverTimestamp(),
@@ -211,8 +329,16 @@ export const createFamilyInvite = onCall(async (req) => {
  */
 export const joinFamilyWithInvite = onCall(async (req) => {
   const uid = requireAuth(req);
-  const code = req.data?.code as string | undefined;
-  if (!code) throw new HttpsError("invalid-argument", "code is required.");
+  requireNonAnonymous(req);
+  const raw = requireString(req, "code", /^[\sA-Za-z0-9-]{1,32}$/);
+  await consume(`join_${uid}`, JOIN_LIMIT.max, JOIN_LIMIT.windowMs);
+
+  // A well-formed-but-wrong guess and a malformed one get the same answer,
+  // so the response never hints at the code format.
+  const code = normalizeInviteCode(raw);
+  if (!isInviteCode(code)) {
+    throw new HttpsError("not-found", "Invalid code.", { reason: "code_invalid" });
+  }
 
   const db = getFirestore();
   const inviteRef = db.collection("invites").doc(code);
@@ -240,6 +366,15 @@ export const joinFamilyWithInvite = onCall(async (req) => {
       });
     }
 
+    // Already a member (e.g. an admin opening their own invite): keep their
+    // role — writing "user" here would demote them, and the admin SDK skips
+    // the rule that keeps the owner an admin. Leave the invite unused.
+    const roles = (fam.get("roles") as Record<string, string> | undefined) ?? {};
+    if (roles[uid] !== undefined) {
+      tx.set(db.collection("users").doc(uid), { familyId: fid }, { merge: true });
+      return fid;
+    }
+
     tx.update(familyRef, { [`roles.${uid}`]: "user" });
     tx.set(db.collection("users").doc(uid), { familyId: fid }, { merge: true });
     tx.update(inviteRef, { used: true, usedBy: uid });
@@ -256,7 +391,8 @@ export const joinFamilyWithInvite = onCall(async (req) => {
 /** The TV (anonymous auth) requests a 6-digit pairing code (10m TTL). */
 export const createTvPairing = onCall(async (req) => {
   const deviceId = requireAuth(req); // TV's anonymous uid == deviceId
-  const code = await allocateCode("pairings", () => ({
+  await consume(`pairCreate_${deviceId}`, CREATE_PAIRING_LIMIT.max, CREATE_PAIRING_LIMIT.windowMs);
+  const code = await allocateCode("pairings", () => numericCode(6), () => ({
     deviceId,
     createdAt: FieldValue.serverTimestamp(),
     expiresAt: Timestamp.fromMillis(Date.now() + PAIRING_TTL_MS),
@@ -270,11 +406,10 @@ export const createTvPairing = onCall(async (req) => {
  */
 export const claimTvPairing = onCall(async (req) => {
   const uid = requireAuth(req);
-  const code = req.data?.code as string | undefined;
-  const familyId = req.data?.familyId as string | undefined;
-  if (!code || !familyId) {
-    throw new HttpsError("invalid-argument", "code and familyId are required.");
-  }
+  requireNonAnonymous(req);
+  const code = requireString(req, "code", SIX_DIGIT_RE);
+  const familyId = requireString(req, "familyId", FAMILY_ID_RE);
+  await consume(`pairClaim_${uid}`, CLAIM_LIMIT.max, CLAIM_LIMIT.windowMs);
 
   const db = getFirestore();
   const fam = await db.collection("families").doc(familyId).get();
@@ -360,11 +495,8 @@ export const claimTvPairing = onCall(async (req) => {
  */
 export const redeemCode = onCall(async (req) => {
   const deviceId = requireAuth(req);
-  const familyId = req.data?.familyId as string | undefined;
-  const code = req.data?.code as string | undefined;
-  if (!familyId || !code) {
-    throw new HttpsError("invalid-argument", "familyId and code are required.");
-  }
+  const familyId = requireString(req, "familyId", FAMILY_ID_RE);
+  const code = requireString(req, "code", SIX_DIGIT_RE);
 
   const db = getFirestore();
   const familyRef = db.collection("families").doc(familyId);
@@ -389,11 +521,25 @@ export const redeemCode = onCall(async (req) => {
       });
     }
 
-    // (2) Lockout — refuse before consuming the code.
+    // (2) Lockout — refuse before consuming the code. A timer lock whose
+    // lockedUntil has passed is over by server time, whether or not the TV
+    // has cleared it yet; any write below also clears it. A lock with no
+    // lockedUntil (parent mode, or escalated) only ends when a parent
+    // unlocks.
     const lockoutSnap = await tx.get(lockoutRef);
-    if (lockoutSnap.exists && lockoutSnap.get("locked") === true) {
+    const lockedUntil = lockoutSnap.get("lockedUntil") as Timestamp | undefined;
+    const timerLockExpired =
+      lockoutSnap.get("mode") !== "parent" &&
+      lockedUntil !== undefined &&
+      lockedUntil.toMillis() <= Date.now();
+    const isLocked = lockoutSnap.get("locked") === true && !timerLockExpired;
+    if (isLocked) {
       return { kind: "locked" };
     }
+    const clearExpired: Record<string, unknown> =
+      lockoutSnap.get("locked") === true
+        ? { locked: false, lockedUntil: FieldValue.delete() }
+        : {};
 
     // (3) Code validation + consumption.
     const codeSnap = await tx.get(codeRef);
@@ -425,26 +571,46 @@ export const redeemCode = onCall(async (req) => {
         const durationMinutes =
           (lockoutSnap.get("durationMinutes") as number | undefined) ??
           DEFAULT_LOCKOUT_MINUTES;
-        const isParentMode = lockoutSnap.get("mode") === "parent";
-        const update: Record<string, unknown> = {
-          locked: true,
-          failureCount: 0,
-          failureWindowStart: FieldValue.delete(),
-          lockedAt: FieldValue.serverTimestamp(),
-        };
-        if (!isParentMode) {
-          update.lockedUntil = Timestamp.fromMillis(
-            now + durationMinutes * 60_000,
-          );
-        }
-        tx.set(lockoutRef, update, { merge: true });
+
+        // Escalation: the Nth timer lockout within 24h becomes a
+        // parent-unlock lock, capping unattended guessing at roughly
+        // MAX_WRONG_CODE_ATTEMPTS × (ESCALATE_AFTER_LOCKOUTS) tries per day.
+        const lockWindowStart = (lockoutSnap.get("lockoutWindowStart") as Timestamp | undefined)?.toMillis();
+        const lockWindowFresh =
+          lockWindowStart === undefined || now - lockWindowStart > LOCKOUT_ESCALATION_WINDOW_MS;
+        const lockoutCount = lockWindowFresh
+          ? 1
+          : ((lockoutSnap.get("lockoutCount") as number | undefined) ?? 0) + 1;
+        const needsParent =
+          lockoutSnap.get("mode") === "parent" || lockoutCount >= ESCALATE_AFTER_LOCKOUTS;
+
+        tx.set(
+          lockoutRef,
+          {
+            locked: true,
+            failureCount: 0,
+            failureWindowStart: FieldValue.delete(),
+            lockedAt: FieldValue.serverTimestamp(),
+            lockoutCount,
+            lockoutWindowStart: lockWindowFresh
+              ? Timestamp.fromMillis(now)
+              : Timestamp.fromMillis(lockWindowStart!),
+            // Always written: a parent lock must not inherit a stale
+            // lockedUntil from an earlier timer lock (that would read as
+            // already expired).
+            lockedUntil: needsParent
+              ? FieldValue.delete()
+              : Timestamp.fromMillis(now + durationMinutes * 60_000),
+          },
+          { merge: true },
+        );
       } else {
         const windowStart: Timestamp = windowExpired
           ? Timestamp.now()
           : (rawWindowStart ?? Timestamp.now());
         tx.set(
           lockoutRef,
-          { failureCount: newCount, failureWindowStart: windowStart },
+          { ...clearExpired, failureCount: newCount, failureWindowStart: windowStart },
           { merge: true },
         );
       }
@@ -455,7 +621,7 @@ export const redeemCode = onCall(async (req) => {
     tx.delete(codeRef);
     tx.set(
       lockoutRef,
-      { failureCount: 0, failureWindowStart: FieldValue.delete() },
+      { ...clearExpired, failureCount: 0, failureWindowStart: FieldValue.delete() },
       { merge: true },
     );
     return { kind: "ok", extraMinutes: minutes };

@@ -15,6 +15,13 @@ data class LockoutSettings(
     val locked: Boolean = false,
     val lockedUntil: Instant? = null,
 ) {
+    /**
+     * A lock with no [lockedUntil] — parent mode, or a timer lock the server
+     * escalated after repeated lockouts — only ends when a parent unlocks.
+     */
+    val needsParent: Boolean
+        get() = locked && (mode == LockoutMode.PARENT_UNLOCK || lockedUntil == null)
+
     companion object {
         const val DEFAULT_DURATION_MINUTES = 15
         const val MAX_ATTEMPTS = 5

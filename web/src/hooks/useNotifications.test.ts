@@ -18,14 +18,14 @@ describe('useNotificationStatus', () => {
   });
 
   it('reads the current browser permission as the initial status', () => {
-    const { result } = renderHook(() => useNotificationStatus('fam-1'));
+    const { result } = renderHook(() => useNotificationStatus('uid-1'));
     expect(result.current.status).toBe('default');
     expect(result.current.enabling).toBe(false);
   });
 
   it('reports unsupported when the Notification API is unavailable', () => {
     (globalThis as { Notification?: unknown }).Notification = undefined;
-    const { result } = renderHook(() => useNotificationStatus('fam-1'));
+    const { result } = renderHook(() => useNotificationStatus('uid-1'));
     expect(result.current.status).toBe('unsupported');
   });
 
@@ -34,19 +34,19 @@ describe('useNotificationStatus', () => {
       (globalThis as { Notification?: unknown }).Notification = { permission: 'granted' };
       return true;
     });
-    const { result } = renderHook(() => useNotificationStatus('fam-1'));
+    const { result } = renderHook(() => useNotificationStatus('uid-1'));
 
     act(() => result.current.enable());
     expect(result.current.enabling).toBe(true);
 
     await waitFor(() => expect(result.current.enabling).toBe(false));
-    expect(push.enableNotifications).toHaveBeenCalledWith('fam-1');
+    expect(push.enableNotifications).toHaveBeenCalledWith('uid-1');
     expect(result.current.status).toBe('granted');
   });
 
   it('enable() still resolves status on failure instead of leaving enabling stuck', async () => {
     vi.mocked(push.enableNotifications).mockRejectedValue(new Error('boom'));
-    const { result } = renderHook(() => useNotificationStatus('fam-1'));
+    const { result } = renderHook(() => useNotificationStatus('uid-1'));
 
     act(() => result.current.enable());
     await waitFor(() => expect(result.current.enabling).toBe(false));

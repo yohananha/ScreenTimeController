@@ -9,6 +9,7 @@ import { RedesignLayout } from '../redesign/RedesignLayout';
 import { useLimits } from '../../hooks/useLimits';
 import { usePairedDevices } from '../../hooks/usePairedDevices';
 import { UNLIMITED } from '../../models/Limits';
+import { needsParentUnlock } from '../../models/LockoutSettings';
 import { formatLimitLabel, packageDisplayName, summarizeSchedule } from '../../i18n/format';
 import { PickAppDialog, EditLimitDialog, EditOverallLimitDialog } from '../limits/LimitsScreen';
 import { EditLockoutDialog } from '../settings/SettingsScreen';
@@ -42,7 +43,7 @@ export function RulesScreen({
       <SettingsRow label={t('limits.overallLimitTitle')} value={overallValue} onClick={() => setEditingOverall(true)} />
       <SettingsRow label={t('limits.allowedHours')} value={summarizeSchedule(state.timeFrame)} onClick={onOpenTimeFrame} showTopBorder />
       <SettingsRow label={t('limits.codeLockout')} value={lockoutValue} onClick={() => setEditingLockout(true)} showTopBorder />
-      {lockout.locked && lockout.mode === 'PARENT_UNLOCK' && (
+      {needsParentUnlock(lockout) && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 12 }}>
           <span style={{ fontSize: 13, fontWeight: 500, color: peachPlumColor.over }}>{t('limits.lockoutLockedNotice')}</span>
           <button

@@ -9,6 +9,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { ProgressBar } from '../../components/ProgressBar';
 import { useHistory } from '../../hooks/useHistory';
 import { totalMillis, type UsageSnapshot } from '../../models/UsageSnapshot';
+import { localIsoDate } from '../../models/localDate';
 
 function totalMinutes(snapshot: UsageSnapshot): number {
   return Math.floor(totalMillis(snapshot) / 60_000);
@@ -63,7 +64,7 @@ export function HistoryScreen({ familyId }: { familyId: string }) {
 function WeeklyBarChartCard({ snapshots }: { snapshots: UsageSnapshot[] }) {
   const { t } = useTranslation();
   const maxMinutes = Math.max(1, ...snapshots.map(totalMinutes));
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = localIsoDate();
 
   return (
     <div style={{ background: colors.surface, borderRadius: radius.input, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>

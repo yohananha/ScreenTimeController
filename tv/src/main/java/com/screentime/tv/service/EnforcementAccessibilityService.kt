@@ -7,7 +7,9 @@ import com.screentime.shared.format.ClockFormat
 import com.screentime.shared.limits.BonusStore
 import com.screentime.shared.limits.LimitsProvider
 import com.screentime.shared.model.Limits
+import com.screentime.shared.time.TrustedClock
 import com.screentime.tv.overlay.BlockOverlayController
+import com.screentime.tv.time.TvHeartbeat
 import com.screentime.tv.usage.CountablePackages
 import com.screentime.tv.usage.UsagePermission
 import com.screentime.tv.usage.UsageRecorder
@@ -24,8 +26,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import java.time.Duration
-import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
@@ -40,6 +40,8 @@ class EnforcementAccessibilityService : AccessibilityService() {
     @Inject lateinit var overlay: BlockOverlayController
     @Inject lateinit var bonusStore: BonusStore
     @Inject lateinit var clockFormat: ClockFormat
+    @Inject lateinit var trustedClock: TrustedClock
+    @Inject lateinit var heartbeat: TvHeartbeat
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val foregroundPackage = MutableStateFlow<String?>(null)
@@ -59,6 +61,13 @@ class EnforcementAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         Log.i(TAG, "Service connected.")
+
+        // Anchor the trusted clock (and stamp lastSeen) before anything is
+        // evaluated, and floor today's usage with what Room already holds.
+        scope.launch {
+            heartbeat.beat()
+            usageTracker.restoreToday()
+        }
 
         // Re-evaluate when limits change — so a tightened limit (or "Block
         // everything") takes effect immediately without an app switch.
@@ -83,7 +92,7 @@ class EnforcementAccessibilityService : AccessibilityService() {
                 val pkg = foregroundPackage.value ?: return@collectLatest
                 evaluate(pkg)
                 expiresAt ?: return@collectLatest
-                val remaining = Duration.between(Instant.now(), expiresAt).toMillis()
+                val remaining = Duration.between(trustedClock.now(), expiresAt).toMillis()
                 if (remaining > 0) {
                     delay(remaining)
                     foregroundPackage.value?.let { evaluate(it) }
@@ -96,9 +105,13 @@ class EnforcementAccessibilityService : AccessibilityService() {
         // so UsageWorker cannot do this — it stays on as the backstop for when
         // this service isn't running.
         scope.launch {
+            var ticks = 0
             minuteTicker().collect {
+                // Every HEARTBEAT_EVERY_MINUTES: re-anchor the clock and tell
+                // parents enforcement is still running (devices/{id}.lastSeen).
+                if (++ticks % HEARTBEAT_EVERY_MINUTES == 0) heartbeat.beat()
                 val perPackage = sample()
-                if (perPackage != null) usageRecorder.record(LocalDate.now(), perPackage)
+                if (perPackage != null) usageRecorder.record(trustedClock.today(), perPackage)
                 foregroundPackage.value?.let { pkg -> evaluate(pkg, perPackage) }
             }
         }
@@ -141,7 +154,11 @@ class EnforcementAccessibilityService : AccessibilityService() {
         // Parent-initiated instant lock — absolute override, nothing pierces
         // it, but it self-clears at midnight rather than staying locked
         // indefinitely (mirrors allowAllDayDate below).
-        if (limits.instantLockedDate == LocalDate.now().toString()) {
+        // "Today" and "now" are trusted time (TrustedClock), not the device
+        // clock — moving the TV's date used to lift an instant lock, re-open
+        // allowed hours, or start a fresh daily quota.
+        val today = trustedClock.today().toString()
+        if (limits.instantLockedDate == today) {
             Log.d(TAG, "Eval $pkg: instant lock active")
             block(pkg, BlockReason.InstantLocked)
             return
@@ -149,7 +166,7 @@ class EnforcementAccessibilityService : AccessibilityService() {
 
         // Parent toggled "Allow all day" for today, or turned on "keep
         // allowing every day" — nothing blocks.
-        if (limits.allowAllDayIndefinite || limits.allowAllDayDate == LocalDate.now().toString()) {
+        if (limits.allowAllDayIndefinite || limits.allowAllDayDate == today) {
             Log.d(TAG, "Eval $pkg: allow-all-day active")
             unblock()
             return
@@ -179,7 +196,7 @@ class EnforcementAccessibilityService : AccessibilityService() {
         }
 
         // Outside allowed hours — block even if daily quota hasn't been used.
-        val now = LocalDateTime.now()
+        val now = trustedClock.localNow()
         if (!limits.timeFrame.isAllowedAt(now)) {
             val nextLabel = limits.timeFrame.nextAllowedMinute(now)
                 ?.let { clockFormat.timeOfDay(it.toLocalTime()) }
@@ -246,6 +263,7 @@ class EnforcementAccessibilityService : AccessibilityService() {
 
     companion object {
         private const val TAG = "EnforcementSvc"
+        private const val HEARTBEAT_EVERY_MINUTES = 5
     }
 }
 

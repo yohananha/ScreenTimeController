@@ -127,12 +127,12 @@ export function FamilyOnboardingScreen() {
             <div style={{ marginTop: 18 }}>
               <div style={{ ...typography.label, color: colors.inkFaint }}>{t('onboarding.inviteCodeLabel')}</div>
               <div style={{ marginTop: 10 }}>
-                <CodeSlotInput value={code} onValueChange={setCode} />
+                <CodeSlotInput value={code} onValueChange={setCode} slots={8} alphanumeric />
               </div>
               <div style={{ marginTop: 14 }}>
                 <SproutPrimaryButton
                   onClick={() => joinByCode(code)}
-                  disabled={code.length !== 6 || state.joining}
+                  disabled={code.length !== 8 || state.joining}
                   style={{ width: '100%' }}
                 >
                   {state.joining ? t('onboarding.joining') : t('onboarding.continue')}

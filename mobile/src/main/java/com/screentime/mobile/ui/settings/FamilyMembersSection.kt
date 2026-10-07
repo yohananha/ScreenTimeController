@@ -41,6 +41,7 @@ import com.screentime.mobile.R
 import com.screentime.mobile.ui.components.PeachPlumDangerButton
 import com.screentime.mobile.ui.components.PeachPlumGhostButton
 import com.screentime.mobile.ui.components.PeachPlumPrimaryButton
+import com.screentime.mobile.ui.components.formatInviteCode
 import com.screentime.mobile.ui.family.FamilyViewModel
 import com.screentime.mobile.ui.theme.PeachPlum
 import com.screentime.mobile.ui.theme.PeachPlumRadius
@@ -350,7 +351,7 @@ private fun InvitePanel(inviteCode: String?, onRefresh: () -> Unit) {
                         .padding(horizontal = 16.dp, vertical = 10.dp),
                 ) {
                     Text(
-                        inviteCode,
+                        formatInviteCode(inviteCode),
                         style = PeachPlum.typography.bodyStrong,
                         color = PeachPlum.colors.ink,
                     )

@@ -11,7 +11,7 @@ import { enableNotifications } from '../firebase/push';
  * unlike Android, which grants POST_NOTIFICATIONS at install time. Shown
  * once per session until dismissed or granted.
  */
-export function NotificationsPrompt({ familyId }: { familyId: string }) {
+export function NotificationsPrompt({ uid }: { uid: string }) {
   const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(
     () => typeof Notification !== 'undefined' && Notification.permission !== 'default',
@@ -39,7 +39,7 @@ export function NotificationsPrompt({ familyId }: { familyId: string }) {
         </SproutGhostButton>
         <SproutPrimaryButton
           onClick={() => {
-            void enableNotifications(familyId).finally(() => setDismissed(true));
+            void enableNotifications(uid).finally(() => setDismissed(true));
           }}
           style={{ padding: '8px 14px' }}
         >

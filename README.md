@@ -66,7 +66,7 @@ ScreenTimeController/
 ├── web/             # Parent web app (React + Vite + TypeScript) — replaces mobile/
 ├── mobile/          # Parent phone app (Jetpack Compose + Material 3) — legacy, being phased out
 ├── tv/              # Android TV app (Jetpack Compose for TV)
-├── functions/       # Firebase Cloud Functions (TypeScript/Node 20)
+├── functions/       # Firebase Cloud Functions (TypeScript/Node 22)
 ├── firestore.rules  # Firestore security rules
 └── firebase.json    # Firebase project config (Firestore, Functions, Hosting)
 ```
@@ -82,7 +82,7 @@ ScreenTimeController/
 ### Prerequisites
 
 - Android Studio Giraffe or newer (for `mobile/` and `tv/`)
-- Node 20+ and `npm` (for `web/` and Cloud Functions)
+- Node 22+ and `npm` (for `web/` and Cloud Functions)
 - A Firebase project on the **Blaze** (pay-as-you-go) plan
 
 ### Firebase project
@@ -169,4 +169,4 @@ The TV app asks for three permissions on first launch; all three are required fo
 | Async (Android) | Kotlin Coroutines + Flow |
 | Backend | Firebase (Firestore, Auth, FCM, Cloud Functions, Hosting) |
 | Crash reporting (mobile, legacy) | Firebase Crashlytics |
-| Cloud Functions runtime | Node 20 / TypeScript |
+| Cloud Functions runtime | Node 22 / TypeScript |

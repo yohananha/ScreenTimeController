@@ -4,7 +4,9 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.screentime.shared.limits.BonusStore
+import com.screentime.shared.time.TrustedClock
 import com.screentime.tv.locale.TvLocaleController
+import com.screentime.tv.time.TvHeartbeat
 import com.screentime.tv.usage.CountablePackages
 import com.screentime.tv.usage.DailyResetWorker
 import com.screentime.tv.usage.PackageChangeReceiver
@@ -26,6 +28,12 @@ class ScreenTimeTvApp : Application(), Configuration.Provider {
 
     @Inject lateinit var countablePackages: CountablePackages
 
+    @Inject lateinit var trustedClock: TrustedClock
+
+    // Like localeController: injected so it is constructed at process start
+    // and starts mirroring the family time zone into the trusted clock.
+    @Inject lateinit var heartbeat: TvHeartbeat
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -43,6 +51,6 @@ class ScreenTimeTvApp : Application(), Configuration.Provider {
         // If WorkManager missed yesterday's midnight (device off, app killed,
         // etc.) catch up immediately so bonus minutes don't survive into a new
         // day.
-        DailyResetWorker.runIfOverdue(this, bonusStore)
+        DailyResetWorker.runIfOverdue(this, bonusStore, trustedClock.today())
     }
 }
