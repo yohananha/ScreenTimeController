@@ -308,6 +308,8 @@
   },
   "account": {
     "signOut": "התנתקות",
+    "signOutTitle": "להתנתק?",
+    "signOutBody": "לא תקבלו יותר התראות על בקשות זמן במכשיר הזה עד שתתחברו שוב.",
     "title": "חשבון",
     "deleteAccount": "מחיקת החשבון שלי",
     "deleteFamily": "מחיקת המשפחה",

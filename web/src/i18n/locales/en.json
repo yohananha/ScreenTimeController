@@ -300,6 +300,8 @@
   },
   "account": {
     "signOut": "Sign out",
+    "signOutTitle": "Sign out?",
+    "signOutBody": "You’ll stop getting time-request notifications on this device until you sign in again.",
     "title": "Account",
     "deleteAccount": "Delete my account",
     "deleteFamily": "Delete family",

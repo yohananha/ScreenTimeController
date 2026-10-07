@@ -292,6 +292,8 @@
     <string name="whats_new_v0_1_22_bullet_3">אזור חשבון חדש במסך המשפחה: התנתקות, או מחיקת החשבון או המשפחה.</string>
     <string name="account_title">חשבון</string>
     <string name="account_sign_out">התנתקות</string>
+    <string name="account_sign_out_title">להתנתק?</string>
+    <string name="account_sign_out_body">לא תקבלו יותר התראות על בקשות זמן במכשיר הזה עד שתתחברו שוב.</string>
     <string name="account_delete_account">מחיקת החשבון שלי</string>
     <string name="account_delete_family">מחיקת המשפחה</string>
     <string name="account_delete_account_title">למחוק את החשבון?</string>
