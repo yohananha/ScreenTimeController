@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.semantics.Role
@@ -37,6 +38,7 @@ fun PeachPlumPrimaryButton(
     Row(
         modifier = modifier
             .then(shadowMod)
+            .clip(shape)
             .background(bg, shape)
             .semantics { role = Role.Button }
             .clickable(enabled = enabled, onClick = onClick)
@@ -53,6 +55,10 @@ fun PeachPlumPrimaryButton(
     }
 }
 
+/**
+ * Outlined button. [destructive] draws it in the error red — for actions
+ * like deleting an account, so they don't read the same as e.g. Sign out.
+ */
 @Composable
 fun PeachPlumGhostButton(
     text: String,
@@ -60,11 +66,14 @@ fun PeachPlumGhostButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     contentPadding: PaddingValues = PaddingValues(horizontal = 22.dp, vertical = 13.dp),
+    destructive: Boolean = false,
     leading: @Composable (RowScope.() -> Unit)? = null,
 ) {
+    val accent = if (destructive) PeachPlum.colors.overText else null
     Row(
         modifier = modifier
-            .border(BorderStroke(1.5.dp, PeachPlum.colors.outline), PeachPlumRadius.pill)
+            .clip(PeachPlumRadius.pill)
+            .border(BorderStroke(1.5.dp, accent ?: PeachPlum.colors.outline), PeachPlumRadius.pill)
             .semantics { role = Role.Button }
             .clickable(enabled = enabled, onClick = onClick)
             .padding(contentPadding),
@@ -75,7 +84,7 @@ fun PeachPlumGhostButton(
         Text(
             text = text,
             style = PeachPlum.typography.label,
-            color = PeachPlum.colors.ink,
+            color = accent ?: PeachPlum.colors.ink,
         )
     }
 }
@@ -88,6 +97,7 @@ fun PeachPlumDangerButton(
 ) {
     Row(
         modifier = modifier
+            .clip(PeachPlumRadius.pill)
             .background(PeachPlum.colors.overDisplay, PeachPlumRadius.pill)
             .semantics { role = Role.Button }
             .clickable(onClick = onClick)
