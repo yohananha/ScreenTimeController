@@ -69,11 +69,6 @@ service cloud.firestore {
       return !(k in d) || d[k] is bool;
     }
 
-    function optString(k, maxLen) {
-      let d = request.resource.data;
-      return !(k in d) || (d[k] is string && d[k].size() <= maxLen);
-    }
-
     function optNullableDate(k) {
       let d = request.resource.data;
       return !(k in d) || d[k] == null || (d[k] is string && d[k].matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'));

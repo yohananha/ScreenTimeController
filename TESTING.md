@@ -21,7 +21,7 @@ on GitHub Actions, while slower instrumented UI tests run on release tags.
 ### Prerequisites
 
 - JDK 17 (Temurin recommended)
-- Node 20 + `npm i -g firebase-tools` (for the web app, Functions, and rules tests)
+- Node 22 + `npm i -g firebase-tools` (for the web app, Functions, and rules tests)
 - An Android SDK install for AndroidTest runs (optional unless you want UI)
 
 ### One-shot
