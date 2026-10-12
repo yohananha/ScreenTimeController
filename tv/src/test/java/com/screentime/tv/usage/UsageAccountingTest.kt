@@ -221,6 +221,51 @@ class UsageAccountingTest {
         assertThat(run(listOf(pause(netflix, min(20))))).isEmpty()
     }
 
+    private fun event(pkg: String, type: Int, activity: String, at: Long) =
+        UsageEventRecord(pkg, type, at, className = activity)
+
+    @Test
+    fun `switching activities inside one app keeps counting`() {
+        // Real lifecycle order: the old activity pauses, the new one resumes,
+        // and only then does the old one report STOPPED. That late STOPPED
+        // must not end the session the new activity just opened.
+        val result = run(
+            listOf(
+                event(netflix, UsageAccounting.ACTIVITY_RESUMED, "Browse", min(10)),
+                event(netflix, UsageAccounting.ACTIVITY_PAUSED, "Browse", min(12)),
+                event(netflix, UsageAccounting.ACTIVITY_RESUMED, "Player", min(12)),
+                event(netflix, UsageAccounting.ACTIVITY_STOPPED, "Browse", min(12)),
+                event(netflix, UsageAccounting.ACTIVITY_PAUSED, "Player", min(70)),
+            ),
+        )
+        assertThat(result).containsExactly(netflix, 60 * 60_000L)
+    }
+
+    @Test
+    fun `a late stop of the previous activity leaves a still-open session running`() {
+        val result = run(
+            listOf(
+                event(netflix, UsageAccounting.ACTIVITY_RESUMED, "Splash", min(10)),
+                event(netflix, UsageAccounting.ACTIVITY_PAUSED, "Splash", min(10)),
+                event(netflix, UsageAccounting.ACTIVITY_RESUMED, "Main", min(10)),
+                event(netflix, UsageAccounting.ACTIVITY_STOPPED, "Splash", min(11)),
+            ),
+            now = min(50),
+        )
+        assertThat(result).containsExactly(netflix, 40 * 60_000L)
+    }
+
+    @Test
+    fun `a close for the activity in front still ends the session`() {
+        val result = run(
+            listOf(
+                event(youtube, UsageAccounting.ACTIVITY_RESUMED, "Main", min(10)),
+                event(youtube, UsageAccounting.ACTIVITY_STOPPED, "Main", min(25)),
+            ),
+        )
+        assertThat(result).containsExactly(youtube, 15 * 60_000L)
+    }
+
     @Test
     fun `no events produces an empty map`() {
         assertThat(run(emptyList())).isEmpty()

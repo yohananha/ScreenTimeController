@@ -65,6 +65,7 @@ class UsageTracker @Inject constructor(
                 packageName = event.packageName.orEmpty(),
                 eventType = event.eventType,
                 timestampMillis = event.timeStamp,
+                className = event.className,
             )
         }
 

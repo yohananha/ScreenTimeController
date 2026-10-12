@@ -9,6 +9,8 @@ data class UsageEventRecord(
     val packageName: String,
     val eventType: Int,
     val timestampMillis: Long,
+    /** The activity the event is about; null when unknown or device-wide. */
+    val className: String? = null,
 )
 
 /**
@@ -70,9 +72,18 @@ object UsageAccounting {
     ): Map<String, Long> {
         val result = mutableMapOf<String, Long>()
         val openAt = mutableMapOf<String, Long>()
+        // The activity that most recently resumed in each open package. An app
+        // switching between its own activities (splash -> browse -> player)
+        // reports A PAUSED, B RESUMED, *then* A STOPPED — so a close event
+        // only ends the session when it is about the activity that is
+        // actually in front. Without this, A's late STOPPED closed the
+        // package just after B opened it, and the whole time spent in B (the
+        // player, typically) went uncounted until the next app switch.
+        val openActivity = mutableMapOf<String, String?>()
         var lastEventAt = Long.MIN_VALUE
 
         fun close(pkg: String, at: Long) {
+            openActivity.remove(pkg)
             val start = openAt.remove(pkg) ?: return
             result.merge(pkg, (at - start).coerceAtLeast(0)) { a, b -> a + b }
         }
@@ -101,14 +112,21 @@ object UsageAccounting {
                     // launcher coming forward that ends the app the child just
                     // backed out of.
                     closeAllExcept(pkg, at)
-                    if (pkg in countable) openAt.putIfAbsent(pkg, at)
+                    if (pkg in countable) {
+                        openAt.putIfAbsent(pkg, at)
+                        openActivity[pkg] = event.className
+                    }
                 }
 
                 // A second RESUMED without an intervening close means we missed
                 // the close event; putIfAbsent above keeps the earliest start,
                 // which is the honest reading — overwriting silently discards
                 // that stretch.
-                ACTIVITY_PAUSED, ACTIVITY_STOPPED -> if (pkg.isNotEmpty()) close(pkg, at)
+                ACTIVITY_PAUSED, ACTIVITY_STOPPED -> if (pkg.isNotEmpty() && pkg in openAt) {
+                    val front = openActivity[pkg]
+                    val closing = event.className
+                    if (front == null || closing == null || front == closing) close(pkg, at)
+                }
             }
         }
 
