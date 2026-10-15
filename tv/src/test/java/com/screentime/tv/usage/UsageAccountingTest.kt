@@ -72,14 +72,53 @@ class UsageAccountingTest {
     }
 
     @Test
-    fun `activity stopped closes a session`() {
+    fun `a stop on its own never closes a session`() {
+        // E.g. the copy of the app left in an older task stopping minutes
+        // after the app was reopened from a home-screen recommendation.
         val result = run(
             listOf(
                 resume(netflix, min(10)),
-                UsageEventRecord(netflix, UsageAccounting.ACTIVITY_STOPPED, min(18)),
+                UsageEventRecord(netflix, UsageAccounting.ACTIVITY_STOPPED, min(13)),
+            ),
+            now = min(40),
+        )
+        assertThat(result).containsExactly(netflix, 30 * 60_000L)
+    }
+
+    @Test
+    fun `a pause followed by a stop counts only up to the pause`() {
+        val result = run(
+            listOf(
+                resume(netflix, min(10)),
+                pause(netflix, min(18)),
+                UsageEventRecord(netflix, UsageAccounting.ACTIVITY_STOPPED, min(19)),
             ),
         )
         assertThat(result).containsExactly(netflix, 8 * 60_000L)
+    }
+
+    @Test
+    fun `a session already open at the window start counts from the window start`() {
+        val result = UsageAccounting.foregroundMillis(
+            events = listOf(resume(netflix, midnight - 30 * 60_000L), pause(netflix, min(20))),
+            countable = setOf(netflix),
+            nowMillis = min(600),
+            windowEndMillis = endOfDay,
+            windowStartMillis = midnight,
+        )
+        assertThat(result).containsExactly(netflix, 20 * 60_000L)
+    }
+
+    @Test
+    fun `a session entirely before the window start counts nothing`() {
+        val result = UsageAccounting.foregroundMillis(
+            events = listOf(resume(netflix, midnight - 30 * 60_000L), pause(netflix, midnight - 60_000L)),
+            countable = setOf(netflix),
+            nowMillis = min(600),
+            windowEndMillis = endOfDay,
+            windowStartMillis = midnight,
+        )
+        assertThat(result).isEmpty()
     }
 
     @Test
@@ -260,7 +299,7 @@ class UsageAccountingTest {
         val result = run(
             listOf(
                 event(youtube, UsageAccounting.ACTIVITY_RESUMED, "Main", min(10)),
-                event(youtube, UsageAccounting.ACTIVITY_STOPPED, "Main", min(25)),
+                event(youtube, UsageAccounting.ACTIVITY_PAUSED, "Main", min(25)),
             ),
         )
         assertThat(result).containsExactly(youtube, 15 * 60_000L)

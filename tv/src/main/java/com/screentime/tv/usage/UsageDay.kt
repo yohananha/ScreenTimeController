@@ -21,6 +21,12 @@ import kotlin.math.abs
  * Over-counting is possible after a jump *back* (the new frame can overlap
  * real earlier usage); that errs on the side of less screen time, never more.
  *
+ * It also holds a second, independent count: foreground time the
+ * accessibility service observed directly, minute by minute ([accrueLive]).
+ * Each package's total is the larger of the two, so a gap in the platform's
+ * event log — a missing RESUMED, a stray close event — can no longer make
+ * time on screen vanish from the count.
+ *
  * Pure (no Android) so it can be unit-tested; [UsageTracker] drives it.
  */
 class UsageDay {
@@ -33,6 +39,8 @@ class UsageDay {
     private var segmentOffset = 0L
     private var highWater: Map<String, Long> = emptyMap()
     private var seed: Pair<LocalDate, Map<String, Long>>? = null
+    private var liveDay: LocalDate? = null
+    private var live: Map<String, Long> = emptyMap()
 
     /**
      * The wall-clock window to query for [today]. [dayStartTrusted] /
@@ -58,11 +66,31 @@ class UsageDay {
     /** Folds the current segment's counts in; returns the day's (never-decreasing) total. */
     @Synchronized
     fun fold(segment: Map<String, Long>): Map<String, Long> {
-        val total = sum(bank, segment)
+        val observed = if (liveDay == day) live else emptyMap()
+        val total = sum(bank, segment).let { counted ->
+            (counted.keys + observed.keys).associateWith { pkg ->
+                maxOf(counted[pkg] ?: 0L, observed[pkg] ?: 0L)
+            }
+        }
         highWater = (highWater.keys + total.keys).associateWith { pkg ->
             maxOf(highWater[pkg] ?: 0L, total[pkg] ?: 0L)
         }
         return highWater
+    }
+
+    /**
+     * Credits [millis] of foreground time for [pkg] on [date], as observed
+     * directly rather than reconstructed from usage events. Measured with
+     * the monotonic clock by the caller, so a clock change can't inflate it.
+     */
+    @Synchronized
+    fun accrueLive(date: LocalDate, pkg: String, millis: Long) {
+        if (millis <= 0) return
+        if (date != liveDay) {
+            liveDay = date
+            live = emptyMap()
+        }
+        live = live + (pkg to (live[pkg] ?: 0L) + millis)
     }
 
     /**
