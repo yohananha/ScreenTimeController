@@ -30,7 +30,15 @@ object UsageAccounting {
     /** Closes a session. Same value as `UsageEvents.Event.MOVE_TO_BACKGROUND`. */
     const val ACTIVITY_PAUSED = 2
 
-    /** Closes a session. `UsageEvents.Event.ACTIVITY_STOPPED`, public since API 29. */
+    /**
+     * `UsageEvents.Event.ACTIVITY_STOPPED`, public since API 29. Deliberately
+     * *not* a closing event: an activity is always paused before it stops, so
+     * the PAUSED already closed any session a STOPPED could legitimately end.
+     * What a STOPPED adds is noise from instances that are not in front — the
+     * copy left behind in an older task when the app is reopened from a
+     * home-screen recommendation can report STOPPED minutes into playback,
+     * and closing on it froze the count while the child kept watching.
+     */
     const val ACTIVITY_STOPPED = 23
 
     // Device-wide closing events. These carry no meaningful package name, so
@@ -55,13 +63,17 @@ object UsageAccounting {
     const val MAX_OPEN_SESSION_MILLIS = 6 * 60 * 60 * 1000L
 
     /**
-     * @param events all events in the day's window, in ascending timestamp order.
+     * @param events all events from [windowStartMillis] minus a look-back
+     *   (so a session already open at the window start is seen), in ascending
+     *   timestamp order.
      * @param countable packages allowed to accrue time; everything else is dropped.
      * @param nowMillis wall clock, used to close sessions still open at the end.
      * @param windowEndMillis exclusive end of the day being accounted for.
      * @param screenInteractiveNow whether the panel is awake right now. When it
      *   is not, a session left open never ran past the last event we saw, so it
      *   is credited only that far rather than up to [nowMillis].
+     * @param windowStartMillis start of the counted window. Sessions that began
+     *   earlier (watching across midnight) are credited from here on only.
      */
     fun foregroundMillis(
         events: List<UsageEventRecord>,
@@ -69,22 +81,21 @@ object UsageAccounting {
         nowMillis: Long,
         windowEndMillis: Long,
         screenInteractiveNow: Boolean = true,
+        windowStartMillis: Long = Long.MIN_VALUE,
     ): Map<String, Long> {
         val result = mutableMapOf<String, Long>()
         val openAt = mutableMapOf<String, Long>()
-        // The activity that most recently resumed in each open package. An app
-        // switching between its own activities (splash -> browse -> player)
-        // reports A PAUSED, B RESUMED, *then* A STOPPED — so a close event
-        // only ends the session when it is about the activity that is
-        // actually in front. Without this, A's late STOPPED closed the
-        // package just after B opened it, and the whole time spent in B (the
-        // player, typically) went uncounted until the next app switch.
+        // The activity that most recently resumed in each open package. A
+        // PAUSED only ends the session when it is about the activity that is
+        // actually in front, so a late lifecycle report from another of the
+        // app's own activities (splash -> browse -> player) can't close the
+        // session the newer activity just opened.
         val openActivity = mutableMapOf<String, String?>()
         var lastEventAt = Long.MIN_VALUE
 
         fun close(pkg: String, at: Long) {
             openActivity.remove(pkg)
-            val start = openAt.remove(pkg) ?: return
+            val start = openAt.remove(pkg)?.coerceAtLeast(windowStartMillis) ?: return
             result.merge(pkg, (at - start).coerceAtLeast(0)) { a, b -> a + b }
         }
 
@@ -122,7 +133,7 @@ object UsageAccounting {
                 // the close event; putIfAbsent above keeps the earliest start,
                 // which is the honest reading — overwriting silently discards
                 // that stretch.
-                ACTIVITY_PAUSED, ACTIVITY_STOPPED -> if (pkg.isNotEmpty() && pkg in openAt) {
+                ACTIVITY_PAUSED -> if (pkg.isNotEmpty() && pkg in openAt) {
                     val front = openActivity[pkg]
                     val closing = event.className
                     if (front == null || closing == null || front == closing) close(pkg, at)
@@ -135,7 +146,8 @@ object UsageAccounting {
         } else {
             minOf(lastEventAt, nowMillis, windowEndMillis)
         }
-        for ((pkg, start) in openAt) {
+        for ((pkg, opened) in openAt) {
+            val start = opened.coerceAtLeast(windowStartMillis)
             val delta = (cutoff - start).coerceAtLeast(0).coerceAtMost(MAX_OPEN_SESSION_MILLIS)
             result.merge(pkg, delta) { a, b -> a + b }
         }

@@ -1,8 +1,10 @@
 package com.screentime.tv.service
 
 import android.accessibilityservice.AccessibilityService
+import android.os.SystemClock
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityWindowInfo
 import com.screentime.shared.format.ClockFormat
 import com.screentime.shared.limits.BonusStore
 import com.screentime.shared.limits.LimitsProvider
@@ -106,7 +108,26 @@ class EnforcementAccessibilityService : AccessibilityService() {
         // this service isn't running.
         scope.launch {
             var ticks = 0
+            var lastActiveApp: String? = null
+            var lastTickAt = 0L
             minuteTicker().collect {
+                // Credit the minute to the app whose window was active at
+                // both ends of it — a floor under the event-log count, so
+                // time on screen is counted even when the platform's usage
+                // events are incomplete. Capped so a stalled tick can't
+                // credit a long stretch it didn't observe.
+                val activeApp = activeAppPackage()
+                val tickAt = SystemClock.elapsedRealtime()
+                if (activeApp != null && activeApp == lastActiveApp && lastTickAt != 0L) {
+                    usageTracker.creditObservedForeground(
+                        pkg = activeApp,
+                        millis = (tickAt - lastTickAt).coerceAtMost(MAX_OBSERVED_CREDIT_MILLIS),
+                        alwaysCount = currentLimits.value.perApp.keys,
+                    )
+                }
+                lastActiveApp = activeApp
+                lastTickAt = tickAt
+
                 // Every HEARTBEAT_EVERY_MINUTES: re-anchor the clock and tell
                 // parents enforcement is still running (devices/{id}.lastSeen).
                 if (++ticks % HEARTBEAT_EVERY_MINUTES == 0) heartbeat.beat()
@@ -145,6 +166,24 @@ class EnforcementAccessibilityService : AccessibilityService() {
     private fun sample(): Map<String, Long>? {
         if (!UsagePermission.isGranted(this)) return null
         return usageTracker.millisPerPackage(alwaysCount = currentLimits.value.perApp.keys)
+    }
+
+    /**
+     * The package of the application window that has focus right now, or null
+     * when the active window isn't an app (screensaver, a system panel, our
+     * own block overlay) or windows can't be read. Transient system windows
+     * like the volume bar are not application windows, so they don't hide the
+     * app playing underneath.
+     */
+    private fun activeAppPackage(): String? = try {
+        windows
+            .firstOrNull { it.type == AccessibilityWindowInfo.TYPE_APPLICATION && (it.isActive || it.isFocused) }
+            ?.root
+            ?.packageName
+            ?.toString()
+    } catch (t: RuntimeException) {
+        Log.w(TAG, "Could not read the active window", t)
+        null
     }
 
     private suspend fun evaluate(pkg: String, sampled: Map<String, Long>? = null) {
@@ -264,6 +303,7 @@ class EnforcementAccessibilityService : AccessibilityService() {
     companion object {
         private const val TAG = "EnforcementSvc"
         private const val HEARTBEAT_EVERY_MINUTES = 5
+        private const val MAX_OBSERVED_CREDIT_MILLIS = 2 * 60_000L
     }
 }
 

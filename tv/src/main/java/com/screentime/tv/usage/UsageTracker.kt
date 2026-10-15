@@ -56,7 +56,13 @@ class UsageTracker @Inject constructor(
             wallNow = wallNow,
         )
 
-        val events = manager.queryEvents(window.beginWallMillis, window.endWallMillis)
+        // Look back before the window so a session already open at its start
+        // (watching across midnight, or across a clock jump) is seen and
+        // credited from the window start, instead of not at all.
+        val events = manager.queryEvents(
+            window.beginWallMillis - UsageAccounting.MAX_OPEN_SESSION_MILLIS,
+            window.endWallMillis,
+        )
         val records = mutableListOf<UsageEventRecord>()
         val event = UsageEvents.Event()
         while (events.hasNextEvent()) {
@@ -75,8 +81,21 @@ class UsageTracker @Inject constructor(
             nowMillis = wallNow,
             windowEndMillis = window.endWallMillis,
             screenInteractiveNow = power.isInteractive,
+            windowStartMillis = window.beginWallMillis,
         )
         return usageDay.fold(segment)
+    }
+
+    /**
+     * Credits [millis] to [pkg] as directly observed foreground time — the
+     * accessibility service's per-minute view of which app window is active.
+     * Counted on the same terms as the event log: only countable packages,
+     * never this app, and only while the screen is on. See [UsageDay.accrueLive].
+     */
+    fun creditObservedForeground(pkg: String, millis: Long, alwaysCount: Set<String> = emptySet()) {
+        if (pkg == context.packageName || !power.isInteractive) return
+        if (pkg !in alwaysCount && pkg !in countablePackages.packages()) return
+        usageDay.accrueLive(clock.today(), pkg, millis)
     }
 
     /**

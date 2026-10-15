@@ -56,6 +56,38 @@ class UsageDayTest {
         assertThat(u.fold(emptyMap())).isEmpty()
     }
 
+    @Test fun `observed foreground time floors an event count that fell short`() {
+        val u = UsageDay()
+        u.window(today, dayStart, dayEnd, offset = 0, wallNow = dayStart + 3_600_000)
+        repeat(30) { u.accrueLive(today, yt, 60_000L) }
+        // The event log only saw 3 of the 30 minutes.
+        assertThat(u.fold(mapOf(yt to 3 * 60_000L))).isEqualTo(mapOf(yt to 30 * 60_000L))
+    }
+
+    @Test fun `observed time never adds to the event count, it only floors it`() {
+        val u = UsageDay()
+        u.window(today, dayStart, dayEnd, offset = 0, wallNow = dayStart + 3_600_000)
+        repeat(10) { u.accrueLive(today, yt, 60_000L) }
+        assertThat(u.fold(mapOf(yt to 40 * 60_000L))).isEqualTo(mapOf(yt to 40 * 60_000L))
+    }
+
+    @Test fun `observed time from another day is ignored`() {
+        val u = UsageDay()
+        u.accrueLive(today.minusDays(1), yt, 600_000L)
+        u.window(today, dayStart, dayEnd, offset = 0, wallNow = dayStart + 60_000)
+        assertThat(u.fold(emptyMap())).isEmpty()
+    }
+
+    @Test fun `observed time survives a clock jump`() {
+        val u = UsageDay()
+        u.window(today, dayStart, dayEnd, offset = 0, wallNow = dayStart + 600_000)
+        repeat(10) { u.accrueLive(today, yt, 60_000L) }
+        u.fold(emptyMap())
+        u.window(today, dayStart, dayEnd, offset = day, wallNow = dayStart + 600_000 + day)
+        repeat(5) { u.accrueLive(today, yt, 60_000L) }
+        assertThat(u.fold(emptyMap())).isEqualTo(mapOf(yt to 15 * 60_000L))
+    }
+
     @Test fun `seeded values from Room floor the total after a restart`() {
         val u = UsageDay()
         u.seed(today, mapOf(yt to 3_600_000L))
