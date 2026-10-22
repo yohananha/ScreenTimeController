@@ -44,6 +44,9 @@ data class AllowAllDayState(val date: String?, val indefinite: Boolean)
 /** State of the `limits/instantLock` doc — see [FirestoreRepository.setInstantLock]. */
 data class InstantLockState(val locked: Boolean, val date: String?)
 
+/** State of the `limits/bonus` doc — see [FirestoreRepository.addBonus]. */
+data class BonusState(val date: String?, val minutes: Int)
+
 /**
  * Single entry point for all Firestore reads/writes under each family doc.
  *
@@ -64,8 +67,9 @@ class FirestoreRepository @Inject constructor(
         perAppLimitsFlow(familyId),
         timeFrameFlow(familyId),
         allowAllDayFlow(familyId),
-        instantLockFlow(familyId),
-    ) { overallMinutes, perApp, timeFrame, allowAllDay, instantLock ->
+        // combine() is only typed up to five flows, so pair these two.
+        combine(instantLockFlow(familyId), bonusFlow(familyId)) { instantLock, bonus -> instantLock to bonus },
+    ) { overallMinutes, perApp, timeFrame, allowAllDay, (instantLock, bonus) ->
         Limits(
             overallDailyMinutes    = overallMinutes,
             perApp                 = perApp,
@@ -73,7 +77,58 @@ class FirestoreRepository @Inject constructor(
             allowAllDayDate        = allowAllDay.date,
             allowAllDayIndefinite  = allowAllDay.indefinite,
             instantLockedDate      = if (instantLock.locked) instantLock.date else null,
+            bonusDate              = bonus.date,
+            bonusMinutes           = bonus.minutes,
         )
+    }
+
+    private fun bonusFlow(familyId: String): Flow<BonusState> = callbackFlow {
+        val ref = db.collection("families").document(familyId)
+            .collection("limits").document("bonus")
+        var lastKnown: BonusState? = null
+        val registration = ref.addSnapshotListener { snap, error ->
+            if (error != null) {
+                Log.e(TAG, "bonusFlow($familyId) listener failed", error)
+                // Fail-secure: never invent a bonus; keep the last one we saw.
+                trySend(lastKnown ?: BonusState(null, 0))
+                return@addSnapshotListener
+            }
+            val value = BonusState(
+                date = snap?.stringOrNull(FIELD_BONUS_DATE),
+                minutes = snap?.intOrNull(FIELD_BONUS_MINUTES) ?: 0,
+            )
+            lastKnown = value
+            trySend(value)
+        }
+        awaitClose { registration.remove() }
+    }
+
+    /**
+     * Adds [minutes] to today's allowance. Same-day grants accumulate; a bonus
+     * left over from an earlier date is replaced. Each grant is also logged so
+     * parents can see the history.
+     */
+    suspend fun addBonus(familyId: String, minutes: Int) {
+        val today = clock.today().toString()
+        val family = db.collection("families").document(familyId)
+        val ref = family.collection("limits").document("bonus")
+        val logRef = family.collection("bonusLog").document()
+        val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+            ?: error("Not signed in")
+        db.runTransaction { tx ->
+            val snap = tx.get(ref)
+            val existing = if (snap.stringOrNull(FIELD_BONUS_DATE) == today) snap.intOrNull(FIELD_BONUS_MINUTES) ?: 0 else 0
+            tx.set(ref, mapOf(FIELD_BONUS_DATE to today, FIELD_BONUS_MINUTES to (existing + minutes).coerceAtMost(MAX_BONUS_MINUTES)))
+            tx.set(
+                logRef,
+                mapOf(
+                    "minutes" to minutes,
+                    "date" to today,
+                    "grantedBy" to uid,
+                    "createdAt" to FieldValue.serverTimestamp(),
+                ),
+            )
+        }.await()
     }
 
     private fun overallLimitFlow(familyId: String): Flow<Int> = callbackFlow {
@@ -950,6 +1005,9 @@ class FirestoreRepository @Inject constructor(
         const val FIELD_ALLDAY_INDEFINITE = "indefinite"
         const val FIELD_INSTANT_LOCKED = "locked"
         const val FIELD_INSTANT_LOCK_DATE = "date"
+        const val FIELD_BONUS_DATE = "date"
+        const val FIELD_BONUS_MINUTES = "extraMinutes"
+        const val MAX_BONUS_MINUTES = 1440
         const val FIELD_LANGUAGE_CODE = "code"
         const val FIELD_USER_LANGUAGE = "language"
     }

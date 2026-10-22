@@ -30,6 +30,8 @@ import javax.inject.Inject
 data class LimitsUiState(
     val limits: List<AppLimit> = emptyList(),
     val overallDailyMinutes: Int = Limits.DEFAULT_OVERALL_MINUTES,
+    /** Extra minutes granted for today only; 0 when none (or left over from an earlier day). */
+    val bonusMinutes: Int = 0,
     val availableApps: List<InstalledApp> = emptyList(),
     val lockout: LockoutSettings = LockoutSettings(),
     val timeFrame: TimeFrameSchedule = TimeFrameSchedule.DEFAULT,
@@ -71,6 +73,7 @@ open class LimitsViewModel @Inject constructor(
         LimitsUiState(
             limits = limits.perApp.values.sortedBy { it.packageName },
             overallDailyMinutes = limits.overallDailyMinutes,
+            bonusMinutes = limits.bonusFor(LocalDate.now().toString()),
             availableApps = apps,
             lockout = lockout,
             timeFrame = timeFrame,
@@ -89,6 +92,7 @@ open class LimitsViewModel @Inject constructor(
     fun setLimit(packageName: String, minutes: Int) = write { repo.setLimit(packageName, minutes) }
     fun removeLimit(packageName: String) = write { repo.removeLimit(packageName) }
     fun setOverallLimit(minutes: Int) = write { repo.setOverallLimit(minutes) }
+    fun addBonus(minutes: Int) = write { repo.addBonus(minutes) }
     fun setLockoutConfig(durationMinutes: Int, mode: LockoutMode) = write { repo.setLockoutConfig(durationMinutes, mode) }
     fun unlockNow() = write { repo.unlockNow() }
     fun allowAllDay() = write { repo.setAllowAllDay(LocalDate.now().toString()) }

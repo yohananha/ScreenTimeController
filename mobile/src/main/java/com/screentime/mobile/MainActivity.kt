@@ -34,6 +34,7 @@ import com.screentime.mobile.ui.family.FamilyScreen
 import com.screentime.mobile.ui.limits.TimeFrameScreen
 import com.screentime.mobile.ui.rules.RulesScreen
 import com.screentime.mobile.ui.theme.ScreenTimeTheme
+import com.screentime.mobile.ui.settings.UpdatePromptDialog
 import com.screentime.mobile.ui.theme.PeachPlum
 import com.screentime.mobile.ui.today.TodayScreen
 import com.screentime.mobile.whatsnew.WhatsNewDialog
@@ -82,8 +83,12 @@ private fun AppShell(
     val current by nav.currentBackStackEntryAsState()
     val currentRoute = current?.destination?.route ?: NavTab.Today.route
     val whatsNewEntry by whatsNewViewModel.entryToShow.collectAsState()
-    whatsNewEntry?.let { entry ->
-        WhatsNewDialog(entry = entry, onDismiss = whatsNewViewModel::dismiss)
+    // What's New first; the update prompt waits until it is dismissed.
+    val pendingWhatsNew = whatsNewEntry
+    if (pendingWhatsNew != null) {
+        WhatsNewDialog(entry = pendingWhatsNew, onDismiss = whatsNewViewModel::dismiss)
+    } else {
+        UpdatePromptDialog()
     }
     var unlockOpen by remember { mutableStateOf(false) }
 

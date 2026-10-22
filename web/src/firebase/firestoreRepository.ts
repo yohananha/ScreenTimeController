@@ -22,6 +22,7 @@ import {
   orderBy,
   query,
   limit as queryLimit,
+  runTransaction,
   serverTimestamp,
   setDoc,
   Timestamp,
@@ -34,7 +35,7 @@ import {
 } from 'firebase/firestore';
 import { FirebaseError } from 'firebase/app';
 import { httpsCallable } from 'firebase/functions';
-import { db, functions } from './app';
+import { auth, db, functions } from './app';
 import type { AppLimit, Limits } from '../models/Limits';
 import { defaultLimits, DEFAULT_OVERALL_MINUTES } from '../models/Limits';
 import type { DayOfWeek, TimeFrameSchedule, TimeFrameWindow } from '../models/TimeFrameSchedule';
@@ -54,6 +55,9 @@ import { localIsoDate } from '../models/localDate';
 // ── field/path constants (verbatim from FirestoreRepository.kt's companion object) ──
 const FIELD_MINUTES = 'dailyLimitMinutes';
 const FIELD_OVERALL_MINUTES = 'overallDailyMinutes';
+const FIELD_BONUS_DATE = 'date';
+const FIELD_BONUS_MINUTES = 'extraMinutes';
+const MAX_BONUS_MINUTES = 1440;
 const FIELD_LABEL = 'label';
 const FIELD_PER_APP_MILLIS = 'perAppMillis';
 const FIELD_DEVICES = 'devices';
@@ -248,6 +252,48 @@ export async function setInstantLock(familyId: string, locked: boolean): Promise
   } else {
     await setDoc(ref, { [FIELD_INSTANT_LOCKED]: false, [FIELD_INSTANT_LOCK_DATE]: deleteField() }, { merge: true });
   }
+}
+
+/**
+ * Emits today's bonus minutes. The TV only honours a bonus stamped with
+ * today's date, so a leftover from an earlier day is shown as 0 here too.
+ */
+export function subscribeBonus(
+  familyId: string,
+  cb: (minutes: number) => void,
+): Unsubscribe {
+  const ref = doc(db, 'families', familyId, 'limits', 'bonus');
+  let lastKnown = 0;
+  return onSnapshot(
+    ref,
+    (snap) => {
+      const data = snap.data();
+      const value = data?.[FIELD_BONUS_DATE] === localIsoDate() ? ((data?.[FIELD_BONUS_MINUTES] as number | undefined) ?? 0) : 0;
+      lastKnown = value;
+      cb(value);
+    },
+    () => cb(lastKnown),
+  );
+}
+
+/**
+ * Adds [minutes] to today's allowance. Same-day grants accumulate; a bonus
+ * left over from an earlier date is replaced. Each grant is also logged.
+ * Mirrors FirestoreRepository.addBonus (Kotlin).
+ */
+export async function addBonus(familyId: string, minutes: number): Promise<void> {
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error('Not signed in');
+  const today = localIsoDate();
+  const ref = doc(db, 'families', familyId, 'limits', 'bonus');
+  const logRef = doc(collection(db, 'families', familyId, 'bonusLog'));
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.data();
+    const existing = data?.[FIELD_BONUS_DATE] === today ? ((data?.[FIELD_BONUS_MINUTES] as number | undefined) ?? 0) : 0;
+    tx.set(ref, { [FIELD_BONUS_DATE]: today, [FIELD_BONUS_MINUTES]: Math.min(existing + minutes, MAX_BONUS_MINUTES) });
+    tx.set(logRef, { minutes, date: today, grantedBy: uid, createdAt: serverTimestamp() });
+  });
 }
 
 /** Combines the 5 limits sub-docs into one Limits object, mirroring FirestoreRepository.limitsFlow. */

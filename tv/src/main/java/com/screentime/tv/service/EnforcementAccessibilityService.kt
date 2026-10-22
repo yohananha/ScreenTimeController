@@ -252,12 +252,14 @@ class EnforcementAccessibilityService : AccessibilityService() {
         val perPackage = sampled
             ?: usageTracker.millisPerPackage(alwaysCount = limits.perApp.keys)
         val usedMillis = perPackage[pkg] ?: 0L
+        // A parent's same-day bonus raises both caps (stale-dated bonus = 0).
+        val bonusMillis = limits.bonusFor(today) * 60_000L
         val perAppExceeded = perAppLimit != null &&
-            usedMillis >= perAppLimit.dailyLimitMinutes * 60_000L
+            usedMillis >= perAppLimit.dailyLimitMinutes * 60_000L + bonusMillis
 
         val totalMillis = perPackage.values.sum()
         val overallExceeded = limits.overallDailyMinutes != Limits.UNLIMITED &&
-            totalMillis >= limits.overallDailyMinutes * 60_000L
+            totalMillis >= limits.overallDailyMinutes * 60_000L + bonusMillis
 
         Log.d(
             TAG,

@@ -5,6 +5,7 @@ import { SproutBottomNavBar } from '../components/BottomNavBar';
 import { NotificationsPrompt } from '../components/NotificationsPrompt';
 import { ForegroundToast } from '../components/ForegroundToast';
 import { AnnouncementModal } from '../components/AnnouncementModal';
+import { UpdateAvailableModal } from '../components/UpdateAvailableModal';
 import { syncNotificationToken } from '../firebase/push';
 import { ensureFamilyTimezone } from '../firebase/firestoreRepository';
 import { LimitsScreen } from '../screens/limits/LimitsScreen';
@@ -44,6 +45,7 @@ export function AppShell({ uid, familyId }: { uid: string; familyId: string }) {
     <div style={{ minHeight: '100vh', background: colors.background, display: 'flex', flexDirection: 'column' }}>
       <ForegroundToast />
       <AnnouncementModal />
+      <UpdateAvailableModal />
       {!isRedesign && (
         <div style={{ paddingTop: 8 }}>
           <NotificationsPrompt uid={uid} />

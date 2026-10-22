@@ -22,6 +22,12 @@
     "enable": "Enable",
     "enabling": "Enabling…"
   },
+  "updatePrompt": {
+    "title": "A new version is available",
+    "body": "Reload to get the latest fixes and features.",
+    "reload": "Reload now",
+    "later": "Later"
+  },
   "announcement": {
     "share": "Share your thoughts",
     "later": "Maybe later"
@@ -150,6 +156,7 @@
     "gaugeWordLeft": "left",
     "gaugeWordOver": "over",
     "gaugeCaption": "of {{limit}} · resets 00:00",
+    "gaugeCaptionBonus": "of {{limit}} + {{bonus}} bonus · resets 00:00",
     "noDailyLimit": "No daily limit",
     "noTvPaired": "No TV paired",
     "requestTitle": "{{minutes}} more minutes on {{app}}?",
@@ -168,6 +175,14 @@
   "family": {
     "subtitle": "Parents and TVs",
     "secondParent": "Second parent"
+  },
+  "bonus": {
+    "add": "Add bonus time",
+    "addAction": "Add {{count}} min",
+    "title": "Add bonus time",
+    "subtitle": "Extra time for today only. It reaches the TV right away.",
+    "custom": "Custom",
+    "customField": "Minutes (1–{{max}})"
   },
   "unlock": {
     "chooseSubtitle": "Your child types it on the TV. Single-use.",

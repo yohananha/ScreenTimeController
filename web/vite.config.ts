@@ -1,9 +1,23 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
+// One id per build. It is baked into the bundle and also written to
+// /version.json, so a tab running an older bundle can tell a newer deploy exists.
+const BUILD_ID = Date.now().toString(36);
+
+function versionFile(): Plugin {
+  return {
+    name: 'emit-version-json',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ buildId: BUILD_ID }) });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), versionFile()],
+  define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
   test: {
     environment: 'jsdom',
     globals: true,

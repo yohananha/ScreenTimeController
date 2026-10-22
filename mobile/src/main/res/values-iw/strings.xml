@@ -82,6 +82,13 @@
     <string name="today_gauge_word_left">נשארו</string>
     <string name="today_gauge_word_over">נגמר</string>
     <string name="today_gauge_caption">מתוך %1$s · מתאפס ב־00:00</string>
+    <string name="today_gauge_caption_bonus">מתוך %1$s + %2$s בונוס · מתאפס ב־00:00</string>
+    <string name="bonus_add">הוספת זמן בונוס</string>
+    <string name="bonus_add_action">הוספת %1$d דק׳</string>
+    <string name="bonus_title">הוספת זמן בונוס</string>
+    <string name="bonus_subtitle">זמן נוסף להיום בלבד. מגיע לטלוויזיה מיד.</string>
+    <string name="bonus_custom">מותאם אישית</string>
+    <string name="bonus_custom_field">דקות (1–%1$d)</string>
     <string name="today_mode_allow_caption">כל המגבלות מושהות עד חצות</string>
     <string name="today_no_daily_limit">אין מגבלה יומית</string>
     <string name="today_no_tv_paired">לא מחוברת טלוויזיה</string>
@@ -261,6 +268,11 @@
     <string name="settings_notifications_open_settings">הגדרות התראות</string>
     <string name="settings_about_title">אודות</string>
     <string name="settings_about_version">גרסה %1$s</string>
+    <string name="update_prompt_title">יצאה גרסה חדשה</string>
+    <string name="update_prompt_body">עדכנו עכשיו כדי לקבל את התיקונים והתכונות האחרונים.</string>
+    <string name="update_prompt_ready">ההורדה הסתיימה. הקישו על התקנה כדי להשלים את העדכון.</string>
+    <string name="update_prompt_now">עדכון עכשיו</string>
+    <string name="update_prompt_later">מאוחר יותר</string>
     <string name="update_check_button">בדיקת עדכונים</string>
     <string name="update_checking">בודק…</string>
     <string name="update_up_to_date">מותקנת אצלכם הגרסה העדכנית ביותר</string>
