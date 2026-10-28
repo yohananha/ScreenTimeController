@@ -170,3 +170,13 @@ The TV app asks for three permissions on first launch; all three are required fo
 | Backend | Firebase (Firestore, Auth, FCM, Cloud Functions, Hosting) |
 | Crash reporting (mobile, legacy) | Firebase Crashlytics |
 | Cloud Functions runtime | Node 22 / TypeScript |
+
+---
+
+## License
+
+Released under the [MIT License](LICENSE).
+
+## Contributing
+
+Pull requests are welcome. Please open an issue first for larger changes, and see [TESTING.md](TESTING.md) for how to run the test suite before submitting. Never commit Firebase credentials (`google-services.json`, service-account keys, `.firebaserc`); use your own Firebase project as described in [Setting up from source](#setting-up-from-source).
