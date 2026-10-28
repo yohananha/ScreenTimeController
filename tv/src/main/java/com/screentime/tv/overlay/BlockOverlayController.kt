@@ -62,6 +62,10 @@ class BlockOverlayController @Inject constructor(
     private val currentPackage = mutableStateOf<String?>(null)
     private val currentBlockReason = mutableStateOf(BlockReason.DailyLimitReached)
     private val nextWindowAt = mutableStateOf<String?>(null)
+    private val canGoHome = mutableStateOf(false)
+
+    /** Set by the enforcement service; backs the "Go home" button. */
+    var onGoHome: () -> Unit = {}
     private val backPressHandler = BackPressHandler()
     private var appliedLocale: Locale? = null
 
@@ -82,10 +86,11 @@ class BlockOverlayController @Inject constructor(
                     val pkg = currentPackage.value
                     val reason = currentBlockReason.value
                     val nextWindow = nextWindowAt.value
+                    val goHome = canGoHome.value
                     mainHandler.post {
                         hostedView?.let { windowManager.removeView(it) }
                         hostedView = null
-                        if (pkg != null) show(pkg, reason, nextWindow)
+                        if (pkg != null) show(pkg, reason, nextWindow, goHome)
                     }
                 }
             }
@@ -94,11 +99,17 @@ class BlockOverlayController @Inject constructor(
 
     // WindowManager + the Compose lifecycle/SavedState registries must be
     // touched from the main thread, but evaluate() runs on Dispatchers.Default.
-    fun show(blockedPackage: String, reason: BlockReason = BlockReason.DailyLimitReached, nextWindow: String? = null) {
+    fun show(
+        blockedPackage: String,
+        reason: BlockReason = BlockReason.DailyLimitReached,
+        nextWindow: String? = null,
+        canGoHome: Boolean = false,
+    ) {
         mainHandler.post {
             currentPackage.value = blockedPackage
             currentBlockReason.value = reason
             nextWindowAt.value = nextWindow
+            this.canGoHome.value = canGoHome
             if (hostedView == null) {
                 val localizedContext = localeController.wrap(context)
                 val composeView = ComposeView(localizedContext).apply {
@@ -144,6 +155,8 @@ class BlockOverlayController @Inject constructor(
                                     limits = limits,
                                     usedMillis = usedMillis,
                                     backPressHandler = backPressHandler,
+                                    canGoHome = this@BlockOverlayController.canGoHome.value,
+                                    onGoHome = { onGoHome() },
                                     onSubmitCode = { entered -> codeRedeemer.redeem(entered, currentPackage.value) },
                                     onSubmitRequest = { minutes ->
                                         val pkg = currentPackage.value

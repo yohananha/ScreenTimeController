@@ -50,6 +50,7 @@
     <string name="overlay_resets_midnight">מתאפס בחצות · %1$s</string>
     <string name="overlay_ask_parent_more_time">לבקש מהורה</string>
     <string name="overlay_enter_unlock_code">להקליד קוד</string>
+    <string name="overlay_go_home">למסך הבית</string>
 
     <string name="overlay_request_time_title">כמה עוד?</string>
     <string name="overlay_request_time_body">נשלח בקשה קצרה לטלפון של הורה.</string>

@@ -94,6 +94,8 @@ fun BlockOverlayContent(
     onSubmitCode: suspend (String) -> Boolean,
     onSubmitRequest: suspend (Int) -> Boolean,
     onLockoutTick: suspend () -> Unit,
+    canGoHome: Boolean = false,
+    onGoHome: () -> Unit = {},
 ) {
     var view by remember { mutableStateOf(OverlayView.Main) }
 
@@ -175,6 +177,7 @@ fun BlockOverlayContent(
                             limits = limits,
                             onRequestMore = { view = OverlayView.RequestTime },
                             onEnterCode = { view = OverlayView.NumPad },
+                            onGoHome = if (canGoHome) onGoHome else null,
                         )
                     }
                     OverlayView.NumPad -> NumPadView(
@@ -300,6 +303,7 @@ private fun MainView(
     limits: Limits,
     onRequestMore: () -> Unit,
     onEnterCode: () -> Unit,
+    onGoHome: (() -> Unit)?,
 ) {
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { try { focus.requestFocus() } catch (_: Exception) {} }
@@ -338,6 +342,9 @@ private fun MainView(
         Row(horizontalArrangement = Arrangement.spacedBy(36.dp), verticalAlignment = Alignment.CenterVertically) {
             TvPrimaryButton(text = stringResource(R.string.overlay_ask_parent_more_time), onClick = onRequestMore, focusRequester = focus)
             TvGhostButton(text = stringResource(R.string.overlay_enter_unlock_code), onClick = onEnterCode)
+            if (onGoHome != null) {
+                TvGhostButton(text = stringResource(R.string.overlay_go_home), onClick = onGoHome)
+            }
         }
     }
 }

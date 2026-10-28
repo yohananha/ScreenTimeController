@@ -8,6 +8,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -19,6 +20,7 @@ import com.screentime.tv.R
 import com.screentime.tv.service.BlockReason
 import com.screentime.tv.ui.theme.ScreenTimeTvTheme
 import java.util.Locale
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -73,6 +75,44 @@ class BlockOverlayContentTest {
         val expected = targetContext.getString(R.string.overlay_main_title) +
             targetContext.getString(R.string.overlay_main_title_accent)
         composeRule.onNodeWithText(expected).assertIsDisplayed()
+    }
+
+    private fun setDailyLimitContent(canGoHome: Boolean, onGoHome: () -> Unit = {}) {
+        composeRule.setContent {
+            ScreenTimeTvTheme {
+                BlockOverlayContent(
+                    blockedPackage = "com.example.videos",
+                    blockReason = BlockReason.DailyLimitReached,
+                    lockout = defaultLockout(),
+                    requestStatus = null,
+                    approvedMinutes = null,
+                    limits = defaultLimits(),
+                    usedMillis = 0L,
+                    backPressHandler = BackPressHandler(),
+                    onSubmitCode = { true },
+                    onSubmitRequest = { true },
+                    onLockoutTick = {},
+                    canGoHome = canGoHome,
+                    onGoHome = onGoHome,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun mainView_appSpecificLimit_showsGoHomeAndInvokesCallback() {
+        var wentHome = false
+        setDailyLimitContent(canGoHome = true, onGoHome = { wentHome = true })
+        val label = targetContext.getString(R.string.overlay_go_home)
+        composeRule.onNodeWithText(label).assertIsDisplayed()
+        composeRule.onNodeWithText(label).performClick()
+        assertTrue(wentHome)
+    }
+
+    @Test
+    fun mainView_overallLimit_hidesGoHome() {
+        setDailyLimitContent(canGoHome = false)
+        composeRule.onNodeWithText(targetContext.getString(R.string.overlay_go_home)).assertDoesNotExist()
     }
 
     @Test
