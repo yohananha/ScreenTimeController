@@ -9,6 +9,7 @@
     <string name="permission_overlay_body">ל-ScreenTime צריך הרשאה כדי להציג את מסך התזכורת כשנגמר הזמן.</string>
     <string name="permission_accessibility_headline">כמעט סיימנו!</string>
     <string name="permission_accessibility_body">הפעילו את שירות הנגישות של ScreenTime כדי שיוכל לדעת איזו אפליקציה פתוחה ולהתערב רק כשצריך. אם המסך לא מגיע ישירות לשם, חפשו את \"ScreenTime\" תחת נגישות ← שירותים שהורדו.</string>
+    <string name="permission_accessibility_restricted_hint">המתג חוזר לכבוי? אנדרואיד חוסם שירותי נגישות באפליקציות שהותקנו מחוץ ל-Google Play. במחשב, הריצו:\nadb shell appops set com.screentime.tv ACCESS_RESTRICTED_SETTINGS allow\nואז הפעילו שוב את השירות.</string>
     <string name="permission_open_settings">פתיחת הגדרות אנדרואיד</string>
     <string name="permission_why_needed">למה זה נחוץ?</string>
     <string name="permission_step_of">שלב %1$d מתוך %2$d</string>

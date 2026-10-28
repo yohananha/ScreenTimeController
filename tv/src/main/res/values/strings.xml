@@ -11,6 +11,7 @@
     <string name="permission_overlay_body">ScreenTime needs \"Display over other apps\" so it can show the gentle reminder when time\'s up.</string>
     <string name="permission_accessibility_headline">Almost there!</string>
     <string name="permission_accessibility_body">Turn on the ScreenTime accessibility service so it can tell which app is open and step in only when needed. If Android doesn\'t take you straight there, look for \"ScreenTime\" under Accessibility → Downloaded services.</string>
+    <string name="permission_accessibility_restricted_hint">Switch keeps turning off? Android blocks accessibility for apps installed outside the Play Store. On a computer, run:\nadb shell appops set com.screentime.tv ACCESS_RESTRICTED_SETTINGS allow\nthen turn the service on again.</string>
     <string name="permission_open_settings">Open Android settings</string>
     <string name="permission_why_needed">Why is this needed?</string>
     <string name="permission_step_of">Step %1$d of %2$d</string>
