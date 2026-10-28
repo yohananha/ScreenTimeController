@@ -13,6 +13,7 @@ function mockUseLimits(overrides: Partial<ReturnType<typeof useLimits>['state']>
     state: {
       limits: [],
       overallDailyMinutes: DEFAULT_OVERALL_MINUTES,
+      bonusMinutes: 0,
       availableApps: [],
       lockout: defaultLockoutSettings(),
       timeFrame: DEFAULT_TIME_FRAME_SCHEDULE,
@@ -27,6 +28,7 @@ function mockUseLimits(overrides: Partial<ReturnType<typeof useLimits>['state']>
     setLimit: vi.fn(),
     removeLimit: vi.fn(),
     setOverallLimit: vi.fn(),
+    addBonus: vi.fn(),
     setLockoutConfig: vi.fn(),
     unlockNow: vi.fn(),
     selectInstantLock: vi.fn(),

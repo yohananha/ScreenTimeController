@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { peachPlumColor, peachPlumSpacing } from '../../theme/tokens';
 import { appAccentFor } from '../../theme/appAccent';
@@ -5,7 +6,8 @@ import { TimeGauge } from '../../components/TimeGauge';
 import { ModeTiles, type TvMode } from '../../components/ModeTiles';
 import { RequestStrip } from '../../components/RequestStrip';
 import { UsageRow } from '../../components/UsageRow';
-import { SecondaryButton } from '../../components/Button';
+import { PrimaryButton, SecondaryButton } from '../../components/Button';
+import { BonusSheet } from '../../components/BonusSheet';
 import { wideCardStyle } from '../../components/WhiteCard';
 import { RedesignLayout } from '../redesign/RedesignLayout';
 import { useLimits } from '../../hooks/useLimits';
@@ -15,6 +17,9 @@ import { UNLIMITED } from '../../models/Limits';
 import { heartbeatOf, worstHeartbeatDevice } from '../../models/PairedDevice';
 import { DeviceHeartbeat } from '../../components/DeviceHeartbeat';
 import { formatHoursMinutesClock, formatLimitLabel, formatRelativeTime, packageDisplayName } from '../../i18n/format';
+
+/** At or below this many minutes left the bonus button switches to the primary style. */
+const LOW_TIME_MINUTES = 10;
 
 export function TodayScreen({
   familyId,
@@ -26,13 +31,14 @@ export function TodayScreen({
   onOpenFamily: () => void;
 }) {
   const { t, i18n } = useTranslation();
-  const { state, selectInstantLock, selectAllowAllDay, selectDefaultLimits } = useLimits(familyId);
+  const { state, selectInstantLock, selectAllowAllDay, selectDefaultLimits, addBonus } = useLimits(familyId);
+  const [bonusOpen, setBonusOpen] = useState(false);
   const { state: requestsState, approve, deny } = useRequests(familyId);
   const { devices } = usePairedDevices(familyId);
 
   const mode: TvMode = state.instantLocked ? 'lock' : state.allowAllDayActive ? 'allow' : 'limits';
   const noLimit = state.overallDailyMinutes === UNLIMITED;
-  const overallMs = noLimit ? 0 : state.overallDailyMinutes * 60_000;
+  const overallMs = noLimit ? 0 : (state.overallDailyMinutes + state.bonusMinutes) * 60_000;
   const usedMs = state.totalUsageMillis;
   const leftMinutes = noLimit ? 0 : Math.max(0, Math.round((overallMs - usedMs) / 60_000));
   const overLimit = !noLimit && overallMs > 0 && usedMs >= overallMs;
@@ -64,7 +70,24 @@ export function TodayScreen({
       ? t('limits.modeAllowCaption')
       : noLimit
         ? t('today.noDailyLimit')
-        : t('today.gaugeCaption', { limit: formatHoursMinutesClock(state.overallDailyMinutes) });
+        : state.bonusMinutes > 0
+          ? t('today.gaugeCaptionBonus', { limit: formatHoursMinutesClock(state.overallDailyMinutes), bonus: formatHoursMinutesClock(state.bonusMinutes) })
+          : t('today.gaugeCaption', { limit: formatHoursMinutesClock(state.overallDailyMinutes) });
+  // Under the gauge. Emphasised once time is nearly up; always reachable so
+  // a parent can top up ahead of time too.
+  const timeIsLow = overLimit || leftMinutes <= LOW_TIME_MINUTES;
+  const bonusButton =
+    mode === 'limits' && !noLimit ? (
+      timeIsLow ? (
+        <PrimaryButton onClick={() => setBonusOpen(true)} style={{ height: 44, fontSize: 14 }}>
+          {t('bonus.add')}
+        </PrimaryButton>
+      ) : (
+        <SecondaryButton onClick={() => setBonusOpen(true)} style={{ height: 44, fontSize: 14 }}>
+          {t('bonus.add')}
+        </SecondaryButton>
+      )
+    ) : null;
   const livePill = (
     <span
       style={{
@@ -140,8 +163,10 @@ export function TodayScreen({
 
   return (
     <RedesignLayout active="today" familyId={familyId}>
-      {({ isWide, openUnlock }) =>
-        isWide ? (
+      {({ isWide, openUnlock }) => (
+        <>
+        {bonusOpen && <BonusSheet onClose={() => setBonusOpen(false)} onAdd={addBonus} />}
+        {isWide ? (
           <main style={{ position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 22, padding: '36px 40px', boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -160,6 +185,7 @@ export function TodayScreen({
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                     {gauge}
                     <span style={{ fontSize: 13, fontWeight: 500, color: peachPlumColor.muted, marginTop: -6 }}>{caption}</span>
+                    {bonusButton}
                     {livePill}
                   </div>
                   {modeTiles}
@@ -236,6 +262,7 @@ export function TodayScreen({
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 8 }}>
               {gauge}
               <span style={{ fontSize: 13, fontWeight: 500, color: peachPlumColor.muted, marginTop: -6 }}>{caption}</span>
+              {bonusButton && <div style={{ marginTop: 12 }}>{bonusButton}</div>}
               <div style={{ marginTop: 10 }}>{livePill}</div>
             </div>
 
@@ -260,8 +287,9 @@ export function TodayScreen({
               {usageRows}
             </div>
           </div>
-        )
-      }
+        )}
+        </>
+      )}
     </RedesignLayout>
   );
 }

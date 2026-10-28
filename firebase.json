@@ -57,6 +57,15 @@
         ]
       },
       {
+        "source": "/version.json",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store"
+          }
+        ]
+      },
+      {
         "source": "/firebase-messaging-sw.js",
         "headers": [
           {

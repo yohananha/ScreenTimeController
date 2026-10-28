@@ -14,6 +14,8 @@ import { localIsoDate } from '../models/localDate';
 export interface LimitsUiState {
   limits: AppLimit[];
   overallDailyMinutes: number;
+  /** Extra minutes granted for today only; 0 when none. */
+  bonusMinutes: number;
   availableApps: InstalledApp[];
   lockout: LockoutSettings;
   timeFrame: TimeFrameSchedule;
@@ -26,6 +28,7 @@ export interface LimitsUiState {
 const initialState: LimitsUiState = {
   limits: [],
   overallDailyMinutes: DEFAULT_OVERALL_MINUTES,
+  bonusMinutes: 0,
   availableApps: [],
   lockout: defaultLockoutSettings(),
   timeFrame: DEFAULT_TIME_FRAME_SCHEDULE,
@@ -53,6 +56,10 @@ export function useLimits(familyId: string | null) {
       }),
       repo.subscribeOverallLimit(familyId, (minutes) => {
         partial.overallDailyMinutes = minutes;
+        commit();
+      }),
+      repo.subscribeBonus(familyId, (minutes) => {
+        partial.bonusMinutes = minutes;
         commit();
       }),
       repo.subscribeInstalledApps(familyId, (apps) => {
@@ -105,6 +112,10 @@ export function useLimits(familyId: string | null) {
     (minutes: number) => familyId && write(() => repo.setOverallLimit(familyId, minutes)),
     [familyId, write],
   );
+  const addBonus = useCallback(
+    (minutes: number) => familyId && write(() => repo.addBonus(familyId, minutes)),
+    [familyId, write],
+  );
   const setLockoutConfig = useCallback(
     (durationMinutes: number, mode: LockoutMode) =>
       familyId && write(() => repo.setLockoutConfig(familyId, durationMinutes, mode)),
@@ -148,6 +159,7 @@ export function useLimits(familyId: string | null) {
     setLimit,
     removeLimit,
     setOverallLimit,
+    addBonus,
     setLockoutConfig,
     unlockNow,
     selectInstantLock,

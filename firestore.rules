@@ -226,6 +226,31 @@ service cloud.firestore {
         allow delete: if isMemberOf(familyDoc(familyId));
       }
 
+      // Same-day extra minutes a parent grants with one tap. The TV ignores it
+      // once `date` is no longer today, so nothing needs cleaning up.
+      match /limits/bonus {
+        allow read: if canReadOf(familyDoc(familyId));
+        allow create, update: if isMemberOf(familyDoc(familyId))
+          && touchesOnly(['date', 'extraMinutes'])
+          && optNullableDate('date')
+          && optInt('extraMinutes', 0, 1440);
+        allow delete: if isMemberOf(familyDoc(familyId));
+      }
+
+      // Append-only history of bonus grants, visible to parents.
+      match /bonusLog/{id} {
+        allow read: if isMemberOf(familyDoc(familyId));
+        allow create: if isMemberOf(familyDoc(familyId))
+          && request.resource.data.keys().hasOnly(['minutes', 'date', 'grantedBy', 'createdAt'])
+          && request.resource.data.minutes is int
+          && request.resource.data.minutes >= 1 && request.resource.data.minutes <= 1440
+          && request.resource.data.date is string
+          && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+          && request.resource.data.grantedBy == request.auth.uid
+          && request.resource.data.createdAt is timestamp;
+        allow update, delete: if false;
+      }
+
       // Anything else under /limits (incl. the perApp doc itself): read-only.
       match /limits/{doc=**} {
         allow read: if canReadOf(familyDoc(familyId));

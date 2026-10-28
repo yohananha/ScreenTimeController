@@ -59,6 +59,7 @@
     <string name="overlay_resets_midnight">Resets at midnight · %1$s</string>
     <string name="overlay_ask_parent_more_time">Ask a parent</string>
     <string name="overlay_enter_unlock_code">Enter a code</string>
+    <string name="overlay_go_home">Go home</string>
 
     <string name="overlay_request_time_title">How much more?</string>
     <string name="overlay_request_time_body">We\'ll send a quick request to a parent\'s phone.</string>

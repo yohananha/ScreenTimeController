@@ -252,12 +252,14 @@ class EnforcementAccessibilityService : AccessibilityService() {
         val perPackage = sampled
             ?: usageTracker.millisPerPackage(alwaysCount = limits.perApp.keys)
         val usedMillis = perPackage[pkg] ?: 0L
+        // A parent's same-day bonus raises both caps (stale-dated bonus = 0).
+        val bonusMillis = limits.bonusFor(today) * 60_000L
         val perAppExceeded = perAppLimit != null &&
-            usedMillis >= perAppLimit.dailyLimitMinutes * 60_000L
+            usedMillis >= perAppLimit.dailyLimitMinutes * 60_000L + bonusMillis
 
         val totalMillis = perPackage.values.sum()
         val overallExceeded = limits.overallDailyMinutes != Limits.UNLIMITED &&
-            totalMillis >= limits.overallDailyMinutes * 60_000L
+            totalMillis >= limits.overallDailyMinutes * 60_000L + bonusMillis
 
         Log.d(
             TAG,
@@ -266,7 +268,9 @@ class EnforcementAccessibilityService : AccessibilityService() {
         )
 
         if (perAppExceeded || overallExceeded) {
-            block(pkg, BlockReason.DailyLimitReached)
+            // Only an app-specific block offers "Go home": the child can still
+            // use other apps. An exhausted overall limit leaves nowhere to go.
+            block(pkg, BlockReason.DailyLimitReached, canGoHome = perAppExceeded && !overallExceeded)
         } else {
             unblock()
         }
@@ -278,12 +282,24 @@ class EnforcementAccessibilityService : AccessibilityService() {
     // re-evaluates the same blocked pkg every 60s, and repeating
     // GLOBAL_ACTION_HOME on every tick would be redundant and could yank the
     // user out of the launcher's own menus if they're navigating it.
-    private fun block(pkg: String, reason: BlockReason, nextWindow: String? = null) {
+    private fun block(pkg: String, reason: BlockReason, nextWindow: String? = null, canGoHome: Boolean = false) {
         if (sentHomeFor != pkg && pkg != homeLauncherPackage) {
             performGlobalAction(GLOBAL_ACTION_HOME)
             sentHomeFor = pkg
         }
-        overlay.show(pkg, reason, nextWindow)
+        overlay.onGoHome = ::goHome
+        overlay.show(pkg, reason, nextWindow, canGoHome)
+    }
+
+    // The overlay's "Go home" button: leave the blocked app for the launcher
+    // and drop the overlay. The foreground package is moved to the launcher
+    // explicitly because block() suppresses the launcher's window event while
+    // sentHomeFor is set, so nothing else would clear the block.
+    private fun goHome() {
+        sentHomeFor = null
+        performGlobalAction(GLOBAL_ACTION_HOME)
+        homeLauncherPackage?.let { foregroundPackage.value = it }
+        overlay.hide()
     }
 
     private fun unblock() {

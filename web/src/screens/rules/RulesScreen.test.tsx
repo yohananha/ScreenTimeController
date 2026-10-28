@@ -33,6 +33,7 @@ describe('RulesScreen', () => {
       state: {
         limits: [{ packageName: 'com.example.youtube', dailyLimitMinutes: 60 }, { packageName: 'com.example.disney', dailyLimitMinutes: UNLIMITED }],
         overallDailyMinutes: 240,
+        bonusMinutes: 0,
         availableApps: [{ packageName: 'com.example.youtube', label: 'YouTube' }, { packageName: 'com.example.disney', label: 'Disney+' }],
         lockout: defaultLockoutSettings(),
         timeFrame: DEFAULT_TIME_FRAME_SCHEDULE,
@@ -46,6 +47,7 @@ describe('RulesScreen', () => {
       setLimit: vi.fn(),
       removeLimit: vi.fn(),
       setOverallLimit: vi.fn(),
+      addBonus: vi.fn(),
       setLockoutConfig: vi.fn(),
       unlockNow: vi.fn(),
       selectInstantLock: vi.fn(),

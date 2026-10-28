@@ -525,6 +525,42 @@ describe("schema: limits", () => {
   });
 });
 
+describe("bonus time", () => {
+  const bonus = (uid: string) => doc(ctx(uid), "families", FAM, "limits", "bonus");
+  const log = (uid: string) => collection(ctx(uid), "families", FAM, "bonusLog");
+  const entry = (grantedBy: string) => ({
+    minutes: 30,
+    date: "2026-10-22",
+    grantedBy,
+    createdAt: serverTimestamp(),
+  });
+
+  it("members can set today's bonus and log the grant", async () => {
+    await assertSucceeds(setDoc(bonus(USER), { date: "2026-10-22", extraMinutes: 30 }));
+    await assertSucceeds(setDoc(doc(log(USER)), entry(USER)));
+  });
+  it("the TV can read the bonus but never write it or the log", async () => {
+    await assertSucceeds(setDoc(bonus(USER), { date: "2026-10-22", extraMinutes: 30 }));
+    await assertSucceeds(getDoc(bonus(TV)));
+    await assertFails(setDoc(bonus(TV), { date: "2026-10-22", extraMinutes: 600 }));
+    await assertFails(setDoc(doc(log(TV)), entry(TV)));
+  });
+  it("rejects bad types, ranges, extra fields and strangers", async () => {
+    await assertFails(setDoc(bonus(USER), { date: "2026-10-22", extraMinutes: "30" }));
+    await assertFails(setDoc(bonus(USER), { date: "2026-10-22", extraMinutes: 99999 }));
+    await assertFails(setDoc(bonus(USER), { date: "soon", extraMinutes: 30 }));
+    await assertFails(setDoc(bonus(USER), { date: "2026-10-22", extraMinutes: 30, extra: 1 }));
+    await assertFails(setDoc(bonus(STRANGER), { date: "2026-10-22", extraMinutes: 30 }));
+  });
+  it("log entries must be attributed to the writer and are append-only", async () => {
+    await assertFails(setDoc(doc(log(USER)), entry(OWNER)));
+    await assertFails(setDoc(doc(log(USER)), { ...entry(USER), minutes: 0 }));
+    const ref = doc(log(USER));
+    await assertSucceeds(setDoc(ref, entry(USER)));
+    await assertFails(deleteDoc(ref));
+  });
+});
+
 describe("schema: codes", () => {
   const code = (id: string) => doc(ctx(USER), "families", FAM, "codes", id);
   it("rejects huge grants, far-future expiry, bad ids and extra fields", async () => {

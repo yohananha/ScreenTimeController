@@ -48,6 +48,12 @@ class LimitsRepository @Inject constructor(
         firestore.setOverallLimit(id, minutes)
     }
 
+    /** Grants [minutes] extra for today only (see [FirestoreRepository.addBonus]). */
+    suspend fun addBonus(minutes: Int) {
+        val id = familyIdProvider.familyId.value ?: return
+        firestore.addBonus(id, minutes)
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observeInstalledApps(): Flow<List<InstalledApp>> = familyIdProvider.familyId.flatMapLatest { id ->
         if (id == null) flowOf(emptyList()) else firestore.installedAppsFlow(id)

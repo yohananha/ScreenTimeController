@@ -20,7 +20,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -29,7 +31,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.screentime.mobile.R
+import com.screentime.mobile.ui.components.BonusSheet
 import com.screentime.mobile.ui.components.ModeTiles
+import com.screentime.mobile.ui.components.PeachPlumGhostButton
+import com.screentime.mobile.ui.components.PeachPlumPrimaryButton
 import com.screentime.mobile.ui.components.RequestStrip
 import com.screentime.mobile.ui.components.TimeGauge
 import com.screentime.mobile.ui.components.TvMode
@@ -46,6 +51,9 @@ import java.time.Duration
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
+/** At or below this many minutes left the bonus button switches to the primary style. */
+private const val LOW_TIME_MINUTES = 10
+
 @Composable
 fun TodayScreen(
     onOpenRules: () -> Unit,
@@ -59,10 +67,11 @@ fun TodayScreen(
     val devices by pairTvViewModel.pairedDevices.collectAsState()
     val hPad = rememberScreenPadding()
     val context = LocalContext.current
+    var showBonusSheet by remember { mutableStateOf(false) }
 
     val mode = if (state.instantLocked) TvMode.Lock else if (state.allowAllDayActive) TvMode.Allow else TvMode.Limits
     val noLimit = state.overallDailyMinutes == Limits.UNLIMITED
-    val overallMs = if (noLimit) 0L else state.overallDailyMinutes * 60_000L
+    val overallMs = if (noLimit) 0L else (state.overallDailyMinutes + state.bonusMinutes) * 60_000L
     val usedMs = state.totalUsageMillis
     val leftMinutes = if (noLimit) 0 else ((overallMs - usedMs) / 60_000L).coerceAtLeast(0).toInt()
     val overLimit = !noLimit && overallMs > 0 && usedMs >= overallMs
@@ -73,6 +82,10 @@ fun TodayScreen(
     val locale = LocalConfiguration.current.locales[0]
     val dateLabel = remember(locale) {
         DateTimeFormatter.ofPattern("EEEE, MMM d", locale).format(java.time.LocalDate.now())
+    }
+
+    if (showBonusSheet) {
+        BonusSheet(onDismiss = { showBonusSheet = false }, onAdd = limitsViewModel::addBonus)
     }
 
     Box(modifier = Modifier.fillMaxSize().background(PeachPlum.colors.background), contentAlignment = Alignment.TopCenter) {
@@ -107,12 +120,29 @@ fun TodayScreen(
                     text = when {
                         mode == TvMode.Allow -> stringResource(R.string.today_mode_allow_caption)
                         noLimit -> stringResource(R.string.today_no_daily_limit)
+                        state.bonusMinutes > 0 -> stringResource(
+                            R.string.today_gauge_caption_bonus,
+                            formatHoursMinutesClock(state.overallDailyMinutes),
+                            formatHoursMinutesClock(state.bonusMinutes),
+                        )
                         else -> stringResource(R.string.today_gauge_caption, formatHoursMinutesClock(state.overallDailyMinutes))
                     },
                     style = PeachPlum.typography.caption,
                     color = PeachPlum.colors.inkMuted,
                     modifier = Modifier.fillMaxWidth(),
                 )
+            }
+            if (mode == TvMode.Limits && !noLimit) {
+                item {
+                    val running = overLimit || leftMinutes <= LOW_TIME_MINUTES
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                        if (running) {
+                            PeachPlumPrimaryButton(text = stringResource(R.string.bonus_add), onClick = { showBonusSheet = true })
+                        } else {
+                            PeachPlumGhostButton(text = stringResource(R.string.bonus_add), onClick = { showBonusSheet = true })
+                        }
+                    }
+                }
             }
             item {
                 Row(

@@ -22,6 +22,12 @@
     "enable": "הפעלה",
     "enabling": "מפעיל…"
   },
+  "updatePrompt": {
+    "title": "יצאה גרסה חדשה",
+    "body": "טענו מחדש כדי לקבל את התיקונים והתכונות האחרונים.",
+    "reload": "טעינה מחדש",
+    "later": "מאוחר יותר"
+  },
   "announcement": {
     "share": "שתפו את דעתכם",
     "later": "אולי אחר כך"
@@ -154,6 +160,7 @@
     "gaugeWordLeft": "נשארו",
     "gaugeWordOver": "נגמר",
     "gaugeCaption": "מתוך {{limit}} · מתאפס ב־00:00",
+    "gaugeCaptionBonus": "מתוך {{limit}} + {{bonus}} בונוס · מתאפס ב־00:00",
     "noDailyLimit": "אין מגבלה יומית",
     "noTvPaired": "לא מחוברת טלוויזיה",
     "requestTitle": "עוד {{minutes}} דקות ב-{{app}}?",
@@ -172,6 +179,14 @@
   "family": {
     "subtitle": "הורים וטלוויזיות",
     "secondParent": "הורה נוסף"
+  },
+  "bonus": {
+    "add": "הוספת זמן בונוס",
+    "addAction": "הוספת {{count}} דק׳",
+    "title": "הוספת זמן בונוס",
+    "subtitle": "זמן נוסף להיום בלבד. מגיע לטלוויזיה מיד.",
+    "custom": "מותאם אישית",
+    "customField": "דקות (1–{{max}})"
   },
   "unlock": {
     "chooseSubtitle": "הילד/ה מקליד/ה אותו בטלוויזיה. שימוש חד-פעמי.",

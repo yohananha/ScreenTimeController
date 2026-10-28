@@ -1,5 +1,8 @@
 /// <reference types="vite/client" />
 
+/** Per-build id injected by vite.config.ts; compared against /version.json. */
+declare const __BUILD_ID__: string;
+
 interface ImportMetaEnv {
   readonly VITE_FIREBASE_API_KEY: string;
   readonly VITE_FIREBASE_AUTH_DOMAIN: string;
