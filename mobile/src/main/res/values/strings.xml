@@ -332,6 +332,9 @@
     <string name="whats_new_v0_1_28_bullet_1">New \"Add bonus time\" button under the timer on Today: add 15, 30, 60 minutes or a custom amount for today only. It reaches the TV right away.</string>
     <string name="whats_new_v0_1_28_bullet_2">You\'ll now get a prompt when a new version of the app is available.</string>
     <string name="whats_new_v0_1_28_bullet_3">When a single app\'s limit is reached, the TV block screen now has a \"Go home\" button so nobody gets stuck.</string>
+    <string name="whats_new_v0_1_29_title">What\'s new</string>
+    <string name="whats_new_v0_1_29_bullet_1">Adding bonus time after the daily limit was already passed now really gives you that extra time, instead of it disappearing into the overage.</string>
+    <string name="whats_new_v0_1_29_bullet_2">On Android 14 TVs, if the accessibility service can\'t be turned on for a sideloaded install, the TV app now shows how to fix it.</string>
     <string name="whats_new_v0_1_22_title">What\'s new</string>
     <string name="whats_new_v0_1_22_bullet_1">Family invite codes are now 8 characters (like ABCD-2345), making them much harder to guess. Ask for a new code if you have an older 6-digit one.</string>
     <string name="whats_new_v0_1_22_bullet_2">Each TV now shows \"Protection on\" — or \"Not responding\" if the TV hasn\'t checked in for 15 minutes, so you\'ll know if screen-time protection was turned off.</string>
