@@ -309,6 +309,9 @@
     <string name="whats_new_v0_1_28_bullet_1">כפתור חדש \"הוספת זמן בונוס\" מתחת לשעון במסך היום: הוסיפו 15, 30, 60 דקות או כמות מותאמת אישית להיום בלבד. הזמן מגיע לטלוויזיה מיד.</string>
     <string name="whats_new_v0_1_28_bullet_2">מעכשיו תופיע הודעה כשזמינה גרסה חדשה של האפליקציה.</string>
     <string name="whats_new_v0_1_28_bullet_3">כשמגבלת הזמן של אפליקציה מסוימת מגיעה לסיומה, במסך החסימה בטלוויזיה יש עכשיו כפתור \"למסך הבית\", כך שאף אחד לא נתקע.</string>
+    <string name="whats_new_v0_1_29_title">מה חדש</string>
+    <string name="whats_new_v0_1_29_bullet_1">הוספת זמן בונוס אחרי שחרגתם מהמגבלה היומית מוסיפה עכשיו באמת את הזמן הנוסף, ולא נבלעת בחריגה.</string>
+    <string name="whats_new_v0_1_29_bullet_2">בטלוויזיות עם Android 14, אם לא ניתן להפעיל את שירות הנגישות בהתקנה ידנית, אפליקציית הטלוויזיה מציגה עכשיו כיצד לפתור זאת.</string>
     <string name="account_title">חשבון</string>
     <string name="account_sign_out">התנתקות</string>
     <string name="account_sign_out_title">להתנתק?</string>

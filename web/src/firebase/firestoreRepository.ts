@@ -37,7 +37,7 @@ import { FirebaseError } from 'firebase/app';
 import { httpsCallable } from 'firebase/functions';
 import { auth, db, functions } from './app';
 import type { AppLimit, Limits } from '../models/Limits';
-import { defaultLimits, DEFAULT_OVERALL_MINUTES } from '../models/Limits';
+import { defaultLimits, DEFAULT_OVERALL_MINUTES, UNLIMITED } from '../models/Limits';
 import type { DayOfWeek, TimeFrameSchedule, TimeFrameWindow } from '../models/TimeFrameSchedule';
 import { DEFAULT_TIME_FRAME_SCHEDULE } from '../models/TimeFrameSchedule';
 import type { LockoutMode, LockoutSettings } from '../models/LockoutSettings';
@@ -286,12 +286,20 @@ export async function addBonus(familyId: string, minutes: number): Promise<void>
   if (!uid) throw new Error('Not signed in');
   const today = localIsoDate();
   const ref = doc(db, 'families', familyId, 'limits', 'bonus');
+  const overallRef = doc(db, 'families', familyId, 'limits', 'overall');
+  const usageRef = doc(db, 'families', familyId, 'usage', today);
   const logRef = doc(collection(db, 'families', familyId, 'bonusLog'));
   await runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     const data = snap.data();
     const existing = data?.[FIELD_BONUS_DATE] === today ? ((data?.[FIELD_BONUS_MINUTES] as number | undefined) ?? 0) : 0;
-    tx.set(ref, { [FIELD_BONUS_DATE]: today, [FIELD_BONUS_MINUTES]: Math.min(existing + minutes, MAX_BONUS_MINUTES) });
+    const overallMinutes =
+      ((await tx.get(overallRef)).data()?.[FIELD_OVERALL_MINUTES] as number | undefined) ?? DEFAULT_OVERALL_MINUTES;
+    const perApp = ((await tx.get(usageRef)).data()?.[FIELD_PER_APP_MILLIS] as Record<string, number> | undefined) ?? {};
+    const usedMillis = Object.values(perApp).reduce((sum, v) => sum + (typeof v === 'number' ? v : 0), 0);
+    const overage =
+      overallMinutes === UNLIMITED ? 0 : Math.min(Math.max(Math.ceil(usedMillis / 60_000) - overallMinutes, 0), MAX_BONUS_MINUTES);
+    tx.set(ref, { [FIELD_BONUS_DATE]: today, [FIELD_BONUS_MINUTES]: Math.min(Math.max(existing, overage) + minutes, MAX_BONUS_MINUTES) });
     tx.set(logRef, { minutes, date: today, grantedBy: uid, createdAt: serverTimestamp() });
   });
 }

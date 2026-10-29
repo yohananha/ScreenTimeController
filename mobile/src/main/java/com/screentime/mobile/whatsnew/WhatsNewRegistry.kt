@@ -72,6 +72,14 @@ object WhatsNewRegistry {
                 R.string.whats_new_v0_1_28_bullet_3,
             ),
         ),
+        WhatsNewEntry(
+            versionName = "0.1.29",
+            titleRes = R.string.whats_new_v0_1_29_title,
+            bulletRes = listOf(
+                R.string.whats_new_v0_1_29_bullet_1,
+                R.string.whats_new_v0_1_29_bullet_2,
+            ),
+        ),
     )
 
     fun forVersion(versionName: String): WhatsNewEntry? = entries.find { it.versionName == versionName }
