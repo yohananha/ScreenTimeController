@@ -5,7 +5,13 @@ import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.screentime.shared.room.AppDatabase
 import com.screentime.shared.time.TrustedClock
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -26,6 +32,7 @@ class BonusStoreTest {
 
     private lateinit var db: AppDatabase
     private lateinit var store: BonusStore
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /** Trusted time the test controls; the device wall clock plays no part. */
     private val clock = object : TrustedClock {
@@ -39,10 +46,15 @@ class BonusStoreTest {
             ApplicationProvider.getApplicationContext(),
             AppDatabase::class.java,
         ).allowMainThreadQueries().build()
-        store = BonusStore(db, clock)
+        store = BonusStore(db, clock, scope)
     }
 
-    @After fun tearDown() = db.close()
+    // Let the store's background Room writes finish before the DB closes; a write
+    // hitting a closed DB leaked an uncaught exception into whichever test ran next.
+    @After fun tearDown() {
+        runBlocking { scope.coroutineContext[Job]!!.children.toList().joinAll() }
+        db.close()
+    }
 
     @Test fun `addBonus extends expiry from now`() = runTest {
         store.addBonus(60_000L)
