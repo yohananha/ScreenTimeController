@@ -140,6 +140,16 @@ The TV app asks for three permissions on first launch; all three are required fo
 | Draw over other apps (`SYSTEM_ALERT_WINDOW`) | Displays the block overlay on top of everything |
 | Accessibility service | Detects when a blocked app comes to the foreground |
 
+### Troubleshooting: accessibility toggle snaps back to Off
+
+On Android 13+ (seen on Android 14 TV), apps installed outside the Play Store are subject to *restricted settings*, which silently blocks enabling their accessibility service: the toggle flips back to Off with no error. Allow it once over adb, then enable the service again:
+
+```bash
+adb shell appops set com.screentime.tv ACCESS_RESTRICTED_SETTINGS allow
+```
+
+The TV app shows these instructions on the accessibility step if the service is still off after you return from Settings.
+
 ---
 
 ## Cloud Functions

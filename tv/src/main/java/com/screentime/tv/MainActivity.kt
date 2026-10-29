@@ -111,6 +111,7 @@ private fun RootScreen(familyVm: FamilyIdViewModel = hiltViewModel()) {
     val context = LocalContext.current
     var permissions by remember { mutableStateOf(PermissionState.read(context)) }
     val familyId by familyVm.familyId.collectAsState()
+    var openedAccessibilitySettings by remember { mutableStateOf(false) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(lifecycleOwner) {
@@ -155,7 +156,15 @@ private fun RootScreen(familyVm: FamilyIdViewModel = hiltViewModel()) {
                 headline = stringResource(R.string.permission_accessibility_headline),
                 body = stringResource(R.string.permission_accessibility_body),
                 primary = stringResource(R.string.permission_open_settings),
-                onPrimary = { openAccessibilitySettings(context) },
+                onPrimary = {
+                    openedAccessibilitySettings = true
+                    openAccessibilitySettings(context)
+                },
+                // Still off after a trip to Settings: on Android 13+ sideloaded
+                // installs hit "restricted settings", which snaps the toggle back.
+                hint = if (openedAccessibilitySettings) {
+                    stringResource(R.string.permission_accessibility_restricted_hint)
+                } else null,
             )
             familyId == null -> PairingScreen()
             else -> OperationalScreen()
@@ -309,6 +318,7 @@ private fun PermissionWall(
     body: String,
     primary: String,
     onPrimary: () -> Unit,
+    hint: String? = null,
 ) {
     TvCanvas(footerContext = stringResource(R.string.permission_step_of, stepCurrent, stepTotal)) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -336,6 +346,15 @@ private fun PermissionWall(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.widthIn(max = 1000.dp),
                 )
+                if (hint != null) {
+                    Text(
+                        hint,
+                        style = PeachPlum.typography.bodyLarge,
+                        color = PeachPlum.colors.primary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.widthIn(max = 1000.dp),
+                    )
+                }
                 TvStepDots(current = stepCurrent, total = stepTotal)
                 Row(horizontalArrangement = Arrangement.spacedBy(36.dp)) {
                     TvPrimaryButton(text = primary, onClick = onPrimary)
