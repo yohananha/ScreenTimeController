@@ -104,21 +104,34 @@ class FirestoreRepository @Inject constructor(
     }
 
     /**
-     * Adds [minutes] to today's allowance. Same-day grants accumulate; a bonus
-     * left over from an earlier date is replaced. Each grant is also logged so
-     * parents can see the history.
+     * Grants [minutes] of time left from now. Same-day grants accumulate; a
+     * bonus left over from an earlier date is replaced. When today's usage has
+     * already passed the overall limit (plus any bonus), the stored bonus also
+     * covers that overage — otherwise a small grant would vanish into it and
+     * nothing would change. Each grant is also logged so parents can see the
+     * history.
      */
     suspend fun addBonus(familyId: String, minutes: Int) {
         val today = clock.today().toString()
         val family = db.collection("families").document(familyId)
         val ref = family.collection("limits").document("bonus")
+        val overallRef = family.collection("limits").document("overall")
+        val usageRef = family.collection("usage").document(today)
         val logRef = family.collection("bonusLog").document()
         val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
             ?: error("Not signed in")
         db.runTransaction { tx ->
             val snap = tx.get(ref)
             val existing = if (snap.stringOrNull(FIELD_BONUS_DATE) == today) snap.intOrNull(FIELD_BONUS_MINUTES) ?: 0 else 0
-            tx.set(ref, mapOf(FIELD_BONUS_DATE to today, FIELD_BONUS_MINUTES to (existing + minutes).coerceAtMost(MAX_BONUS_MINUTES)))
+            val overallMinutes = tx.get(overallRef).intOrNull(FIELD_OVERALL_MINUTES) ?: Limits.DEFAULT_OVERALL_MINUTES
+            val usedMillis = (tx.get(usageRef).get(FIELD_PER_APP_MILLIS) as? Map<*, *>).orEmpty()
+                .values.sumOf { (it as? Number)?.toLong() ?: 0L }
+            val overage = if (overallMinutes == Limits.UNLIMITED) 0 else {
+                val usedMinutes = (usedMillis + 59_999L) / 60_000L
+                (usedMinutes - overallMinutes).coerceIn(0L, MAX_BONUS_MINUTES.toLong()).toInt()
+            }
+            val bonus = (maxOf(existing, overage) + minutes).coerceAtMost(MAX_BONUS_MINUTES)
+            tx.set(ref, mapOf(FIELD_BONUS_DATE to today, FIELD_BONUS_MINUTES to bonus))
             tx.set(
                 logRef,
                 mapOf(
