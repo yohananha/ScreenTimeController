@@ -30,12 +30,15 @@ import javax.inject.Singleton
  * loaded on startup and written asynchronously on every mutation.
  */
 @Singleton
-class BonusStore @Inject constructor(
+class BonusStore internal constructor(
     db: AppDatabase,
     private val clock: TrustedClock,
+    private val scope: CoroutineScope,
 ) {
+    @Inject constructor(db: AppDatabase, clock: TrustedClock) :
+        this(db, clock, CoroutineScope(SupervisorJob() + Dispatchers.IO))
+
     private val dao = db.bonusDao()
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val state = MutableStateFlow<Instant?>(null)
     val bonuses: StateFlow<Instant?> = state.asStateFlow()
 
