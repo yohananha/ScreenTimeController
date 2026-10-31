@@ -280,6 +280,7 @@
          localize a language's own name in its own picker. -->
     <string name="settings_language_en" translatable="false">English</string>
     <string name="settings_language_he" translatable="false">עברית</string>
+    <string name="settings_language_ru" translatable="false">Русский</string>
     <string name="settings_language_hint">Also sets the language on your paired TVs.</string>
     <string name="settings_notifications_title">Notifications</string>
     <string name="settings_notifications_hint">Get notified the moment a time request comes in from the TV.</string>
