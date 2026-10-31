@@ -11,7 +11,7 @@
  * divergence" note on per-token locale as a v2 follow-up).
  */
 
-export type Lang = "en" | "he";
+export type Lang = "en" | "he" | "ru";
 
 interface TimeRequestCopy {
   title: string;
@@ -27,9 +27,15 @@ export const PUSH_TIME_REQUEST: Record<Lang, TimeRequestCopy> = {
     title: "בקשת זמן",
     body: (minutes, appLabel) => `‎+${minutes} דק' עבור ${appLabel}`,
   },
+  ru: {
+    title: "Запрос времени",
+    body: (minutes, appLabel) => `+${minutes} мин для ${appLabel}`,
+  },
 };
 
-/** Anything other than the exact "he" tag falls back to English. */
+/** Only the exact "he" and "ru" tags are recognised; anything else falls back to English. */
 export function resolveLang(code: string | null | undefined): Lang {
-  return code === "he" ? "he" : "en";
+  if (code === "he") return "he";
+  if (code === "ru") return "ru";
+  return "en";
 }

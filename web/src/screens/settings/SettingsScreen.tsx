@@ -84,6 +84,7 @@ function LanguageSection({ current, onSelect }: { current: LangTag | null; onSel
     { tag: null, label: t('settings.languageSystem') },
     { tag: 'en', label: t('settings.languageEnglish') },
     { tag: 'he', label: t('settings.languageHebrew') },
+    { tag: 'ru', label: t('settings.languageRussian') },
   ];
   return (
     <div style={{ background: colors.surface, borderRadius: radius.card, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
