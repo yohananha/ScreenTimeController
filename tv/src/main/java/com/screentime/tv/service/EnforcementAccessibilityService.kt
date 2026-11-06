@@ -234,9 +234,13 @@ class EnforcementAccessibilityService : AccessibilityService() {
             return
         }
 
+        // A parent's same-day extra time also lifts the allowed-hours schedule
+        // (it still raises the daily caps below).
+        val bonusMinutesToday = limits.bonusFor(today)
+
         // Outside allowed hours — block even if daily quota hasn't been used.
         val now = trustedClock.localNow()
-        if (!limits.timeFrame.isAllowedAt(now)) {
+        if (bonusMinutesToday <= 0 && !limits.timeFrame.isAllowedAt(now)) {
             val nextLabel = limits.timeFrame.nextAllowedMinute(now)
                 ?.let { clockFormat.timeOfDay(it.toLocalTime()) }
             Log.d(TAG, "Eval $pkg: outside time-frame schedule, next=$nextLabel")
@@ -253,7 +257,7 @@ class EnforcementAccessibilityService : AccessibilityService() {
             ?: usageTracker.millisPerPackage(alwaysCount = limits.perApp.keys)
         val usedMillis = perPackage[pkg] ?: 0L
         // A parent's same-day bonus raises both caps (stale-dated bonus = 0).
-        val bonusMillis = limits.bonusFor(today) * 60_000L
+        val bonusMillis = bonusMinutesToday * 60_000L
         val perAppExceeded = perAppLimit != null &&
             usedMillis >= perAppLimit.dailyLimitMinutes * 60_000L + bonusMillis
 
