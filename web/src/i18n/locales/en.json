@@ -245,6 +245,7 @@
     "languageSystem": "Use device language",
     "languageEnglish": "English",
     "languageHebrew": "עברית",
+    "languageRussian": "Русский",
     "languageHint": "Also sets the language on your paired TVs.",
     "notifications": "Notifications",
     "notificationsHint": "Get notified the moment a time request comes in from the TV.",

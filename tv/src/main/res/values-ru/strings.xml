@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">Screen Time TV</string>
+    <string name="accessibility_service_description">Определяет, какое приложение сейчас на переднем плане, чтобы Screen Time мог блокировать приложения при достижении дневных лимитов.</string>
+
+    <!-- MainActivity.kt -->
+    <string name="permission_usage_headline">Короткая настройка</string>
+    <string name="permission_usage_body">ScreenTime нужен доступ к данным об использовании, чтобы видеть, какое приложение открыто, и вмешиваться только при достижении лимитов.</string>
+    <string name="permission_overlay_headline">Ещё одна настройка</string>
+    <string name="permission_overlay_body">ScreenTime нужно разрешение «Поверх других приложений», чтобы мягко напомнить, когда время вышло.</string>
+    <string name="permission_accessibility_headline">Почти готово!</string>
+    <string name="permission_accessibility_body">Включите службу специальных возможностей ScreenTime, чтобы приложение могло определять, какое приложение открыто, и вмешиваться только при необходимости. Если Android не открыл нужный экран сразу, найдите «ScreenTime» в разделе «Специальные возможности → Установленные службы».</string>
+    <string name="permission_accessibility_restricted_hint">Переключатель постоянно выключается? Android блокирует специальные возможности для приложений, установленных не из Google Play. На компьютере выполните:\nadb shell appops set com.screentime.tv ACCESS_RESTRICTED_SETTINGS allow\nзатем снова включите службу.</string>
+    <string name="permission_open_settings">Открыть настройки Android</string>
+    <string name="permission_why_needed">Зачем это нужно?</string>
+    <string name="permission_step_of">Шаг %1$d из %2$d</string>
+    <string name="operational_title">Всё готово!</string>
+    <string name="operational_body">ScreenTime работает в фоновом режиме. Мы появимся, только когда сработает лимит, — обещаем.</string>
+    <string name="update_check_button">Проверить обновления</string>
+    <string name="update_checking">Проверка…</string>
+    <string name="update_up_to_date">У вас последняя версия</string>
+    <string name="update_available">Доступна версия %1$s</string>
+    <string name="update_download_button">Скачать обновление</string>
+    <string name="update_downloading">Загрузка обновления…</string>
+    <string name="update_install_button">Установить обновление</string>
+    <string name="update_install_permission_needed">Разрешите ScreenTime устанавливать обновления, затем снова выберите «Установить»</string>
+    <string name="update_failed">Не удалось проверить обновления: %1$s</string>
+
+    <!-- ui/pairing/PairingScreen.kt -->
+    <string name="pairing_headline">Привязка к телефону родителя</string>
+    <string name="pairing_instructions">На телефоне: Семья → Привязать телевизор, затем введите этот код.</string>
+    <string name="pairing_generating_code">Создаём ваш код…</string>
+    <string name="pairing_waiting">Ожидание телефона…</string>
+    <string name="pairing_get_new_code">Получить новый код</string>
+    <string name="pairing_how_to_pair">Как привязать</string>
+
+    <!-- ui/components/TvSurfaces.kt -->
+    <string name="tv_remote_hint">◀ ▶ перемещение · OK выбор</string>
+    <string name="tv_remote_hint_keypad">◀ ▶ ▲ ▼ перемещение · OK выбор · ⌫ удалить</string>
+
+    <!-- ui/components/TvKeypad.kt -->
+    <string name="keypad_clear">C</string>
+
+    <!-- ui/BlockOverlayContent.kt -->
+    <string name="overlay_instant_locked_title">Телевизор заблокирован</string>
+    <string name="overlay_instant_locked_body">Родитель заблокировал телевизор в приложении ScreenTime. Попроси разблокировать его, когда понадобится.</string>
+
+    <string name="overlay_outside_hours_title">Сейчас время телевизора на паузе</string>
+    <string name="overlay_opens_again_at">Экранное время снова откроется в %1$s — потерпи немного!</string>
+    <string name="overlay_no_more_today">На сегодня экранного времени больше нет — до завтра!</string>
+
+    <!-- Two-tone headline: "На сегодня " + accent "хватит." -->
+    <string name="overlay_main_title">"На сегодня "</string>
+    <string name="overlay_main_title_accent">хватит.</string>
+    <string name="overlay_watched_today">%1$s · %2$s сегодня</string>
+    <string name="overlay_used_all_time">Попроси у родителей ещё немного времени или введи код, если тебе его дали.</string>
+    <string name="overlay_resets_midnight">Сброс в полночь · %1$s</string>
+    <string name="overlay_ask_parent_more_time">Попросить у родителя</string>
+    <string name="overlay_enter_unlock_code">Ввести код</string>
+    <string name="overlay_go_home">На главный экран</string>
+
+    <string name="overlay_request_time_title">Сколько ещё?</string>
+    <string name="overlay_request_time_body">Мы отправим короткий запрос на телефон родителя.</string>
+    <string name="overlay_request_15">Ещё 15 минут</string>
+    <string name="overlay_request_30">Ещё 30 минут</string>
+    <string name="overlay_request_other_amount">Другое количество</string>
+    <string name="overlay_maybe_later">Может, позже</string>
+
+    <string name="overlay_request_custom_title">Сколько минут?</string>
+    <string name="overlay_request_custom_body">От 1 до 240 минут. Мы отправим запрос на телефон родителя.</string>
+    <string name="overlay_pick_number_range">Выбери число от 1 до 240</string>
+    <string name="overlay_send_to_parent">Отправить родителю</string>
+
+    <string name="overlay_numpad_title">Введи код разблокировки</string>
+    <string name="overlay_numpad_body">Попроси родителя назвать его или посмотри на его телефоне.</string>
+    <plurals name="overlay_code_wrong">
+        <item quantity="one">Код не подошёл — осталась %d попытка</item>
+        <item quantity="few">Код не подошёл — осталось %d попытки</item>
+        <item quantity="many">Код не подошёл — осталось %d попыток</item>
+        <item quantity="other">Код не подошёл — осталось %d попытки</item>
+    </plurals>
+
+    <string name="overlay_waiting_title">Родителю отправлен запрос!</string>
+    <string name="overlay_waiting_body">Он только что получил уведомление. Подожди немного — или введи код, если тебе его дали.</string>
+    <string name="overlay_enter_code_instead">Ввести код вместо этого</string>
+    <string name="overlay_never_mind">Отмена</string>
+
+    <string name="overlay_approved_headline" tools:ignore="PluralsCandidate">Тебе добавили ещё %1$d мин!</string>
+    <string name="overlay_approved_headline_unknown">Тебе добавили время!</string>
+    <string name="overlay_approved_body">Используй его с умом — таймер снова запущен.</string>
+
+    <string name="overlay_unlocked_title">Код подошёл!</string>
+    <string name="overlay_unlocked_body">Лимит ненадолго приостановлен. Приятного просмотра!</string>
+
+    <string name="overlay_denied_title">Не сейчас</string>
+    <string name="overlay_denied_body">Родитель сказал «может, позже» — и это нормально. Всегда есть завтра.</string>
+    <string name="overlay_okay">Хорошо</string>
+
+    <string name="overlay_locked_parent_title">Попроси родителя разблокировать</string>
+    <string name="overlay_locked_timer_title">Давай сделаем небольшой перерыв</string>
+    <string name="overlay_locked_parent_body">Слишком много неверных кодов. Родителю нужно разблокировать телевизор в мобильном приложении.</string>
+    <!-- Deliberately no trailing punctuation: the countdown renders right after this. -->
+    <string name="overlay_locked_timer_body">Несколько неверных кодов подряд. Телевизор сам разблокируется через</string>
+    <string name="overlay_locked_ask_parent">Попросить родителя</string>
+
+    <string name="overlay_keep_watching">Продолжить просмотр</string>
+    <string name="overlay_cancel">Отмена</string>
+</resources>

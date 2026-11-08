@@ -2,21 +2,26 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import en from './locales/en.json';
 import he from './locales/he.json';
+import ru from './locales/ru.json';
 
-export type LangTag = 'en' | 'he';
+export type LangTag = 'en' | 'he' | 'ru';
 
 const STORAGE_KEY = 'screentime.lang';
 
 /** The phone/browser's own language, collapsed to what we support. */
 export function detectDeviceLang(): LangTag {
-  return typeof navigator !== 'undefined' && navigator.language.toLowerCase().startsWith('he') ? 'he' : 'en';
+  if (typeof navigator === 'undefined') return 'en';
+  const lang = navigator.language.toLowerCase();
+  if (lang.startsWith('he')) return 'he';
+  if (lang.startsWith('ru')) return 'ru';
+  return 'en';
 }
 
 /** The locally cached override, or null for "follow device" — mirrors AppCompat's autoStoreLocales. */
 export function getStoredLangOverride(): LangTag | null {
   if (typeof localStorage === 'undefined') return null;
   const stored = localStorage.getItem(STORAGE_KEY);
-  return stored === 'en' || stored === 'he' ? stored : null;
+  return stored === 'en' || stored === 'he' || stored === 'ru' ? stored : null;
 }
 
 /** null clears the override, going back to "follow device". */
@@ -29,7 +34,7 @@ export function setStoredLangOverride(tag: LangTag | null): void {
 void i18n
   .use(initReactI18next)
   .init({
-    resources: { en: { translation: en }, he: { translation: he } },
+    resources: { en: { translation: en }, he: { translation: he }, ru: { translation: ru } },
     lng: getStoredLangOverride() ?? detectDeviceLang(),
     fallbackLng: 'en',
     interpolation: { escapeValue: false },

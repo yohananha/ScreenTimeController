@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Generic actions shared between the mobile app and the TV overlay. -->
+    <string name="action_cancel">Отмена</string>
+    <string name="action_save">Сохранить</string>
+    <string name="action_remove">Удалить</string>
+    <string name="action_done">Готово</string>
+    <string name="action_back">Назад</string>
+    <string name="action_okay">Хорошо</string>
+
+    <!-- Duration / clock primitives -->
+    <string name="duration_h_m">%1$d ч %2$d мин</string>
+    <string name="duration_h">%1$d ч</string>
+    <string name="duration_m">%1$d мин</string>
+    <string name="duration_none">Без лимита</string>
+    <string name="duration_zero">0 мин</string>
+    <string name="countdown_m_s">%1$d:%2$02d</string>
+    <string name="clock_range">%1$s–%2$s</string>
+    <string name="list_separator">·</string>
+
+    <plurals name="minutes">
+        <item quantity="one">%d минута</item>
+        <item quantity="few">%d минуты</item>
+        <item quantity="many">%d минут</item>
+        <item quantity="other">%d минуты</item>
+    </plurals>
+    <plurals name="days">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дня</item>
+        <item quantity="many">%d дней</item>
+        <item quantity="other">%d дня</item>
+    </plurals>
+    <plurals name="apps">
+        <item quantity="one">%d приложение</item>
+        <item quantity="few">%d приложения</item>
+        <item quantity="many">%d приложений</item>
+        <item quantity="other">%d приложения</item>
+    </plurals>
+
+    <!-- Cloud Function / Firestore error mapping -->
+    <string name="error_generic">Что-то пошло не так.</string>
+    <string name="error_family_not_found">Семья не найдена.</string>
+    <string name="error_not_admin">Приглашать участников могут только администраторы.</string>
+    <string name="error_not_owner">Привязать телевизор может только владелец семьи.</string>
+    <string name="error_code_invalid">Неверный код.</string>
+    <string name="error_code_used">Этот код уже использован.</string>
+    <string name="error_code_expired">Срок действия кода истёк.</string>
+    <string name="error_code_invalid_or_expired">Неверный код или срок его действия истёк.</string>
+    <string name="error_tv_already_paired">Этот телевизор уже привязан к другой семье.</string>
+    <string name="error_device_not_paired">Устройство не привязано к этой семье.</string>
+    <string name="error_locked_out">Ввод кода заблокирован.</string>
+    <string name="error_rate_limited">Слишком много попыток. Повторите позже.</string>
+    <string name="error_signin_required">Требуется вход в аккаунт.</string>
+    <string name="error_permission_denied">У вас нет разрешения на это действие.</string>
+    <string name="error_network">Не удалось подключиться. Проверьте интернет-соединение и повторите попытку.</string>
+
+    <!-- Success/status messages -->
+    <string name="status_tv_paired">Телевизор привязан.</string>
+</resources>
